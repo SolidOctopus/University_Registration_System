@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}University Registration System{% endblock %}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: whitesmoke;
+            color: #333;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+            position: relative; 
+        }
+        header {
+            background-color: #08063f; 
+            color: #e8cd7d; 
+            padding-top: 20px;
+            min-height: 70px;
+            border-bottom: #e8cd7d 3px solid;
+            position: relative; 
+        }
+        header a {
+            color: #e8cd7d;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 16px;
+        }
+        ul {
+            padding: 0;
+            list-style: none;
+        }
+        li {
+            float: left;
+            display: inline;
+            padding: 0 20px;
+        }
+        nav {
+            float: right;
+            margin-top: 10px;
+        }
+        .home-button {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .course-table {
+            width: 50%;
+        }
+        .course-row {
+            margin-bottom: 200px; 
+        }
+        .course-row td {
+            padding-right: 20px; 
+        }
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #141242a1; 
+            border: 1.5px solid #e8cd7d;
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            cursor: pointer; 
+            text-decoration: none; 
+            color: whitesmoke; 
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .user-info img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .user-info:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div id="branding">
+                <h1><a href="{% url 'home' %}">University Registration System</a></h1>
+            </div>
+            <nav>
+                <ul>
+                    {% if request.path != '/login/' and request.path != '/register/' %}
+                        <li><a href="{% url 'home' %}">Home</a></li>
+                        <li><a href="{% url 'logout' %}">Logout</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </header>
+    {% if user.is_authenticated and request.path != '/login/' and request.path != '/register/' %}
+    <a href="{% url 'view_profile' %}" class="user-info"> 
+        {% if user.profile.profile_picture %}
+            <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture">
+        {% endif %}
+        <div>
+            <p>{{ user.first_name }} {{ user.last_name }}</p>
+        </div>
+    </a>
+    {% endif %}
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+</html>

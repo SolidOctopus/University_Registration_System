@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+        padding: 20px;
+    }
+    .box {
+        background: linear-gradient(135deg, #6e8efb, #7e77e3);
+        border: 1px solid #ddd;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        width: 200px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        text-decoration: none;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .box:hover {
+        transform: translateY(-10px) scale(1.05);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .box span {
+        font-weight: bold;
+        font-size: 18px;
+        margin-top: 10px;
+    }
+
+    .box-icon {
+        font-size: 40px;
+        margin-bottom: 10px;
+        transition: transform 0.3s;
+    }
+
+    .box:hover .box-icon {
+        transform: rotate(20deg);
+    }
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/kTcKP3cJp3AwP7DyeTy+ZPb/QM6kF6ih9VX3s5FjhG6FdjG5B0e0F8DOZd3QKnZhOjFpeGfQA4CFA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<h1>Welcome to the University Registration System</h1>
+<div class="container">
+    {% if user.is_authenticated %}
+        {% if user.profile.role == 'admin' %}
+            <a href="{% url 'student_list' %}" class="box">
+                <i class="fas fa-user-graduate box-icon"></i>
+                <span>Student List</span>
+            </a>
+            <a href="{% url 'course_list' %}" class="box">
+                <i class="fas fa-book box-icon"></i>
+                <span>Course List</span>
+            </a>
+            <a href="{% url 'professor_list' %}" class="box">
+                <i class="fas fa-chalkboard-teacher box-icon"></i>
+                <span>Professor List</span>
+            </a>
+            <a href="{% url 'admin_list' %}" class="box">
+                <i class="fas fa-user-cog box-icon"></i>
+                <span>Admin List</span>
+            </a>
+        {% elif user.profile.role == 'student' %}
+            <a href="{% url 'available_courses' %}" class="box">
+                <i class="fas fa-list-alt box-icon"></i>
+                <span>Student Available Courses</span>
+            </a>
+            <a href="{% url 'student_schedule' %}" class="box">
+                <i class="fas fa-calendar-alt box-icon"></i>
+                <span>Student Schedule</span>
+            </a>
+        {% elif user.profile.role == 'professor' %}
+            <a href="{% url 'manage_classes' %}" class="box">
+                <i class="fas fa-calendar-check box-icon"></i>
+                <span>Manage Classes</span>
+            </a>
+        {% endif %}
+    {% else %}
+        <p>Please <a href="{% url 'login' %}">log in</a> or <a href="{% url 'register' %}">register</a> to continue.</p>
+    {% endif %}
+</div>
+{% endblock %}

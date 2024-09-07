@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="header">
+    <h2>Student List</h2>
+    <a href="{% url 'student_register' %}" class="add-student-link">Add New Student</a>
+</div>
+
+<div class="search-container">
+    <form method="GET" action="{% url 'student_list' %}">
+        <input type="text" name="q" value="{{ query|default_if_none:'' }}" placeholder="Search by name, email, or ID...">
+        <button type="submit">Search</button>
+    </form>
+</div>
+
+<style>
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .search-container {
+        margin: 20px 0;
+    }
+    .search-container input[type="text"] {
+        padding: 5px;
+        width: 200px;
+        border-radius: 3px;
+        border: 1px solid #ccc;
+    }
+    .search-container button {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 3px;
+        background-color: #08063f;
+        color: #e8cd7d;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .search-container button:hover {
+        background-color: #e8cd7d;
+        color: #08063f;
+    }
+    .student-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    .student-table th, .student-table td {
+        padding: 10px;
+        text-align: left;
+        border: none; 
+    }
+    .student-table th {
+        background-color: #08063f;
+        color: #e8cd7d;
+    }
+    .student-table td a {
+        color: #08063f;
+        text-decoration: none;
+    }
+    .add-student-link {
+        background-color: #e8cd7d;
+        padding: 5px 10px;
+        border-radius: 3px;
+        text-decoration: none;
+        color: black;
+        font-weight: bold;
+        border: 2px solid black;
+    }
+    .profile-pic {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 10px;
+    }
+    .student-name {
+        display: flex;
+        align-items: center;
+    }
+    .student-no-pic {
+        margin-left: 60px; 
+    }
+    .student-table tr:nth-child(even) {
+        background-color: #f2f2f2; 
+    }
+    .student-table tr:nth-child(odd) {
+        background-color: #ffffff; 
+    }
+    .actions-column {
+        width: 150px; 
+    }
+</style>
+
+<table class="student-table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>ID</th>
+            <th class="actions-column">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for student in students %}
+        <tr>
+            <td class="student-name">
+                {% if student.user.profile.profile_picture %}
+                    <img src="{{ student.user.profile.profile_picture.url }}" alt="Profile Picture" class="profile-pic">
+                {% endif %}
+                <span class="{% if not student.user.profile.profile_picture %}student-no-pic{% endif %}">{{ student.first_name }} {{ student.last_name }}</span>
+            </td>
+            <td>{{ student.email }}</td>
+            <td>{{ student.user.profile.id_number }}</td>
+            <td>
+                <a href="{% url 'student_update' student.pk %}">Edit</a> |
+                <a href="{% url 'student_delete' student.pk %}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

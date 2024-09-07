@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ user.first_name }} {{ user.last_name }}</h2>
+
+{% if user.profile %}
+    {% if user.profile.profile_picture %}
+        <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" width="200" height="200">
+    {% else %}
+        <p>No profile picture available.</p>
+    {% endif %}
+    <p><strong>Email:</strong> {{ user.email }}</p>
+    <p><strong>ID Number:</strong> {{ user.profile.id_number }}</p>
+    <p><strong>Bio:</strong> {{ user.profile.bio }}</p>
+{% else %}
+    <p>No profile information available.</p>
+{% endif %}
+{% if user.professor %}
+    <p><strong>Courses:</strong></p>
+    <ul>
+        {% for course in user.professor.courses.all %}
+        <li>{{ course.name }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+{% endblock %}
+
+

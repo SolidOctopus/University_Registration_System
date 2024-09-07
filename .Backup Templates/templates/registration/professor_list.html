@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Professor List</h1>
+<ul>
+    {% for professor in professors %}
+        <li>{{ professor.first_name }} {{ professor.last_name }} - {{ professor.email }} 
+            <a href="{% url 'edit_professor' professor.id %}">Edit</a>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}

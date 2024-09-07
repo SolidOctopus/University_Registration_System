@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Student Detail</h2>
+<table>
+    <tr>
+        <th>ID</th>
+        <td>{{ student.id }}</td>
+    </tr>
+    <tr>
+        <th>First Name</th>
+        <td>{{ student.first_name }}</td>
+    </tr>
+    <tr>
+        <th>Last Name</th>
+        <td>{{ student.last_name }}</td>
+    </tr>
+    <tr>
+        <th>Email</th>
+        <td>{{ student.email }}</td>
+    </tr>
+    <tr>
+        <th>Role</th>
+        <td>{{ student.role }}</td>
+    </tr>
+</table>
+<a href="{% url 'student_list' %}">Back to Student List</a>
+{% endblock %}

@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .tab-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+    .tab-buttons {
+        display: flex;
+        cursor: pointer;
+    }
+    .tab-buttons div {
+        flex-grow: 1;
+        padding: 10px 20px;
+        background-color: #d3d3d3; 
+        text-align: center;
+        color: #333;
+        border: none; 
+        box-sizing: border-box; 
+    }
+    .tab-buttons div.active {
+        background-color: #08063f;
+        color: #e8cd7d;
+    }
+    .tab-content {
+        padding: 20px;
+        display: none;
+        min-height: 200px; 
+    }
+    .tab-content.active {
+        display: block;
+    }
+    .student-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    .student-table th, .student-table td {
+        padding: 10px;
+        text-align: left;
+        border: none; 
+    }
+    .student-table th {
+        background-color: #08063f;
+        color: #e8cd7d;
+    }
+    .student-table td a {
+        color: #08063f;
+        text-decoration: none;
+    }
+    .profile-pic {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 10px;
+    }
+    .student-name {
+        display: flex;
+        align-items: center;
+    }
+    .student-no-pic {
+        margin-left: 60px; 
+    }
+    .student-table tr:nth-child(even) {
+        background-color: #f2f2f2; 
+    }
+    .student-table tr:nth-child(odd) {
+        background-color: #ffffff; 
+    }
+    .tab-buttons div:not(:last-child) {
+        margin-right: 2px; 
+    }
+    .search-container {
+        margin: 20px 0;
+    }
+    .search-container input[type="text"] {
+        padding: 5px;
+        width: 200px;
+        border-radius: 3px;
+        border: 1px solid #ccc;
+    }
+    .search-container button {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 3px;
+        background-color: #08063f;
+        color: #e8cd7d;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .search-container button:hover {
+        background-color: #e8cd7d;
+        color: #08063f;
+    }
+</style>
+
+<div class="tab-container">
+    <div class="tab-buttons">
+        <div class="tab-button active" onclick="openTab(event, 'meeting-info')">Meeting Information</div>
+        <div class="tab-button" onclick="openTab(event, 'class-description')">Class Description</div>
+        <div class="tab-button" onclick="openTab(event, 'class-details')">Class Details</div>
+        <div class="tab-button" onclick="openTab(event, 'class-availability')">Availability</div>
+    </div>
+
+    <div id="meeting-info" class="tab-content active">
+        <h2>{{ course.name }}</h2>
+        <p><strong>Meeting Dates:</strong> {{ course.start_date }} - {{ course.end_date }}</p>
+        <p><strong>Days:</strong> {{ course.days }}</p>
+        <p><strong>Times:</strong> {{ course.start_time }} - {{ course.end_time }}</p>
+        <p><strong>Location:</strong> {{ course.location }}</p>
+    </div>
+
+    <div id="class-description" class="tab-content">
+        <h3>Class Description</h3>
+        <p>{{ course.description }}</p>
+    </div>
+
+    <div id="class-details" class="tab-content">
+        <h3>Class Details</h3>
+        <p><strong>Professor:</strong> {{ course.professor.first_name }} {{ course.professor.last_name }}</p>
+        <p><strong>Session Type:</strong> {{ course.session_type }}</p>
+        <p><strong>Credits:</strong> {{ course.credits }}</p>
+    </div>
+
+    <div id="class-availability" class="tab-content">
+        <h3>Availability</h3>
+        <p><strong>Capacity:</strong> {{ course.capacity }}</p>
+        <p><strong>Available Seats:</strong> {{ course.available_seats }}</p>
+    </div>
+</div>
+
+<h3 class="enrolled-students" style="margin-top: 20px;">Enrolled Students</h3>
+<div class="search-container">
+    <form method="GET" action="{% url 'course_detail' course.pk %}">
+        <input type="text" name="q" value="{{ query|default_if_none:'' }}" placeholder="Search by name, email, or ID...">
+        <button type="submit">Search</button>
+    </form>
+</div>
+<table class="student-table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Grade</th>
+            <th>Profile</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for student, grade in students %}
+        <tr>
+            <td class="student-name">
+                {% if student.user.profile.profile_picture %}
+                    <img src="{{ student.user.profile.profile_picture.url }}" alt="Profile Picture" class="profile-pic">
+                {% endif %}
+                <span class="{% if not student.user.profile.profile_picture %}student-no-pic{% endif %}">{{ student.first_name }} {{ student.last_name }}</span>
+            </td>
+            <td>{{ student.email }}</td>
+            <td>{{ grade }}</td>
+            <td><a href="{% url 'view_user_profile' student.pk %}">View Profile</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    function openTab(evt, tabId) {
+        var i, tabcontent, tabbuttons;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+            tabcontent[i].classList.remove("active");
+        }
+        tabbuttons = document.getElementsByClassName("tab-button");
+        for (i = 0; i < tabbuttons.length; i++) {
+            tabbuttons[i].classList.remove("active");
+            tabbuttons[i].style.backgroundColor = "#d3d3d3"; 
+        }
+        document.getElementById(tabId).style.display = "block";
+        document.getElementById(tabId).classList.add("active");
+        evt.currentTarget.classList.add("active");
+        evt.currentTarget.style.backgroundColor = "#08063f"; 
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelector(".tab-button").click();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,41 @@
+
+---Basic stuff---
+*Double check Classes's having functional capacity, days, times and location.  
+
+*Make a registry of all the classes a student has to take and have taken
+	
+*Add majors to students
+	
+*User messaging each other - Inbox system
+
+*Professors should be able to complete/finish their courses from their course page
+	The completed class must show up in the sutdent's record.
+
+*A better graph for the student schedule
+
+
+
+
+
+---Crazy shit----
+
+*Add a shopping card system (it must check for overlapping classes in schedule)
+	When searching for classes it can be searched by majors	
+	When searching for classes the students should have their schedule clearly visible
+
+*Add prerequisites and co-requisites
+
+*Forgot my password function.
+
+
+*Add advisors?
+*Dark mode?
+*New project name?
+
+
+---The canvas 2.0----
+
+Classes must have Announcements, Assignments, Grades
+
+
+

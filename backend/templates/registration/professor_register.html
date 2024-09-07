@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="page-title">Register Professor</h1>
+<form method="post" class="student-form" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-group">
+        {{ form.first_name.label_tag }}<br>
+        {{ form.first_name }}
+    </div>
+    <div class="form-group">
+        {{ form.last_name.label_tag }}<br>
+        {{ form.last_name }}
+    </div>
+    <div class="form-group">
+        {{ form.username.label_tag }}<br>
+        {{ form.username }}
+    </div>
+    <div class="form-group">
+        {{ form.email.label_tag }}<br>
+        {{ form.email }}
+    </div>
+    <div class="form-group">
+        {{ form.id_number.label_tag }}<br>
+        {{ form.id_number }}
+    </div>
+    <div class="form-group">
+        {{ form.password1.label_tag }}<br>
+        {{ form.password1 }}
+    </div>
+    <div class="form-group">
+        {{ form.password2.label_tag }}<br>
+        {{ form.password2 }}
+    </div>
+    <button type="submit" class="btn btn-primary">Register</button>
+</form>
+
+<style>
+    .page-title {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #08063f;
+    }
+    .student-form {
+        width: 60%;
+        margin: auto;
+        background-color: whitesmoke;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .student-form .form-group {
+        margin-bottom: 15px;
+    }
+    .student-form label {
+        display: block;
+        font-weight: bold;
+        color: #08063f;
+        margin-bottom: 5px;
+    }
+    .student-form input,
+    .student-form textarea,
+    .student-form select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .student-form button.btn {
+        background-color: #08063f;
+        color: #e8cd7d;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    .student-form button.btn:hover {
+        background-color: #333;
+    }
+</style>
+{% endblock %}
+

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="page-title">Are you sure you want to delete {{ professor }}?</h1>
+<div class="confirm-delete-container">
+    <form method="post" class="delete-form">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, delete</button>
+    </form>
+    <a href="{% url 'professor_list' %}" class="btn btn-secondary">Cancel</a>
+</div>
+
+<style>
+    .page-title {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #08063f;
+    }
+    .confirm-delete-container {
+        width: 60%;
+        margin: auto;
+        background-color: whitesmoke;
+        padding: 20px;
+
+        text-align: center;
+    }
+    .delete-form {
+        display: inline-block;
+        margin-right: 10px;
+    }
+    .btn {
+        display: inline-block;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        text-decoration: none;
+        color: white;
+    }
+    .btn-danger {
+        background-color: #d9534f;
+        border: none;
+    }
+    .btn-danger:hover {
+        background-color: #c9302c;
+    }
+    .btn-secondary {
+        background-color: #5bc0de;
+        border: none;
+    }
+    .btn-secondary:hover {
+        background-color: #31b0d5;
+    }
+</style>
+{% endblock %}

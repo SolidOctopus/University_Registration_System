@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <img src="{% if user_profile.profile_picture %}{{ user_profile.profile_picture.url }}{% else %}https://via.placeholder.com/150{% endif %}" alt="Profile Picture" class="profile-picture">
+        <div class="profile-info">
+            <h1>{{ user_profile.user.first_name }} {{ user_profile.user.last_name }}</h1>
+        </div>
+        <a href="{% url 'edit_profile' %}" class="btn-edit-profile">Edit Profile</a>
+    </div>
+    <div class="profile-details">
+        <div class="profile-detail">
+            <h2>Email</h2>
+            <p>{{ user_profile.user.email }}</p>
+        </div>
+        <div class="profile-detail">
+            <h2>Role</h2>
+            <p>{{ user_profile.role }}</p>
+        </div>
+        <div class="profile-detail">
+            <h2>ID Number</h2>
+            <p>{{ user_profile.id_number }}</p>
+        </div>
+        <div class="profile-detail">
+            <h2>Biography</h2>
+            <p>{{ user_profile.bio|default:"No biography available." }}</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-container {
+        width: 60%;
+        margin: auto;
+        padding: 20px;
+        text-align: left;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        font-family: Arial, sans-serif;
+    }
+    .profile-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        position: relative;
+    }
+    .profile-picture {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        margin-right: 20px;
+    }
+    .profile-info {
+        flex: 1;
+    }
+    .profile-info h1 {
+        margin: 0;
+        font-size: 2.5em;
+        color: #333;
+    }
+    .btn-edit-profile {
+        position: absolute;
+        top: 0;
+        right: 0;
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+    }
+    .btn-edit-profile:hover {
+        background-color: #0056b3;
+    }
+    .profile-details {
+        margin-top: 20px;
+        margin-left: 170px;
+    }
+    .profile-detail {
+        width: 100%;
+    }
+    .profile-detail h2 {
+        font-size: 1.5em;
+        color: #333;
+        margin-bottom: 10px;
+    }
+    .profile-detail p {
+        font-size: 1.2em;
+        color: #666;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
