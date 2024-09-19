@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Settings</h1>
+<form method="post">
+    {% csrf_token %}
+    
+    <div class="form-group">
+        <label for="dark_mode">Enable Dark Mode</label>
+        <input type="checkbox" name="dark_mode" id="dark_mode" {% if settings.dark_mode %}checked{% endif %}>
+    </div>
+    
+    <div class="form-group">
+        <label for="font_size">Font Size</label>
+        <select name="font_size" id="font_size">
+            <option value="small" {% if settings.font_size == "small" %}selected{% endif %}>Small</option>
+            <option value="medium" {% if settings.font_size == "medium" %}selected{% endif %}>Medium</option>
+            <option value="large" {% if settings.font_size == "large" %}selected{% endif %}>Large</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label for="ui_preset">UI Preset</label>
+        <select name="ui_preset" id="ui_preset">
+            <option value="classic" {% if settings.ui_preset == "classic" %}selected{% endif %}>Classic</option>
+            <option value="modern" {% if settings.ui_preset == "modern" %}selected{% endif %}>Modern</option>
+            <option value="minimal" {% if settings.ui_preset == "minimal" %}selected{% endif %}>Minimal</option>
+        </select>
+    </div>
+    
+    <button type="submit">Save Settings</button>
+</form>
+{% endblock %}

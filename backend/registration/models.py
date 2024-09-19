@@ -102,6 +102,10 @@ class Profile(models.Model):
     email = models.EmailField()
     bio = models.TextField(blank=True, default='')
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, default='')
-
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    dark_mode = models.BooleanField(default=False)
+    font_size = models.CharField(max_length=10, default='medium')
+    ui_preset = models.CharField(max_length=20, default='classic')
+    
     def __str__(self):
         return self.user.username

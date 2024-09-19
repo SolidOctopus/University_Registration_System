@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1>Dashboard</h1>
+    <p>This is your blank dashboard. Content will be added later.</p>
+</div>
+
+<!-- Left icons for courses, group projects, profile, grades, announcements, messages, help, and resources -->
+<div class="left-icons">
+    <div class="icon courses-icon" id="courses-icon" title="Courses">
+        📚
+    </div>
+    <div class="icon projects-icon" id="projects-icon" title="Group Projects">
+        👥
+    </div>
+    <div class="icon grades-icon" id="grades-icon" title="Grades">
+        📊
+    </div>
+    <div class="icon announcements-icon" id="announcements-icon" title="Announcements">
+        🔔
+    </div>
+    <div class="icon messages-icon" id="messages-icon" title="Messages">
+        💬
+    </div>
+    <div class="icon help-icon" id="help-icon" title="Help">
+        ❓
+    </div>
+    <div class="icon resources-icon" id="resources-icon" title="Resources">
+        📚
+    </div>
+</div>
+
+<!-- Sidebars -->
+<div id="courses-sidebar" class="sidebar-left">
+    <div class="sidebar-content">
+        <h3>Your Courses</h3>
+        {% for course in courses %}
+        <a href="#">{{ course.name }}</a>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="projects-sidebar" class="sidebar-left">
+    <div class="sidebar-content">
+        <h3>Group Projects</h3>
+        {% for project in group_projects %}
+        <a href="#">{{ project.name }}</a>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="grades-sidebar" class="sidebar-left">
+    <div class="sidebar-content">
+        <h3>Your Grades</h3>
+        {% for course in courses %}
+        <p>{{ course.name }}: {{ course.grade }}</p>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="announcements-sidebar" class="sidebar-left">
+    <div class="sidebar-content">
+        <h3>Announcements</h3>
+        {% for announcement in announcements %}
+        <p>{{ announcement.title }}: {{ announcement.details }}</p>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="messages-sidebar" class="sidebar-left">
+    <div class="sidebar-content">
+        <h3>Messages</h3>
+        {% for message in messages %}
+        <p>{{ message.sender }}: {{ message.content }}</p>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="help-sidebar" class="sidebar-left">
+    <div class="sidebar-content">
+        <h3>Help / Support</h3>
+        <p>For help, contact support at: support@university.com</p>
+        <a href="/support-docs">Support Docs</a>
+    </div>
+</div>
+
+<div id="resources-sidebar" class="sidebar-left">
+    <div class="sidebar-content">
+        <h3>Resources</h3>
+        <a href="#">Library Resources</a>
+        <a href="#">Study Materials</a>
+        <a href="#">Research Papers</a>
+    </div>
+</div>
+
+<style>
+    .dashboard-container {
+        padding: 20px;
+        text-align: center;
+    }
+
+    .left-icons {
+        position: fixed;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .icon {
+        background: none;
+        padding: 0;
+        border: none;
+        font-size: 40px;
+        color: #08063f;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+    .icon:hover {
+        transform: scale(1.5);
+    }
+
+    .icon:not(:hover) {
+        transform: scale(0.8);
+    }
+
+    .sidebar-left {
+        height: 100%;
+        width: 0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        background-color: rgba(51, 51, 51, 0.85);
+        overflow-x: hidden;
+        transition: width 0.3s;
+        z-index: 1000;
+        padding-top: 60px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        border-radius: 0 20px 20px 0;
+        backdrop-filter: blur(5px);
+    }
+
+    .sidebar-content {
+        padding: 15px;
+        color: #e8cd7d;
+    }
+</style>
+
+<script>
+    function handleSidebar(iconId, sidebarId) {
+        const icon = document.getElementById(iconId);
+        const sidebar = document.getElementById(sidebarId);
+
+        icon.addEventListener("click", function () {
+            sidebar.style.width = "250px";
+        });
+
+        sidebar.addEventListener("mouseleave", function () {
+            sidebar.style.width = "0";  // Close automatically when mouse moves away
+        });
+    }
+
+    // Left sidebars
+    handleSidebar("courses-icon", "courses-sidebar");
+    handleSidebar("projects-icon", "projects-sidebar");
+    handleSidebar("grades-icon", "grades-sidebar");
+    handleSidebar("announcements-icon", "announcements-sidebar");
+    handleSidebar("messages-icon", "messages-sidebar");
+    handleSidebar("help-icon", "help-sidebar");
+    handleSidebar("resources-icon", "resources-sidebar");
+</script>
+
+{% endblock %}
