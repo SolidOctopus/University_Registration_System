@@ -4,118 +4,316 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}University Registration System{% endblock %}</title>
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
+            font-size: 1em;
             background-color: whitesmoke;
             color: #333;
+            overflow-x: hidden;
+            transition: filter 0.3s ease;
         }
-        .container {
-            width: 80%;
-            margin: auto;
-            overflow: hidden;
-            position: relative; 
+
+        /* Top Bar Container (Holds everything) */
+        .topbar-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            position: relative;
+            background-color: transparent;
         }
+
+        /* Notch header */
         header {
-            background-color: #08063f; 
-            color: #e8cd7d; 
-            padding-top: 20px;
-            min-height: 70px;
-            border-bottom: #e8cd7d 3px solid;
-            position: relative; 
+            background-color: #08063f;
+            color: #e8cd7d;
+            padding: 20px;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+            height: 80px;
+            width: 70%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        header a {
+
+        #branding {
+            margin-left: 20px;
+        }
+
+        #branding h1 a {
             color: #e8cd7d;
             text-decoration: none;
-            text-transform: uppercase;
-            font-size: 16px;
+            font-size: 24px;
+            font-family: 'Helvetica', sans-serif;
         }
-        ul {
-            padding: 0;
+
+        /* Navigation Buttons inside the Notch */
+        nav ul {
+            display: flex;
             list-style: none;
+            gap: 10px;
+            margin-right: 20px;
         }
-        li {
-            float: left;
-            display: inline;
-            padding: 0 20px;
+
+        nav ul li a {
+            color: #e8cd7d;
+            background-color: #333;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
         }
-        nav {
-            float: right;
-            margin-top: 10px;
+
+        nav ul li a:hover {
+            background-color: #e8cd7d;
+            color: #08063f;
         }
-        .home-button {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-        }
-        .course-table {
-            width: 50%;
-        }
-        .course-row {
-            margin-bottom: 200px; 
-        }
-        .course-row td {
-            padding-right: 20px; 
-        }
-        .user-info {
+
+        /* Top-right Profile and Settings Icons */
+        .top-right-icons {
             position: absolute;
             top: 20px;
             right: 20px;
-            background: #141242a1; 
-            border: 1.5px solid #e8cd7d;
-            border-radius: 10px;
-            padding: 10px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .icon {
+            cursor: pointer;
+            font-size: 3em; /* Reduced icon size */
+            color: #e8cd7d;
+            transition: transform 0.3s ease;
+        }
+
+        /* Gray color for settings icon */
+        .settings-icon {
+            color: gray;
+        }
+
+        .icon:hover {
+            transform: scale(1.4);
+        }
+
+        .icon:hover ~ .icon {
+            transform: scale(0.8);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            right: 0;
+            background-color: #333;
+            overflow-x: hidden;
+            transition: 0.3s;
+            padding-top: 60px;
+            box-shadow: -4px 0 12px rgba(0, 0, 0, 0.5);
+            border-radius: 20px 0 0 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar-content {
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            color: #e8cd7d;
+        }
+
+        .sidebar-content h3 {
+            margin-bottom: 15px;
+            color: #e8cd7d;
+            font-size: 20px;
+        }
+
+        .sidebar-content a, .sidebar-content label {
+            padding: 8px 0;
+            text-decoration: none;
+            font-size: 18px;
+            color: #e8cd7d;
             display: flex;
             align-items: center;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-            cursor: pointer; 
-            text-decoration: none; 
-            color: whitesmoke; 
-            transition: transform 0.3s, box-shadow 0.3s;
+            gap: 10px;
+            transition: 0.3s;
         }
-        .user-info img {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            margin-right: 10px;
+
+        .sidebar-content a i, .sidebar-content label i {
+            font-size: 1.2em;
         }
-        .user-info:hover {
-            transform: translateY(-10px) scale(1.05);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+
+        .sidebar-content a:hover {
+            color: #f1f1f1;
+        }
+
+        .sidebar-content select {
+            background-color: #333;
+            color: #e8cd7d;
+            border: none;
+            padding: 10px;
+            font-size: 1em;
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        /* Blur Overlay */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            transition: 0.3s;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        .blurred #main-content, .blurred header {
+            filter: blur(8px);
+            pointer-events: none;
+        }
+
+        /* Main Content */
+        .container-main {
+            padding: 50px 20px;
+        }
+
+        @media (max-width: 768px) {
+            nav ul {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            nav ul li {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+
+        /* Sidebar Scrolling */
+        .sidebar-content {
+            max-height: 80vh;
+            overflow-y: auto;
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
+
+    <div class="topbar-container">
+        <!-- Notch header -->
+        <header>
             <div id="branding">
                 <h1><a href="{% url 'home' %}">University Registration System</a></h1>
             </div>
             <nav>
                 <ul>
                     {% if request.path != '/login/' and request.path != '/register/' %}
-                        <li><a href="{% url 'home' %}">Home</a></li>
-                        <li><a href="{% url 'logout' %}">Logout</a></li>
+                        <li><a href="{% url 'home' %}"><i class="fas fa-home"></i>Home</a></li>
+                        <li><a href="{% url 'dashboard' %}"><i class="fas fa-tachometer-alt"></i>Dashboard</a></li>
+                        <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
                     {% endif %}
                 </ul>
             </nav>
+        </header>
+
+        <!-- Top-right Icons for Profile and Settings -->
+        <div class="top-right-icons">
+            <!-- Profile Icon -->
+            <a href="{% url 'view_profile' %}" class="icon" title="Profile">
+                {% if user.profile.profile_picture %}
+                    <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">
+                {% else %}
+                    <i class="fas fa-user-circle"></i>
+                {% endif %}
+            </a>
+            <!-- Settings Icon -->
+            <div class="icon settings-icon" id="settings-icon" title="Settings">
+                <i class="fas fa-cog"></i>
+            </div>
         </div>
-    </header>
-    {% if user.is_authenticated and request.path != '/login/' and request.path != '/register/' %}
-    <a href="{% url 'view_profile' %}" class="user-info"> 
-        {% if user.profile.profile_picture %}
-            <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture">
-        {% endif %}
-        <div>
-            <p>{{ user.first_name }} {{ user.last_name }}</p>
+    </div>
+
+    <!-- Settings Sidebar -->
+    <div id="settings-sidebar" class="sidebar">
+        <div class="sidebar-content">
+            <h3>Settings</h3>
+            <a href="#"><i class="fas fa-adjust"></i> Enable Dark Mode</a>
+            <a href="#"><i class="fas fa-text-height"></i> Font Size</a>
+            <label for="language"><i class="fas fa-globe"></i> Language</label>
+            <select id="language" name="language">
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+            </select>
+            <a href="#"><i class="fas fa-volume-up"></i> Sound Settings</a>
+            <a href="#"><i class="fas fa-bell"></i> Notifications</a>
         </div>
-    </a>
-    {% endif %}
-    <div class="container">
+    </div>
+
+    <!-- Main content -->
+    <div class="container-main" id="main-content">
         {% block content %}
         {% endblock %}
     </div>
+
+    <div id="overlay" class="overlay"></div>
+
+    <script>
+        const settingsIcon = document.getElementById("settings-icon");
+        const settingsSidebar = document.getElementById("settings-sidebar");
+        let isMouseNearSidebar = false;
+
+        settingsIcon.addEventListener("click", function () {
+            settingsSidebar.style.width = "250px";
+            document.getElementById("overlay").classList.add('active');
+            document.body.classList.add('blurred');
+        });
+
+        settingsSidebar.addEventListener("mousemove", function (e) {
+            if (e.clientX < window.innerWidth - 250) {
+                isMouseNearSidebar = false;
+            } else {
+                isMouseNearSidebar = true;
+            }
+        });
+
+        document.addEventListener("mousemove", function (e) {
+            // Adjust the distance to 5 cm approximately (50px = 1.25 cm)
+            if (e.clientX < window.innerWidth - 350 && !isMouseNearSidebar) {
+                closeNav();
+            }
+        });
+
+        function closeNav() {
+            settingsSidebar.style.width = "0";
+            document.getElementById("overlay").classList.remove('active');
+            document.body.classList.remove('blurred');
+        }
+
+        document.getElementById("overlay").addEventListener("click", function () {
+            closeNav();
+        });
+    </script>
 </body>
 </html>

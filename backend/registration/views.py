@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db import transaction, IntegrityError
 from django.db.models import Q
+from django.contrib.auth.decorators import login_required
 
 def register_view(request):
     if request.method == 'POST':
@@ -121,8 +122,15 @@ def view_enrollments(request):
     return render(request, 'registration/view_enrollments.html', {'enrollments': enrollments})
 
 def available_courses(request):
-    courses = Course.objects.all()
-    return render(request, 'registration/available_courses.html', {'courses': courses})
+    student = request.user.student  # Assuming the user is logged in as a student
+    courses = Course.objects.all()  # Fetch all available courses
+    enrolled_courses = Enrollment.objects.filter(student=student).values_list('course', flat=True)
+    
+    context = {
+        'courses': courses,
+        'enrolled_courses': enrolled_courses,
+    }
+    return render(request, 'available_courses.html', context)
 
 def enroll_course(request, pk):
     course = get_object_or_404(Course, pk=pk)
@@ -560,4 +568,33 @@ def student_delete(request, pk):
         return redirect('student_list')
     return render(request, 'registration/student_confirm_delete.html', {'student': student})
 
+@login_required
+def settings_view(request):
+    user = request.user
+    if request.method == 'POST':
+        dark_mode = request.POST.get('dark_mode') == 'on'
+        font_size = request.POST.get('font_size', 'medium')
+        ui_preset = request.POST.get('ui_preset', 'classic')
 
+        # Save user preferences to their profile
+        user.profile.dark_mode = dark_mode
+        user.profile.font_size = font_size
+        user.profile.ui_preset = ui_preset
+        user.profile.save()
+
+        return redirect('settings')
+
+    # Pass existing settings to the template to pre-fill the form
+    context = {
+        'settings': user.profile
+    }
+    return render(request, 'registration/settings.html', context)
+
+def dashboard_view(request):
+    student = request.user.student  # Assuming you have a Student model linked to the user
+    courses = Enrollment.objects.filter(student=student).select_related('course')
+    
+    context = {
+        'courses': [enrollment.course for enrollment in courses],
+    }
+    return render(request, 'dashboard.html', context)
