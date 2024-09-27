@@ -266,9 +266,21 @@ class ProfessorRegistrationForm(UserCreationForm):
 class AssignmentForm(forms.ModelForm):
     class Meta:
         model = Assignment
-        fields = ['title', 'description', 'due_date']
+        fields = ['title', 'description', 'start_date', 'start_time', 'due_date', 'due_time']
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'start_time': forms.TimeInput(attrs={'type': 'time'}),
+            'due_date': forms.DateInput(attrs={'type': 'date'}),
+            'due_time': forms.TimeInput(attrs={'type': 'time'}),
+        }
 
 class AnnouncementForm(forms.ModelForm):
     class Meta:
         model = Announcement
-        fields = ['title', 'details']
+        fields = ['title', 'details', 'start_date', 'start_time', 'due_date', 'due_time']
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'start_time': forms.TimeInput(attrs={'type': 'time'}),
+            'due_date': forms.DateInput(attrs={'type': 'date'}),
+            'due_time': forms.TimeInput(attrs={'type': 'time'}),
+        }

@@ -39,3 +39,25 @@ Classes must have Announcements, Assignments, Grades
 
 
 
+--What we are working on--
+
+*When you add an Assignment or announcement the professor must have like a time window of when the things appear and dissapear from student view.
+*Make is so professors can also set time when making a new Assignemnt
+	The system must give the professor a dropbox so set days. 
+
+*Professor -> Manage Classes needs a complete rework.
+*Give professors a list of their assignments and anncouncemts in their class
+*Give professors the ability to hide and rewveal their assignments (with a checkbox)
+
+--Bugs--
+
+*Edit Course must send back to course list, it currently just stays in the same page
+*Late assignments are not showing in the correct date.
+
+--Ernesto--
+*Fix the bar appearing in the login screen
+*Nothing planned yet (make it combine if there more than 1 week)
+*option to change between weekly and daily 
+*top bar profiles and settings should be fixed on the top of the screen
+*Make it look better
+*Make the assignments and annoucements be different depending on the class. 

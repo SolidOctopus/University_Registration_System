@@ -114,17 +114,35 @@ class Profile(models.Model):
 class Assignment(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
-    due_date = models.DateTimeField()
+    start_date = models.DateField(null=True, blank=True)
+    start_time = models.TimeField(null=True, blank=True)
+    due_date = models.DateField()
+    due_time = models.TimeField(null=True, blank=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
 
+class Submission(models.Model):
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name='submissions')
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    submission_date = models.DateTimeField(auto_now_add=True)
+    content = models.TextField(blank=True, null=True)  # Example field for submission content
+
+    def __str__(self):
+        return f"Submission for {self.assignment.title} by {self.student.user.username}"
+
 class Announcement(models.Model):
     title = models.CharField(max_length=200)
     details = models.TextField()
+    start_date = models.DateField(null=True, blank=True)
+    start_time = models.TimeField(null=True, blank=True)
+    due_date = models.DateField(null=True, blank=True)
+    due_time = models.TimeField(null=True, blank=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     posted_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title
+
+

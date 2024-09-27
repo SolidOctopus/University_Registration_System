@@ -7,8 +7,9 @@ from .forms import CourseForm, StudentForm, ProfessorForm, AdminForm, GradeForm,
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db import transaction, IntegrityError
-from django.db.models import Q
+from django.db.models import Q, F
 from django.contrib.auth.decorators import login_required
+from datetime import datetime, timedelta
 
 def register_view(request):
     if request.method == 'POST':
@@ -590,12 +591,52 @@ def settings_view(request):
     }
     return render(request, 'registration/settings.html', context)
 
+
 def dashboard_view(request):
-    student = request.user.student  # Assuming you have a Student model linked to the user
-    courses = Enrollment.objects.filter(student=student).select_related('course')
-    
+    student = request.user.student
+    enrollments = Enrollment.objects.filter(student=student).select_related('course')
+    courses = [enrollment.course for enrollment in enrollments]
+
+    assignments = Assignment.objects.filter(
+        course__in=[enrollment.course for enrollment in enrollments]
+    ).order_by('due_date')
+
+    # Use the modified get_assignments logic to group assignments by week
+    weekly_assignments = []
+    today = datetime.now().date()
+    start_date = today - timedelta(days=today.weekday())
+    end_date = start_date + timedelta(days=7 * 6)  # Display for the next 6 weeks
+
+    # Initialize the weeks dictionary with empty lists for each week
+    weeks = {}
+    current_week_start = start_date
+    while current_week_start <= end_date:
+        week_key = current_week_start.strftime("%B %d, %Y") + " to " + (current_week_start + timedelta(days=6)).strftime("%B %d, %Y")
+        weeks[week_key] = []  # Initialize empty list for each week
+        current_week_start += timedelta(days=7)
+
+    # Group assignments into weeks
+    for assignment in assignments:
+        # Calculate the start of the week for the assignment's due date
+        week_start = assignment.due_date - timedelta(days=assignment.due_date.weekday())
+        week_key = week_start.strftime("%B %d, %Y") + " to " + (week_start + timedelta(days=6)).strftime("%B %d, %Y")
+
+        # Check if the generated week_key is in the weeks dictionary, if not create it
+        if week_key not in weeks:
+            weeks[week_key] = []
+
+        weeks[week_key].append(assignment)  # Add assignment to the correct week
+
+    # Create the weekly_assignments list for template rendering
+    for week, assignments in weeks.items():
+        weekly_assignments.append({
+            'week': week,
+            'assignments': assignments
+        })
+
     context = {
-        'courses': [enrollment.course for enrollment in courses],
+        'weekly_assignments': weekly_assignments,
+        'courses': courses 
     }
     return render(request, 'dashboard.html', context)
 
@@ -613,7 +654,9 @@ def course_overview(request, course_id):
     return render(request, 'course_overview.html', context)
 
 def class_detail(request, class_id):
-    course = Course.objects.get(id=class_id)
+    course = get_object_or_404(Course, id=class_id)
+    assignments = Assignment.objects.filter(course=course)
+    announcements = Announcement.objects.filter(course=course)
     
     if request.method == 'POST':
         if 'add_assignment' in request.POST:
@@ -631,9 +674,7 @@ def class_detail(request, class_id):
 
     assignment_form = AssignmentForm()
     announcement_form = AnnouncementForm()
-    assignments = Assignment.objects.filter(course=course)
-    announcements = Announcement.objects.filter(course=course)
-    
+
     context = {
         'course': course,
         'assignments': assignments,
@@ -644,11 +685,43 @@ def class_detail(request, class_id):
     return render(request, 'class_detail.html', context)
 
 def get_assignments(request):
-    assignments = Assignment.objects.filter(course__enrollment__student__user=request.user)
-    events = []
+    student = request.user.student
+    enrollments = Enrollment.objects.filter(student=student).select_related('course')
+    assignments = Assignment.objects.filter(
+        course__in=[enrollment.course for enrollment in enrollments]
+    ).order_by('due_date')
+
+    # Create a dictionary to store assignments grouped by week
+    weeks = {}
+    today = datetime.now().date()
+    start_date = today - timedelta(days=today.weekday())  # Start from the beginning of this week
+    end_date = start_date + timedelta(days=7 * 6)  # Up to 6 weeks in the future
+
+    # Initialize all weeks in the date range with "Nothing Planned Yet"
+    current_week_start = start_date
+    while current_week_start <= end_date:
+        week_key = current_week_start.strftime("%B %d, %Y") + " to " + (current_week_start + timedelta(days=6)).strftime("%B %d, %Y")
+        weeks[week_key] = []
+        current_week_start += timedelta(days=7)
+
+    # Group assignments into weeks
     for assignment in assignments:
-        events.append({
-            'title': assignment.title,
-            'start': assignment.due_date.strftime('%Y-%m-%d'),
+        week_start = assignment.due_date - timedelta(days=assignment.due_date.weekday())  # Get start of the week for the due date
+        week_key = week_start.strftime("%B %d, %Y") + " to " + (week_start + timedelta(days=6)).strftime("%B %d, %Y")
+        if week_key in weeks:
+            weeks[week_key].append(assignment)
+        else:
+            weeks[week_key] = [assignment]
+
+    # Prepare the JSON response with weekly grouping
+    response = []
+    for week, assignments in weeks.items():
+        response.append({
+            'week': week,
+            'assignments': [{'title': assignment.title, 'due_date': assignment.due_date.strftime('%Y-%m-%d')} for assignment in assignments],
         })
-    return JsonResponse(events, safe=False)
+
+    return JsonResponse(response, safe=False)
+
+
+

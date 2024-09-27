@@ -3,66 +3,40 @@
 {% block content %}
 <div class="dashboard-container">
     <h1>Dashboard</h1>
+    <div id="calendar"></div>
+
+    <!-- Display assignments grouped by week -->
+    <div class="weekly-assignments">
+        {% for week_data in weekly_assignments %}
+        <div class="week-section">
+            <h2>{{ week_data.week }}</h2>
+            {% if week_data.assignments %}
+                {% for assignment in week_data.assignments %}
+                <div class="assignment-item">
+                    <p>{{ assignment.title }}</p>
+                    <p>Due: {{ assignment.due_date }}</p>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>Nothing Planned Yet</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
 </div>
 
 <!-- Left icons for courses, group projects, profile, grades, announcements, messages, help, and resources -->
 <div class="left-icons">
-    <div class="icon courses-icon" id="courses-icon" title="Courses">
-        📚
-    </div>
-    <div class="icon projects-icon" id="projects-icon" title="Group Projects">
-        👥
-    </div>
-    <div class="icon grades-icon" id="grades-icon" title="Grades">
-        📊
-    </div>
-    <div class="icon announcements-icon" id="announcements-icon" title="Announcements">
-        🔔
-    </div>
-    <div class="icon messages-icon" id="messages-icon" title="Messages">
-        💬
-    </div>
-    <div class="icon help-icon" id="help-icon" title="Help">
-        ❓
-    </div>
-    <div class="icon resources-icon" id="resources-icon" title="Resources">
-        📚
-    </div>
+    <div class="icon courses-icon" id="courses-icon" title="Courses">📚</div>
+    <div class="icon projects-icon" id="projects-icon" title="Group Projects">👥</div>
+    <div class="icon grades-icon" id="grades-icon" title="Grades">📊</div>
+    <div class="icon announcements-icon" id="announcements-icon" title="Announcements">🔔</div>
+    <div class="icon messages-icon" id="messages-icon" title="Messages">💬</div>
+    <div class="icon help-icon" id="help-icon" title="Help">❓</div>
+    <div class="icon resources-icon" id="resources-icon" title="Resources">📚</div>
 </div>
 
-<div id="calendar"></div>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var calendarEl = document.getElementById('calendar');
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'list',
-            headerToolbar: false,  // Disable the header toolbar with buttons
-            events: '/get-assignments/',  // Backend endpoint to fetch assignments
-            height: 'auto',  // Adjust to allow continuous scrolling
-            scrollTime: '00:00:00',  // Scroll from the start of the day
-            eventContent: function(arg) {
-                return {
-                    html: `
-                        <div class="assignment-row">
-                            <div class="assignment-info">
-                                <input type="checkbox"> <!-- Checkbox for completion -->
-                                <span class="assignment-title">${arg.event.title}</span>
-                            </div>
-                            <div class="assignment-meta">
-                                <span class="assignment-points">100 pts</span> <!-- Placeholder for points -->
-                                <span class="assignment-status">Submitted</span> <!-- Placeholder for status -->
-                            </div>
-                        </div>
-                    `
-                }
-            },
-            lazyFetching: true  // Load more events on scroll
-        });
-        calendar.render();
-    });
-</script>
-
-<!-- Sidebars -->
+<!-- Sidebars for additional functionality -->
 <div id="courses-sidebar" class="sidebar-left">
     <div class="sidebar-content">
         <h3>Your Courses</h3>
@@ -129,6 +103,7 @@
     .dashboard-container {
         padding: 20px;
         text-align: center;
+        margin-left: 70px; /* Adjust to move the dashboard away from the sidebar */
     }
 
     .left-icons {
@@ -173,7 +148,6 @@
         padding: 10px;
     }
 
-    /* Custom styles for calendar list view */
     .assignment-row {
         display: flex;
         justify-content: space-between;
@@ -206,7 +180,7 @@
     }
 
     .assignment-status {
-        color: green; /* Color to indicate submission status */
+        color: green;
     }
 
     .sidebar-left {
@@ -229,9 +203,84 @@
         padding: 15px;
         color: #e8cd7d;
     }
+
+    .weekly-assignments {
+        margin-top: 20px;
+    }
+
+    .week-section {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        padding: 15px;
+        background-color: #f9f9f9;
+    }
+
+    .week-section h2 {
+        text-align: left;
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+
+    .assignment-item {
+        margin-bottom: 10px;
+        padding: 10px;
+        background-color: #ffffff;
+        border-radius: 5px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .assignment-item p {
+        margin: 0;
+    }
+
+    .assignment-item p:first-child {
+        font-weight: bold;
+    }
+
 </style>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'listYear',
+            headerToolbar: false, // Disable the header toolbar
+            events: '/get-assignments/', // Endpoint to fetch assignments and announcements
+            height: 'auto',
+            dayHeaders: true,
+            showNonCurrentDates: false,
+            eventOrder: false, // Disable event ordering
+            eventOverlap: false, // Allow events to overlap
+            eventLimit: false, // Ensure no limit on number of events displayed
+            eventContent: function(arg) {
+                return {
+                    html: `
+                        <div class="assignment-row">
+                            <div class="assignment-info">
+                                <input type="checkbox">
+                                <span class="assignment-title">${arg.event.title}</span>
+                            </div>
+                            <div class="assignment-meta">
+                                <span class="assignment-points">${arg.event.extendedProps.points || 0} pts</span>
+                                <span class="assignment-status">${arg.event.extendedProps.status || 'No Status'}</span>
+                            </div>
+                        </div>
+                    `
+                };
+            },
+        });
+
+        calendar.on('eventsSet', function(events) {
+            console.log("Events loaded in FullCalendar:", events);
+            events.forEach(event => {
+                console.log(`Event: ${event.title}, Start Date: ${event.start}, ID: ${event.id}, Status: ${event.extendedProps.status}`);
+            });
+        });
+
+        calendar.render();
+    });
+
     function handleSidebar(iconId, sidebarId) {
         const icon = document.getElementById(iconId);
         const sidebar = document.getElementById(sidebarId);
@@ -241,11 +290,10 @@
         });
 
         sidebar.addEventListener("mouseleave", function () {
-            sidebar.style.width = "0";  // Close automatically when mouse moves away
+            sidebar.style.width = "0"; // Close automatically when mouse moves away
         });
     }
 
-    // Left sidebars
     handleSidebar("courses-icon", "courses-sidebar");
     handleSidebar("projects-icon", "projects-sidebar");
     handleSidebar("grades-icon", "grades-sidebar");

@@ -10,7 +10,7 @@
             {% for assignment in assignments %}
             <li class="assignment-item">
                 <span class="assignment-title">{{ assignment.title }}</span> - 
-                <span class="assignment-due">Due: {{ assignment.due_date|date:"F j, Y, g:i a" }}</span>
+<span class="assignment-due">Due: {{ assignment.due_date|date:"F j, Y" }}</span>
             </li>
             {% endfor %}
         </ul>
