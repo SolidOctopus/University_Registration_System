@@ -109,3 +109,22 @@ class Profile(models.Model):
     
     def __str__(self):
         return self.user.username
+    
+
+class Assignment(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    due_date = models.DateTimeField()
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.title
+
+class Announcement(models.Model):
+    title = models.CharField(max_length=200)
+    details = models.TextField()
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    posted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title

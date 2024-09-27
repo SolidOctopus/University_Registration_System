@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Profile, Student, Professor, Admin, Enrollment, Course
+from .models import Profile, Student, Professor, Admin, Enrollment, Course, Assignment, Announcement
 from django.contrib.auth.forms import UserCreationForm
 import re
 
@@ -262,3 +262,13 @@ class ProfessorRegistrationForm(UserCreationForm):
             Profile.objects.create(user=user, role='professor', first_name=user.first_name, last_name=user.last_name, email=user.email, id_number=self.cleaned_data['id_number'])
             Professor.objects.create(user=user, first_name=user.first_name, last_name=user.last_name, email=user.email)
         return user
+    
+class AssignmentForm(forms.ModelForm):
+    class Meta:
+        model = Assignment
+        fields = ['title', 'description', 'due_date']
+
+class AnnouncementForm(forms.ModelForm):
+    class Meta:
+        model = Announcement
+        fields = ['title', 'details']

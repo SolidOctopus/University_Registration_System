@@ -2,8 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm
 from django.http import JsonResponse
-from .models import Course, Student, Professor, Admin, Profile, Enrollment
-from .forms import CourseForm, StudentForm, ProfessorForm, AdminForm, GradeForm, ProfileForm, UserRegistrationForm, StudentRegistrationForm, ProfessorRegistrationForm  
+from .models import Course, Student, Professor, Admin, Profile, Enrollment, Assignment, Announcement
+from .forms import CourseForm, StudentForm, ProfessorForm, AdminForm, GradeForm, ProfileForm, UserRegistrationForm, StudentRegistrationForm, ProfessorRegistrationForm, AssignmentForm, AnnouncementForm 
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db import transaction, IntegrityError
@@ -275,9 +275,9 @@ def manage_grades(request, course_id):
     return render(request, 'registration/manage_grades.html', {'course': course, 'formset': formset})
 
 def manage_classes(request):
-    professor = request.user.professor
-    classes = professor.courses.all()
-    return render(request, 'registration/manage_classes.html', {'classes': classes})
+    professor = request.user
+    classes = Course.objects.filter(professor=professor)
+    return render(request, 'manage_classes.html', {'classes': classes})
 
 def course_students(request, course_id):
     course = get_object_or_404(Course, id=course_id)
@@ -568,7 +568,7 @@ def student_delete(request, pk):
         return redirect('student_list')
     return render(request, 'registration/student_confirm_delete.html', {'student': student})
 
-@login_required
+
 def settings_view(request):
     user = request.user
     if request.method == 'POST':
@@ -598,3 +598,57 @@ def dashboard_view(request):
         'courses': [enrollment.course for enrollment in courses],
     }
     return render(request, 'dashboard.html', context)
+
+def course_overview(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    assignments = Assignment.objects.filter(course=course)
+    announcements = Announcement.objects.filter(course=course)
+    # You can add other models (like exams, messages, grades) here.
+
+    context = {
+        'course': course,
+        'assignments': assignments,
+        'announcements': announcements,
+    }
+    return render(request, 'course_overview.html', context)
+
+def class_detail(request, class_id):
+    course = Course.objects.get(id=class_id)
+    
+    if request.method == 'POST':
+        if 'add_assignment' in request.POST:
+            assignment_form = AssignmentForm(request.POST)
+            if assignment_form.is_valid():
+                assignment = assignment_form.save(commit=False)
+                assignment.course = course
+                assignment.save()
+        elif 'add_announcement' in request.POST:
+            announcement_form = AnnouncementForm(request.POST)
+            if announcement_form.is_valid():
+                announcement = announcement_form.save(commit=False)
+                announcement.course = course
+                announcement.save()
+
+    assignment_form = AssignmentForm()
+    announcement_form = AnnouncementForm()
+    assignments = Assignment.objects.filter(course=course)
+    announcements = Announcement.objects.filter(course=course)
+    
+    context = {
+        'course': course,
+        'assignments': assignments,
+        'announcements': announcements,
+        'assignment_form': assignment_form,
+        'announcement_form': announcement_form
+    }
+    return render(request, 'class_detail.html', context)
+
+def get_assignments(request):
+    assignments = Assignment.objects.filter(course__enrollment__student__user=request.user)
+    events = []
+    for assignment in assignments:
+        events.append({
+            'title': assignment.title,
+            'start': assignment.due_date.strftime('%Y-%m-%d'),
+        })
+    return JsonResponse(events, safe=False)

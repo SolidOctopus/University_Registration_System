@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Manage {{ course.name }}</h2>
+    
+    <h3>Assignments</h3>
+    <ul>
+        {% for assignment in assignments %}
+            <li>{{ assignment.title }} - Due: {{ assignment.due_date }}</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Add New Assignment</h3>
+    <form method="POST">
+        {% csrf_token %}
+        {{ assignment_form.as_p }}
+        <button type="submit" name="add_assignment">Add Assignment</button>
+    </form>
+    
+    <h3>Announcements</h3>
+    <ul>
+        {% for announcement in announcements %}
+            <li>{{ announcement.title }}: {{ announcement.details }}</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Add New Announcement</h3>
+    <form method="POST">
+        {% csrf_token %}
+        {{ announcement_form.as_p }}
+        <button type="submit" name="add_announcement">Add Announcement</button>
+    </form>
+{% endblock %}

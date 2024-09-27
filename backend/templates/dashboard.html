@@ -3,7 +3,6 @@
 {% block content %}
 <div class="dashboard-container">
     <h1>Dashboard</h1>
-    <p>This is your blank dashboard. Content will be added later.</p>
 </div>
 
 <!-- Left icons for courses, group projects, profile, grades, announcements, messages, help, and resources -->
@@ -31,12 +30,44 @@
     </div>
 </div>
 
+<div id="calendar"></div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'list',
+            headerToolbar: false,  // Disable the header toolbar with buttons
+            events: '/get-assignments/',  // Backend endpoint to fetch assignments
+            height: 'auto',  // Adjust to allow continuous scrolling
+            scrollTime: '00:00:00',  // Scroll from the start of the day
+            eventContent: function(arg) {
+                return {
+                    html: `
+                        <div class="assignment-row">
+                            <div class="assignment-info">
+                                <input type="checkbox"> <!-- Checkbox for completion -->
+                                <span class="assignment-title">${arg.event.title}</span>
+                            </div>
+                            <div class="assignment-meta">
+                                <span class="assignment-points">100 pts</span> <!-- Placeholder for points -->
+                                <span class="assignment-status">Submitted</span> <!-- Placeholder for status -->
+                            </div>
+                        </div>
+                    `
+                }
+            },
+            lazyFetching: true  // Load more events on scroll
+        });
+        calendar.render();
+    });
+</script>
+
 <!-- Sidebars -->
 <div id="courses-sidebar" class="sidebar-left">
     <div class="sidebar-content">
         <h3>Your Courses</h3>
         {% for course in courses %}
-        <a href="#">{{ course.name }}</a>
+        <a href="{% url 'course_overview' course.id %}">{{ course.name }}</a>
         {% endfor %}
     </div>
 </div>
@@ -126,6 +157,56 @@
 
     .icon:not(:hover) {
         transform: scale(0.8);
+    }
+
+    .fc-list-event-title {
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .fc-list-event-time {
+        color: #999;
+        font-size: 12px;
+    }
+
+    .fc-list-table td {
+        padding: 10px;
+    }
+
+    /* Custom styles for calendar list view */
+    .assignment-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+    }
+
+    .assignment-info {
+        display: flex;
+        align-items: center;
+    }
+
+    .assignment-info input[type="checkbox"] {
+        margin-right: 10px;
+    }
+
+    .assignment-title {
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .assignment-meta {
+        font-size: 12px;
+        color: #777;
+    }
+
+    .assignment-points {
+        margin-right: 20px;
+    }
+
+    .assignment-status {
+        color: green; /* Color to indicate submission status */
     }
 
     .sidebar-left {

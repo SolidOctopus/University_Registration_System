@@ -9,7 +9,7 @@ from .views import (
     admin_list, admin_create, admin_update, admin_delete,  available_courses, student_schedule,
     edit_course,  manage_classes, course_students, view_students, view_profile, edit_profile,
     drop_class, assign_professor, course_detail, view_user_profile, student_register, professor_register, 
-    settings_view, dashboard_view
+    settings_view, dashboard_view, course_overview, class_detail, get_assignments
 )
 
 urlpatterns = [
@@ -56,6 +56,13 @@ urlpatterns = [
     path('register/professor/', professor_register, name='professor_register'),  
     path('settings/', settings_view, name='settings'),
     path('dashboard/', dashboard_view, name='dashboard'),
+    path('course/<int:course_id>/overview/', course_overview, name='course_overview'),
+    path('class/<int:class_id>/', class_detail, name='class_detail'),
+    path('get-assignments/', get_assignments, name='get_assignments'),
+
+
+
+
 ]
 
 if settings.DEBUG:

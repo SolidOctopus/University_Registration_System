@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Your Classes</h2>
+    <ul>
+        {% for class in classes %}
+            <li>
+                <a href="{% url 'class_detail' class.id %}">{{ class.name }}</a> 
+                <!-- Links to a class detail page where they can add assignments/announcements -->
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
