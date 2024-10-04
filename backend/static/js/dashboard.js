@@ -36,21 +36,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
     calendar.render();
 
-    // Toggle between weekly and daily views
-    const weeklyBtn = document.getElementById('weekly-view-btn');
-    const dailyBtn = document.getElementById('daily-view-btn');
+    
+    const viewToggleBtn = document.getElementById('view-toggle-btn'); // Ensure the ID is correct
     const weeklyView = document.getElementById('weekly-view');
     const dailyView = document.getElementById('daily-view');
-
-    if (weeklyBtn && dailyBtn && weeklyView && dailyView) {
-        weeklyBtn.addEventListener('click', function () {
-            weeklyView.style.display = 'block';
-            dailyView.style.display = 'none';
-        });
-
-        dailyBtn.addEventListener('click', function () {
-            weeklyView.style.display = 'none';
-            dailyView.style.display = 'block';
+    
+    if (viewToggleBtn && weeklyView && dailyView) {
+        viewToggleBtn.addEventListener('click', function () {
+            if (weeklyView.style.display === 'none') {
+                // Show weekly view, hide daily view
+                weeklyView.style.display = 'block';
+                dailyView.style.display = 'none';
+                viewToggleBtn.textContent = 'Switch to Daily View';
+            } else {
+                // Show daily view, hide weekly view
+                weeklyView.style.display = 'none';
+                dailyView.style.display = 'block';
+                viewToggleBtn.textContent = 'Switch to Weekly View';
+            }
         });
     }
 

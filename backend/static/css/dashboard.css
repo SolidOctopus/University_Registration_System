@@ -26,7 +26,7 @@ body, html {
     text-align: left;
     background: #ffffff;
     border-radius: 15px;
-    box-shadow: var(--shadow-light);
+    
 }
 
 /* Header */
@@ -57,7 +57,7 @@ body, html {
 /* Sidebar */
 .sidebar-left {
     height: 100%;
-    width: 80px; /* Collapsed width */
+    width: 0; /* Collapsed width */
     position: fixed;
     top: 0;
     left: 0;
@@ -69,6 +69,7 @@ body, html {
     border-radius: 0 20px 20px 0;
     backdrop-filter: blur(10px);
     box-shadow: var(--shadow-medium);
+    display: block !important; /* Ensure sidebar is visible */
 }
 
 .sidebar-left.show {
@@ -84,6 +85,7 @@ body, html {
     padding: 15px;
     color: #ecf0f1;
     font-size: 16px;
+    display: block !important; /* Ensure sidebar content is visible */
 }
 
 .sidebar-left a {
@@ -181,18 +183,42 @@ input:checked + .slider:before {
 }
 
 /* Button Styles */
+
+.view-mode-switch {
+    display: flex;
+    justify-content: space-between; /* Space out buttons evenly */
+    align-items: center;
+    margin: 20px 0;
+}
+
 .button, .view-mode-switch button {
     padding: 15px 30px;
     border: none;
-    border-radius: 12px;
-    cursor: pointer;
+    border-radius: 8px;
     background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
     color: #ffffff;
     font-size: 18px;
-    margin: 10px;
     transition: background 0.3s ease, transform 0.3s ease;
     box-shadow: var(--shadow-light);
+    cursor: pointer;
 }
+
+/* Individual Button Positioning */
+#filter-btn {
+    margin-left: 0; /* Align to the left */
+}
+
+#view-toggle-btn {
+    width: 1100px; /* Set a smaller width for the button */
+    padding: 15px 30px; /* Adjust padding to fit the new width */
+    font-size: 18px; /* Optionally reduce font size */
+    margin: 0 auto; /* Center the button */
+    text-align: center;
+}
+#today-btn {
+    margin-right: 0; /* Align to the right */
+}
+
 
 .button:hover, .view-mode-switch button:hover {
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
@@ -265,3 +291,9 @@ input:checked + .slider:before {
 .week-section:hover, .day-section:hover {
     background-color: #ecf0f1;
 }
+
+
+
+
+
+
