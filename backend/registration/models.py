@@ -3,24 +3,25 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 class Course(models.Model):
+    SEMESTER_CHOICES = [
+        ('fall', 'Fall'),
+        ('spring', 'Spring'),
+        ('summer', 'Summer'),
+    ]
     name = models.CharField(max_length=100)
     description = models.TextField()
-    start_date = models.DateField(default='2024-01-01')
-    end_date = models.DateField(default='2024-01-01')
+    start_date = models.DateField()
+    end_date = models.DateField()
     days = models.CharField(max_length=50, default='Monday')
     start_time = models.TimeField(default='09:00:00')
     end_time = models.TimeField(default='17:00:00')
     session_type = models.CharField(max_length=50, default='Regular')
-    location = models.CharField(max_length=50, default='Campus')
+    location = models.CharField(max_length=50, default='Campus')  # Corrected 'maxlength' to 'max_length'
     available_seats = models.IntegerField(default=0, null=True, blank=True)
     capacity = models.IntegerField(default=10)
     credits = models.IntegerField(default=3)
     professor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name='courses', null=True, blank=True)
-
-    def save(self, *args, **kwargs):
-        if not self.pk:  
-            self.available_seats = self.capacity
-        super(Course, self).save(*args, **kwargs)
+    semester = models.CharField(max_length=10, choices=SEMESTER_CHOICES, default='fall')
 
     def __str__(self):
         return self.name
@@ -85,7 +86,7 @@ class Enrollment(models.Model):
         unique_together = ('student', 'course')
 
     def __str__(self):
-        return f"{self.student.username} enrolled in {self.course.name}"
+        return f"{self.student.user.username} enrolled in {self.course.name}"
 
 class Profile(models.Model):
     ROLE_CHOICES = (
@@ -102,14 +103,12 @@ class Profile(models.Model):
     email = models.EmailField()
     bio = models.TextField(blank=True, default='')
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, default='')
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
     dark_mode = models.BooleanField(default=False)
     font_size = models.CharField(max_length=10, default='medium')
     ui_preset = models.CharField(max_length=20, default='classic')
     
     def __str__(self):
         return self.user.username
-    
 
 class Assignment(models.Model):
     title = models.CharField(max_length=200)
@@ -127,7 +126,7 @@ class Submission(models.Model):
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name='submissions')
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     submission_date = models.DateTimeField(auto_now_add=True)
-    content = models.TextField(blank=True, null=True)  # Example field for submission content
+    content = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"Submission for {self.assignment.title} by {self.student.user.username}"
@@ -144,5 +143,3 @@ class Announcement(models.Model):
 
     def __str__(self):
         return self.title
-
-

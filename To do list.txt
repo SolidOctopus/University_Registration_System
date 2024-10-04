@@ -55,9 +55,13 @@ Classes must have Announcements, Assignments, Grades
 *Late assignments are not showing in the correct date.
 
 --Ernesto--
-*Fix the bar appearing in the login screen
-*Nothing planned yet (make it combine if there more than 1 week)
-*option to change between weekly and daily 
+done*Fix the bar appearing in the login screen
+done *Nothing planned yet (make it combine if there more than 1 week)
+done *option to change between weekly and daily 
 *top bar profiles and settings should be fixed on the top of the screen
 *Make it look better
-*Make the assignments and annoucements be different depending on the class. 
+done*Make the assignments and annoucements be different depending on the class. 
+calendar should recognize whether it is fall, spring or summer and from there it will show only the corresponding 4 months
+
+shopping cart
+classes should belong to fall, spring, summer

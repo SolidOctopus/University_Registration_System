@@ -1,0 +1,37 @@
+<!-- Daily Assignments View -->
+<div class="daily-assignments" id="daily-view" style="display: none;">
+    {% for day_data in daily_assignments %}
+    <div class="day-section">
+        <h2>{{ day_data.day }}</h2>
+        
+        {% if not day_data.assignments and not day_data.announcements %}
+            <!-- Show message when there are no assignments or announcements for this day -->
+            <p>Nothing planned for this day.</p>
+        {% endif %}
+
+        <!-- Display Assignments -->
+        {% if day_data.assignments %}
+            <h3>Assignments:</h3>
+            {% for assignment in day_data.assignments %}
+            <div class="assignment-item">
+                <p>Assignment: <strong>{{ assignment.title }}</strong> - <span style="color: #009688;">{{ assignment.course_name }}</span></p> <!-- Include Course Name -->
+                <p>Due: {{ assignment.due_date }}</p>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Display Announcements -->
+        {% if day_data.announcements %}
+            <h3>Announcements:</h3>
+            {% for announcement in day_data.announcements %}
+            <div class="announcement-item">
+                <p>Announcement: <strong>{{ announcement.title }}</strong> - <span style="color: #f57c00;">{{ announcement.course_name }}</span></p> <!-- Include Course Name -->
+                <p>{{ announcement.details }}</p>
+                <p>Posted on: {{ announcement.date_posted }}</p>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+</div>

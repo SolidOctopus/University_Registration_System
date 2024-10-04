@@ -9,7 +9,8 @@ from .views import (
     admin_list, admin_create, admin_update, admin_delete,  available_courses, student_schedule,
     edit_course,  manage_classes, course_students, view_students, view_profile, edit_profile,
     drop_class, assign_professor, course_detail, view_user_profile, student_register, professor_register, 
-    settings_view, dashboard_view, course_overview, class_detail, get_assignments
+    settings_view, dashboard_view, course_overview, class_detail, get_assignments, professor_info, course_syllabus,
+    course_modules, course_assignments, course_announcements, course_grades, 
 )
 
 urlpatterns = [
@@ -59,6 +60,13 @@ urlpatterns = [
     path('course/<int:course_id>/overview/', course_overview, name='course_overview'),
     path('class/<int:class_id>/', class_detail, name='class_detail'),
     path('get-assignments/', get_assignments, name='get_assignments'),
+    path('course/<int:course_id>/professor/',professor_info, name='professor_info'),
+    path('course/<int:course_id>/syllabus/',course_syllabus, name='course_syllabus'),
+    path('course/<int:course_id>/modules/',course_modules, name='course_modules'),
+    path('course/<int:course_id>/assignments/',course_assignments, name='course_assignments'),
+    path('course/<int:course_id>/announcements/',course_announcements, name='course_announcements'),
+    path('course/<int:course_id>/grades/',course_grades, name='course_grades'),
+
 
 
 

@@ -20,6 +20,7 @@ class CourseForm(forms.ModelForm):
             'available_seats', 
             'capacity',
             'credits', 
+            'semester'
         ]
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),

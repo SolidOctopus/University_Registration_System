@@ -9,7 +9,8 @@ from django.contrib import messages
 from django.db import transaction, IntegrityError
 from django.db.models import Q, F
 from django.contrib.auth.decorators import login_required
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+from django.core.paginator import Paginator
 
 def register_view(request):
     if request.method == 'POST':
@@ -592,53 +593,209 @@ def settings_view(request):
     return render(request, 'registration/settings.html', context)
 
 
+
+
+
+
+def get_semester_dates(semester, year):
+    return {
+        'fall': {'start': date(year, 8, 26), 'end': date(year, 12, 14)},
+        'spring': {'start': date(year, 1, 10), 'end': date(year, 4, 25)},
+        'summer': {'start': date(year, 5, 15), 'end': date(year, 8, 10)},
+    }[semester]
+
+
+def get_events_by_date(courses, start_date, end_date):
+    assignments = Assignment.objects.filter(course__in=courses, due_date__range=(start_date, end_date)).order_by('due_date')
+    announcements = Announcement.objects.filter(course__in=courses, posted_at__date__range=(start_date, end_date)).order_by('posted_at')
+    return assignments, announcements
+
+
+def group_events_by_date(assignments, announcements, start_date, end_date):
+    days = {}
+    # Generate a dictionary with all dates in the range as keys
+    for x in range((end_date - start_date).days + 1):
+        current_day = (start_date + timedelta(days=x)).strftime("%Y-%m-%d")
+        days[current_day] = {'assignments': [], 'announcements': []}
+
+    # Populate the dictionary with assignments and announcements
+    for assignment in assignments:
+        day_key = assignment.due_date.strftime("%Y-%m-%d")
+        days[day_key]['assignments'].append({
+            'title': assignment.title,
+            'course_name': assignment.course.name,
+            'due_date': assignment.due_date
+        })
+
+    for announcement in announcements:
+        day_key = announcement.posted_at.strftime("%Y-%m-%d")
+        days[day_key]['announcements'].append({
+            'title': announcement.title,
+            'details': announcement.details,
+            'course_name': announcement.course.name,
+            'date_posted': announcement.posted_at
+        })
+
+    return days
+
+
+def group_events_by_week(events_by_date):
+    weeks = {}
+    for day_key, events in events_by_date.items():
+        # Parse the date and calculate the start of the week (Monday)
+        day_date = date.fromisoformat(day_key)
+        week_start = day_date - timedelta(days=day_date.weekday())
+        week_end = week_start + timedelta(days=6)
+        week_key = f"{week_start.strftime('%Y-%m-%d')} to {week_end.strftime('%Y-%m-%d')}"
+
+        if week_key not in weeks:
+            weeks[week_key] = {'assignments': [], 'announcements': []}
+
+        # Append assignments and announcements to the corresponding week
+        weeks[week_key]['assignments'].extend(events['assignments'])
+        weeks[week_key]['announcements'].extend(events['announcements'])
+
+    return weeks
+
+
+
+def merge_empty_and_non_empty(events_by_date, empty_ranges):
+    # Create a merged dictionary that includes both empty ranges and non-empty days, excluding individual empty days within grouped ranges.
+    merged_events = {}
+
+    # Generate a set of all days within grouped empty ranges for easier exclusion
+    excluded_days = set()
+    for start, end in empty_ranges:
+        try:
+            # Parse only the start and end dates correctly
+            start_date = date.fromisoformat(start)
+            end_date = date.fromisoformat(end)
+            for day_offset in range((end_date - start_date).days + 1):
+                excluded_days.add((start_date + timedelta(days=day_offset)).strftime("%Y-%m-%d"))
+        except ValueError:
+            continue  # Skip if there's any issue parsing the date
+
+    # Create merged events without including the excluded individual empty days
+    for key in sorted(events_by_date.keys() | set([f"{start} to {end}" for start, end in empty_ranges])):
+        if key in excluded_days:
+            continue  # Skip individual empty days that are part of a grouped range
+        if key in events_by_date:
+            merged_events[key] = events_by_date[key]
+        else:
+            merged_events[key] = {'assignments': [], 'announcements': []}
+
+    return merged_events
+
+def get_grouped_empty_week_ranges(events_by_week):
+    grouped_empty_weeks = []
+    start_empty_week = None
+    sorted_weeks = sorted(events_by_week.keys())  # Ensure weeks are sorted chronologically
+
+    for index, week_key in enumerate(sorted_weeks):
+        if not events_by_week[week_key]['assignments'] and not events_by_week[week_key]['announcements']:
+            if start_empty_week is None:
+                start_empty_week = week_key  # Start tracking an empty week range
+        else:
+            if start_empty_week:
+                # Close the empty week range and reset start_empty_week
+                grouped_empty_weeks.append((start_empty_week.split(" to ")[0], sorted_weeks[index - 1].split(" to ")[1]))
+                start_empty_week = None
+
+    # Handle the case where the last week range is empty
+    if start_empty_week:
+        grouped_empty_weeks.append((start_empty_week.split(" to ")[0], sorted_weeks[-1].split(" to ")[1]))
+
+    return grouped_empty_weeks
+
+def get_grouped_empty_ranges(events_by_date):
+    grouped_empty_days = []
+    start_empty_date = None
+    sorted_days = sorted(events_by_date.keys())  # Ensure days are sorted chronologically
+
+    for index, day_key in enumerate(sorted_days):
+        is_empty = not events_by_date[day_key]['assignments'] and not events_by_date[day_key]['announcements']
+        next_day_is_empty = index + 1 < len(sorted_days) and not events_by_date[sorted_days[index + 1]]['assignments'] and not events_by_date[sorted_days[index + 1]]['announcements']
+
+        if is_empty:
+            if start_empty_date is None:
+                start_empty_date = day_key  # Start tracking an empty range
+            # If the next day is not empty, we have reached the end of an empty range
+            if not next_day_is_empty:
+                if start_empty_date != day_key:
+                    grouped_empty_days.append((start_empty_date, day_key))  # Add the empty range
+                start_empty_date = None  # Reset the start_empty_date
+        else:
+            if start_empty_date and start_empty_date != day_key:
+                grouped_empty_days.append((start_empty_date, sorted_days[index - 1]))  # Close the empty range
+                start_empty_date = None
+
+    # Handle the case where the last date range is empty
+    if start_empty_date:
+        grouped_empty_days.append((start_empty_date, sorted_days[-1]))
+
+    return grouped_empty_days
+
+
+
+def format_events_for_template(events_dict):
+    formatted_list = []
+    for key, value in events_dict.items():
+        formatted_list.append({
+            'day': key,  # For daily assignments, use the date as 'day'
+            'week': key,  # For weekly assignments, use the week range as 'week'
+            'assignments': value['assignments'],
+            'announcements': value['announcements']
+        })
+    return formatted_list
+
+
 def dashboard_view(request):
     student = request.user.student
     enrollments = Enrollment.objects.filter(student=student).select_related('course')
     courses = [enrollment.course for enrollment in enrollments]
 
-    assignments = Assignment.objects.filter(
-        course__in=[enrollment.course for enrollment in enrollments]
-    ).order_by('due_date')
+    if not courses:
+        messages.info(request, "You are not enrolled in any courses.")
+        return render(request, 'dashboard.html')
 
-    # Use the modified get_assignments logic to group assignments by week
-    weekly_assignments = []
-    today = datetime.now().date()
-    start_date = today - timedelta(days=today.weekday())
-    end_date = start_date + timedelta(days=7 * 6)  # Display for the next 6 weeks
+    semester = courses[0].semester
+    today = date.today()
+    start_date, end_date = get_semester_dates(semester, today.year).values()
 
-    # Initialize the weeks dictionary with empty lists for each week
-    weeks = {}
-    current_week_start = start_date
-    while current_week_start <= end_date:
-        week_key = current_week_start.strftime("%B %d, %Y") + " to " + (current_week_start + timedelta(days=6)).strftime("%B %d, %Y")
-        weeks[week_key] = []  # Initialize empty list for each week
-        current_week_start += timedelta(days=7)
+    # Get events and group them by date and week
+    assignments, announcements = get_events_by_date(courses, start_date, end_date)
+    daily_assignments = group_events_by_date(assignments, announcements, start_date, end_date)
+    weekly_assignments = group_events_by_week(daily_assignments)
 
-    # Group assignments into weeks
-    for assignment in assignments:
-        # Calculate the start of the week for the assignment's due date
-        week_start = assignment.due_date - timedelta(days=assignment.due_date.weekday())
-        week_key = week_start.strftime("%B %d, %Y") + " to " + (week_start + timedelta(days=6)).strftime("%B %d, %Y")
+    # Group empty ranges for daily and weekly views
+    grouped_empty_days = get_grouped_empty_ranges(daily_assignments)
+    grouped_empty_weeks = get_grouped_empty_week_ranges(weekly_assignments)  # Use the new function
 
-        # Check if the generated week_key is in the weeks dictionary, if not create it
-        if week_key not in weeks:
-            weeks[week_key] = []
+    # Merge grouped empty ranges with existing events in the correct order
+    merged_daily_assignments = merge_empty_and_non_empty(daily_assignments, grouped_empty_days)
+    merged_weekly_assignments = merge_empty_and_non_empty(weekly_assignments, grouped_empty_weeks)
 
-        weeks[week_key].append(assignment)  # Add assignment to the correct week
-
-    # Create the weekly_assignments list for template rendering
-    for week, assignments in weeks.items():
-        weekly_assignments.append({
-            'week': week,
-            'assignments': assignments
-        })
+    # Format for template compatibility
+    daily_assignments_list = format_events_for_template(merged_daily_assignments)
+    weekly_assignments_list = format_events_for_template(merged_weekly_assignments)
 
     context = {
-        'weekly_assignments': weekly_assignments,
-        'courses': courses 
+        'daily_assignments': daily_assignments_list,
+        'weekly_assignments': weekly_assignments_list,
+        'grouped_empty_days': grouped_empty_days,
+        'grouped_empty_weeks': grouped_empty_weeks,
+        'courses': courses,
+        'semester': semester,
+        'today': today.strftime('%Y-%m-%d'),
     }
     return render(request, 'dashboard.html', context)
+
+
+
+
+
+
+
 
 def course_overview(request, course_id):
     course = get_object_or_404(Course, id=course_id)
@@ -723,5 +880,30 @@ def get_assignments(request):
 
     return JsonResponse(response, safe=False)
 
+def professor_info(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    professor = course.professor
+    return render(request, 'professor_info.html', {'course': course, 'professor': professor})
 
+def course_syllabus(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    return render(request, 'course_syllabus.html', {'course': course})
+
+def course_modules(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    return render(request, 'course_modules.html', {'course': course})
+
+def course_assignments(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    assignments = course.assignment_set.all()
+    return render(request, 'course_assignments.html', {'course': course, 'assignments': assignments})
+
+def course_announcements(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    announcements = course.announcement_set.all()
+    return render(request, 'course_announcements.html', {'course': course, 'announcements': announcements})
+
+def course_grades(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    return render(request, 'course_grades.html', {'course': course})
 

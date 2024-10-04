@@ -1,70 +1,149 @@
 {% extends 'base.html' %}
-
 {% block content %}
-<div class="course-container">
-    <h1>{{ course.name }}</h1>
-    
-    <div class="section">
-        <h2>Assignments</h2>
-        <ul class="assignments-list">
-            {% for assignment in assignments %}
-            <li class="assignment-item">
-                <span class="assignment-title">{{ assignment.title }}</span> - 
-<span class="assignment-due">Due: {{ assignment.due_date|date:"F j, Y" }}</span>
-            </li>
-            {% endfor %}
+<div class="page-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h1 class="class-name">{{ course.name }}</h1>
+        <h2>{{ course.professor.user.first_name }} {{ course.professor.user.last_name }}</h2>
+        <ul class="sidebar-menu">
+            <li><a href="{% url 'course_overview' course.id %}">Overview</a></li>
+            <li><a href="{% url 'professor_info' course.id %}">Professor Info</a></li>
+            <li><a href="{% url 'course_syllabus' course.id %}">Syllabus</a></li>
+            <li><a href="{% url 'course_modules' course.id %}">Modules</a></li>
+            <li><a href="{% url 'course_assignments' course.id %}">Assignments</a></li>
+            <li><a href="{% url 'course_announcements' course.id %}">Announcements</a></li>
+            <li><a href="{% url 'course_grades' course.id %}">Grades</a></li>
         </ul>
     </div>
 
-    <div class="section">
-        <h2>Announcements</h2>
-        <ul class="announcements-list">
-            {% for announcement in announcements %}
-            <li class="announcement-item">
-                <span class="announcement-title">{{ announcement.title }}</span>:
-                <span class="announcement-details">{{ announcement.details }}</span>
-            </li>
-            {% endfor %}
-        </ul>
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <h1>{{ course.name }} - Overview</h1>
+
+            {% if no_content %}
+                <p class="empty-message">Nothing to do right now. Enjoy your time!</p>
+            {% else %}
+                <div class="assignments-section">
+                    <h2>Assignments Due in the Next 7 Days</h2>
+                    <ul class="assignments-list">
+                        {% for assignment in assignments %}
+                        <li class="assignment-item">
+                            <span class="assignment-title">{{ assignment.title }}</span>
+                            <span class="assignment-due">Due: {{ assignment.due_date|date:"F j, Y" }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="announcements-section">
+                    <h2>Recent Announcements (Last 7 Days)</h2>
+                    <ul class="announcements-list">
+                        {% for announcement in announcements %}
+                        <li class="announcement-item">
+                            <span class="announcement-title">{{ announcement.title }}</span>
+                            <span class="announcement-details">{{ announcement.details }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 
+<!-- Sidebar and Main Content Styling -->
 <style>
-    .course-container {
-        margin: 30px auto;
+    .page-container {
+        display: flex; /* Use flexbox to manage sidebar and content */
+    }
+
+    .sidebar {
+        width: 200px; /* Adjust sidebar width */
+        background-color: #34495e;
+        color: white;
         padding: 20px;
-        width: 80%;
-        background-color: #f9f9f9;
+        height: 100vh;
+        position: fixed; /* Keep it fixed to the left */
+        top: 0;
+        left: 0;
+        border-radius: 0 10px 10px 0;
+    }
+
+    .sidebar h2 {
+        font-size: 1.5em;
+        margin-bottom: 25px;
+        text-align: center;
+        border-bottom: 1px solid #7f8c8d;
+        padding-bottom: 10px;
+    }
+
+    .sidebar-menu {
+        list-style: none;
+        padding: 0;
+    }
+
+    .sidebar-menu li {
+        margin: 20px 0;
+    }
+
+    .sidebar-menu li a {
+        color: white;
+        text-decoration: none;
+        font-size: 1.1em;
+        display: block;
+        padding: 12px 15px;
+        border-radius: 5px;
+        transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+    }
+
+    .sidebar-menu li a:hover {
+        background-color: #1abc9c;
+        color: #2c3e50;
+    }
+
+    .main-content {
+        margin-left: 270px; /* Offset by sidebar width + spacing */
+        padding: 30px;
+        background-color: #ecf0f1;
         border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        width: calc(100% - 270px); /* Take up remaining space */
+    }
+
+    .container {
+        margin: 20px auto;
+        padding: 20px;
+        max-width: 900px;
+        background-color: #f5f5f5;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     h1 {
         text-align: center;
         font-size: 2.5em;
+        color: #2980b9;
         margin-bottom: 20px;
-        color: #333;
     }
 
-    .section {
-        margin-bottom: 40px;
+    .empty-message {
+        text-align: center;
+        font-size: 1.5em;
+        color: #27ae60;
+        margin: 50px 0;
     }
 
-    h2 {
-        font-size: 1.8em;
-        border-bottom: 2px solid #ddd;
-        padding-bottom: 10px;
-        margin-bottom: 15px;
+    .assignments-section, .announcements-section {
+        margin-top: 30px;
     }
 
-    ul {
+    .assignments-list, .announcements-list {
         list-style-type: none;
         padding-left: 0;
     }
 
-    .assignments-list .assignment-item, 
-    .announcements-list .announcement-item {
-        padding: 10px;
+    .assignment-item, .announcement-item {
+        padding: 15px;
         background-color: #fff;
         margin-bottom: 10px;
         border-radius: 5px;
@@ -78,18 +157,12 @@
         font-size: 1.2em;
     }
 
-    .assignment-due {
+    .assignment-due, .announcement-details {
         color: #555;
         font-size: 0.9em;
     }
 
-    .announcement-details {
-        color: #777;
-        font-size: 0.95em;
-    }
-
-    .assignment-item:hover, 
-    .announcement-item:hover {
+    .assignment-item:hover, .announcement-item:hover {
         background-color: #f0f0f0;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
         transition: all 0.3s ease;
