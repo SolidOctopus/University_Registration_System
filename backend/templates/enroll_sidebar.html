@@ -1,0 +1,118 @@
+{% load static %}
+<!-- enroll_sidebar.html -->
+<div class="sidebar-left-drawer">
+    <div class="sidebar-nav">
+        <div class="sidebar-logo">
+            <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo-img">
+        </div>
+        <div class="nav-item-box">
+            <div class="nav-item">
+                <span class="icon">📅</span>
+                <span class="text">My Schedule</span>
+            </div>
+        </div>
+        <div class="nav-item-box">
+            <div class="nav-item">
+                <span class="icon">🛒</span>
+                <span class="text">Shopping Cart</span>
+            </div>
+        </div>
+        <div class="nav-item-box">
+            <div class="nav-item">
+                <span class="icon">🗂</span>
+                <span class="text">Enrollment</span>
+            </div>
+        </div>
+        <div class="nav-item-box">
+            <div class="nav-item">
+                <span class="icon">📋</span>
+                <span class="text">My Requirements</span>
+            </div>
+        </div>
+        <div class="nav-item-box">
+            <div class="nav-item">
+                <span class="icon">💵</span>
+                <span class="text">Financials</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CSS Styling for Sidebar -->
+<style>
+    .sidebar-left-drawer {
+        width: 70px; /* Initial width */
+        height: 80vh; /* Adjust height */
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        left: 0;
+        background: #2c3e50; /* Sidebar color */
+        color: #ecf0f1;
+        border-radius: 0 20px 20px 0; /* Rounded edges */
+        padding: 20px 0;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .sidebar-logo {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .logo-img {
+        width: 50px;
+        border-radius: 50%;
+        border: 3px solid #ecf0f1;
+    }
+
+    .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start; /* Align items to the left */
+        gap: 20px;
+    }
+
+    .nav-item-box {
+        background: #34495e;
+        width: 60px; /* Initial width */
+        height: 60px; /* Equal height and width */
+        border-radius: 12px;
+        padding: 15px;
+        transition: width 0.4s ease, background 0.3s, transform 0.2s; /* Smooth transition */
+        cursor: pointer;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-item-box:hover {
+        width: 180px; /* Expand only the hovered item */
+        background: #3a4e7a;
+        transform: translateY(-2px); /* Smooth hover effect */
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+    }
+
+    .icon {
+        font-size: 24px;
+        margin-right: 10px;
+    }
+
+    .text {
+        display: none; /* Hide text initially */
+        font-size: 16px;
+        margin-left: 10px;
+    }
+
+    .nav-item-box:hover .text {
+        display: inline-block; /* Show text on individual item hover */
+    }
+</style>

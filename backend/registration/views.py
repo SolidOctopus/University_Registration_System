@@ -907,3 +907,11 @@ def course_grades(request, course_id):
     course = get_object_or_404(Course, id=course_id)
     return render(request, 'course_grades.html', {'course': course})
 
+def shopping_cart_view(request):
+    return render(request, 'shopping_cart.html')
+
+def my_requirements_view(request):
+    return render(request, 'my_requirements.html')
+
+def financials_view(request):
+    return render(request, 'financials.html')
