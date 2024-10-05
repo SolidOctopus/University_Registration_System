@@ -2,70 +2,40 @@
 {% load static %}
 {% block content %}
 
-<!-- Sidebar Section Begin -->
-<div class="sidebar-container">
-    <div class="sidebar-left">
-        <!-- Sidebar Navigation Buttons -->
-        <div class="sidebar-nav">
-            <div class="nav-item-box">
-                <a href="{% url 'student_schedule' %}" class="nav-item">
-                    <span class="icon">📅</span>
-                    <span>My Schedule</span>
-                </a>
-            </div>
-            <div class="nav-item-box">
-                <a href="{% url 'shopping_cart' %}" class="nav-item">
-                    <span class="icon">🛒</span>
-                    <span>Shopping Cart</span>
-                </a>
-            </div>
-            <div class="nav-item-box">
-                <a href="{% url 'available_courses' %}" class="nav-item">
-                    <span class="icon">🗂</span>
-                    <span>Enrollment</span>
-                </a>
-            </div>
-            <div class="nav-item-box">
-                <a href="{% url 'my_requirements' %}" class="nav-item">
-                    <span class="icon">📋</span>
-                    <span>My Requirements</span>
-                </a>
-            </div>
-            <div class="nav-item-box">
-                <a href="{% url 'financials' %}" class="nav-item">
-                    <span class="icon">💵</span>
-                    <span>Financials</span>
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Sidebar Section End -->
+<!-- Include Sidebar -->
+{% include 'enroll_sidebar.html' %}
 
 <!-- Content Section Begin -->
 <div class="content-container">
     <div class="header">
         <h2>My Schedule</h2>
+        <p class="header-description">Manage your current semester's schedule and course details below.</p>
     </div>
 
-    <!-- Loop through the enrollments and display each as a card -->
-    {% for enrollment in enrollments %}
-    <div class="course-card">
-        <div class="course-title">
-            <a href="{% url 'course_detail' enrollment.course.pk %}">{{ enrollment.course.name }}</a> - Units: {{ enrollment.course.credits }}
+    <!-- Course List Section -->
+    <div class="course-list">
+        {% for enrollment in enrollments %}
+        <div class="course-card">
+            <div class="course-header">
+                <div class="course-title">
+                    <a href="{% url 'course_detail' enrollment.course.pk %}">{{ enrollment.course.name }}</a> - Units: {{ enrollment.course.credits }}
+                </div>
+                <div class="course-schedule">
+                    {{ enrollment.course.days }} | {{ enrollment.course.start_time|date:"g:i a" }} - {{ enrollment.course.end_time|date:"g:i a" }}
+                </div>
+            </div>
+            <div class="course-body">
+                <p><strong>Location:</strong> {{ enrollment.course.location }}</p>
+                <p><strong>Instructor:</strong> {{ enrollment.course.professor.first_name }} {{ enrollment.course.professor.last_name }}</p>
+                <p><strong>Grade:</strong> {{ enrollment.grade }}</p>
+            </div>
+            <div class="course-footer">
+                <a href="{% url 'drop_class' enrollment.pk %}" class="btn drop-class-button">Drop Class</a>
+                <a href="{% url 'course_detail' enrollment.course.pk %}" class="btn class-info-button">Class Info</a>
+            </div>
         </div>
-        <div class="course-details">
-            <p><strong>Schedule:</strong> {{ enrollment.course.days }} | {{ enrollment.course.start_time|date:"g:i a" }} - {{ enrollment.course.end_time|date:"g:i a" }}</p>
-            <p><strong>Location:</strong> {{ enrollment.course.location }}</p>
-            <p><strong>Instructor:</strong> {{ enrollment.course.professor.first_name }} {{ enrollment.course.professor.last_name }}</p>
-            <p><strong>Grade:</strong> {{ enrollment.grade }}</p>
-        </div>
-        <div class="course-actions">
-            <a href="{% url 'drop_class' enrollment.pk %}" class="drop-class-button">Drop Class</a>
-            <a href="{% url 'course_detail' enrollment.course.pk %}" class="class-info-button">Class Info</a>
-        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
 </div>
 <!-- Content Section End -->
 
@@ -73,151 +43,142 @@
 <style>
     /* General Styling */
     body {
-        font-family: 'Arial', sans-serif;
-        background-color: #f0f2f5;
-    }
-
-    /* Sidebar Container */
-    .sidebar-left {
-        width: 250px;
-        height: 95vh;
-        background: rgba(8, 6, 63, 0.9); /* Blue with transparency */
-        backdrop-filter: blur(10px); /* Blurred background */
-        border-radius: 20px;
-        padding: 20px 15px;
-        position: fixed;
-        margin: 20px; /* Floating effect */
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    }
-
-    .sidebar-nav {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .nav-item-box {
-        background-color: rgba(232, 205, 125, 0.8); /* Gold with transparency */
-        border: none;
-        border-radius: 12px;
-        padding: 15px;
-        margin-bottom: 15px;
-        cursor: pointer;
-        transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .nav-item-box:hover {
-        background-color: rgba(232, 205, 125, 1); /* Solid gold on hover */
-        transform: translateY(-5px); /* Slight upward movement */
-    }
-
-    .nav-item {
-        display: flex;
-        align-items: center;
-    }
-
-    .icon {
-        font-size: 22px;
-        margin-right: 12px;
-        color: #08063f; /* Dark blue for icons */
-    }
-
-    .nav-item span {
-        font-size: 16px;
-        font-weight: bold;
-        color: #08063f; /* Dark blue for text */
+        font-family: 'Montserrat', sans-serif;
+        background-color: #f7f8fc;
+        margin: 0;
+        padding: 0;
     }
 
     /* Content Container */
     .content-container {
-        margin-left: 300px; /* Offset for sidebar */
-        padding: 40px;
-        background-color: #fff;
+        margin-left: 100px; /* Offset for compact sidebar */
+        padding: 50px;
+        background: #ffffff;
         border-radius: 20px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        margin-top: 20px; /* Offset from the top */
+        margin-top: 30px;
+        transition: margin 0.5s ease;
     }
 
     .header {
+        font-size: 32px;
+        color: #34495e;
         margin-bottom: 20px;
-        font-size: 28px;
-        color: #08063f;
-        border-bottom: 3px solid #e8cd7d;
-        padding-bottom: 10px;
+        text-align: center;
+    }
+
+    .header-description {
+        font-size: 16px;
+        color: #7f8c8d;
+        margin-bottom: 40px;
+        text-align: center;
     }
 
     /* Course Card Styling */
     .course-card {
-        background-color: #f9f9f9;
+        background: #f4f4f4;
         border: 1px solid #ddd;
         border-radius: 15px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-        margin-bottom: 30px;
-        transition: transform 0.3s ease-in-out;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        padding: 25px;
+        margin-bottom: 25px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .course-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .course-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 15px;
+        margin-bottom: 15px;
     }
 
     .course-title {
-        font-size: 20px;
-        color: #08063f;
-        margin-bottom: 10px;
+        font-size: 22px;
         font-weight: bold;
+        color: #2c3e50;
     }
 
     .course-title a {
         text-decoration: none;
-        color: #08063f;
+        color: inherit;
     }
 
     .course-title a:hover {
-        text-decoration: underline;
+        color: #3498db;
     }
 
-    .course-details {
-        margin: 10px 0;
+    .course-schedule {
+        font-size: 14px;
+        color: #7f8c8d;
     }
 
-    /* Class Info Button Styling */
-    .class-info-button {
+    .course-body {
+        margin-top: 10px;
+    }
+
+    .course-footer {
+        display: flex;
+        justify-content: flex-start;
+        margin-top: 20px;
+    }
+
+    .btn {
         display: inline-block;
-        margin-left: 15px;
-        padding: 10px 15px;
-        border: 1px solid #08063f; /* Blue border */
+        padding: 10px 20px;
         border-radius: 8px;
+        font-weight: bold;
         text-decoration: none;
-        color: #fff;
-        background-color: #08063f; /* Blue background */
-        transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+        margin-right: 15px;
+        transition: all 0.3s ease;
     }
 
-    .class-info-button:hover {
-        background-color: #e8cd7d; /* Gold background on hover */
-        color: #08063f; /* Blue text on hover */
-        transform: scale(1.05); /* Slight scale effect */
-    }
-
-    /* Drop Class Button Styling */
     .drop-class-button {
-        display: inline-block;
-        padding: 10px 15px;
-        border: 1px solid #e8cd7d; /* Gold border */
-        border-radius: 8px;
-        text-decoration: none;
-        color: #08063f; /* Blue text */
-        background-color: #e8cd7d; /* Gold background */
-        transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
-        margin-left: 10px;
+        background-color: #e74c3c;
+        color: #ffffff;
     }
 
     .drop-class-button:hover {
-        background-color: #08063f; /* Blue background on hover */
-        color: #e8cd7d; /* Gold text on hover */
-        transform: scale(1.05); /* Slight scale effect */
+        background-color: #c0392b;
+        transform: translateY(-3px);
+    }
+
+    .class-info-button {
+        background-color: #3498db;
+        color: #ffffff;
+    }
+
+    .class-info-button:hover {
+        background-color: #2980b9;
+        transform: translateY(-3px);
+    }
+
+    /* Responsive Design */
+    @media only screen and (max-width: 768px) {
+        .sidebar-left-drawer {
+            width: 100%;
+            height: auto;
+            position: relative;
+            margin: 0;
+            padding: 20px;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .content-container {
+            margin-left: 0;
+            padding: 20px;
+        }
+
+        .course-card {
+            padding: 15px;
+        }
     }
 </style>
 
