@@ -6,34 +6,34 @@
             <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo-img">
         </div>
         <div class="nav-item-box">
-            <div class="nav-item">
+            <a href="{% url 'student_schedule' %}" class="nav-item">
                 <span class="icon">📅</span>
                 <span class="text">My Schedule</span>
-            </div>
+            </a>
         </div>
         <div class="nav-item-box">
-            <div class="nav-item">
+            <a href="{% url 'shopping_cart' %}" class="nav-item">
                 <span class="icon">🛒</span>
                 <span class="text">Shopping Cart</span>
-            </div>
+            </a>
         </div>
         <div class="nav-item-box">
-            <div class="nav-item">
+            <a href="{% url 'available_courses' %}" class="nav-item">
                 <span class="icon">🗂</span>
                 <span class="text">Enrollment</span>
-            </div>
+            </a>
         </div>
         <div class="nav-item-box">
-            <div class="nav-item">
+            <a href="{% url 'my_requirements' %}" class="nav-item">
                 <span class="icon">📋</span>
                 <span class="text">My Requirements</span>
-            </div>
+            </a>
         </div>
         <div class="nav-item-box">
-            <div class="nav-item">
+            <a href="{% url 'financials' %}" class="nav-item">
                 <span class="icon">💵</span>
                 <span class="text">Financials</span>
-            </div>
+            </a>
         </div>
     </div>
 </div>
