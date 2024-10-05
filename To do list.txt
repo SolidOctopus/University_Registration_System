@@ -53,11 +53,11 @@ Classes must have Announcements, Assignments, Grades
 
 *Edit Course must send back to course list, it currently just stays in the same page
 *Late assignments are not showing in the correct date.
+Add a border to profile picture
+The sidebar in dashboard
+
 
 --Ernesto--
-done*Fix the bar appearing in the login screen
-done *Nothing planned yet (make it combine if there more than 1 week)
-done *option to change between weekly and daily 
 *top bar profiles and settings should be fixed on the top of the screen
 *Make it look better
 done*Make the assignments and annoucements be different depending on the class. 
