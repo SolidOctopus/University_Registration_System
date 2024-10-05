@@ -10,7 +10,7 @@ from .views import (
     edit_course,  manage_classes, course_students, view_students, view_profile, edit_profile,
     drop_class, assign_professor, course_detail, view_user_profile, student_register, professor_register, 
     settings_view, dashboard_view, course_overview, class_detail, get_assignments, professor_info, course_syllabus,
-    course_modules, course_assignments, course_announcements, course_grades, 
+    course_modules, course_assignments, course_announcements, course_grades, shopping_cart_view, my_requirements_view, financials_view, 
 )
 
 urlpatterns = [
@@ -66,11 +66,9 @@ urlpatterns = [
     path('course/<int:course_id>/assignments/',course_assignments, name='course_assignments'),
     path('course/<int:course_id>/announcements/',course_announcements, name='course_announcements'),
     path('course/<int:course_id>/grades/',course_grades, name='course_grades'),
-
-
-
-
-
+    path('shopping-cart/', shopping_cart_view, name='shopping_cart'),
+    path('my-requirements/', my_requirements_view, name='my_requirements'),
+    path('financials/', financials_view, name='financials'),
 ]
 
 if settings.DEBUG:
