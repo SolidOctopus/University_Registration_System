@@ -128,7 +128,7 @@ def view_enrollments(request):
 def available_courses(request):
     search_query = request.GET.get('search', '')
     courses = None  # Initialize as None to indicate no search results initially
-    student = request.user.student  # Assuming the user is logged in as a student
+    student = get_object_or_404(Student, user=request.user)  # Get the student object
 
     # Only perform search if there is a search query
     if search_query:
@@ -144,12 +144,17 @@ def available_courses(request):
     # Fetch enrolled courses for the student if courses exist
     enrolled_courses = Enrollment.objects.filter(student=student).values_list('course', flat=True) if courses else []
 
+    # Fetch courses in the student's cart
+    cart_courses = Cart.objects.filter(student=student).values_list('course', flat=True) if courses else []
+
     context = {
         'courses': courses,
         'enrolled_courses': enrolled_courses,
+        'cart_courses': cart_courses,  # Ensure this is passed to the template
         'search_query': search_query,
     }
     return render(request, 'available_courses.html', context)
+
 
 def enroll_course(request, pk):
     course = get_object_or_404(Course, pk=pk)
