@@ -49,6 +49,8 @@ Classes must have Announcements, Assignments, Grades
 *Give professors a list of their assignments and anncouncemts in their class
 *Give professors the ability to hide and rewveal their assignments (with a checkbox)
 
+
+
 --Bugs--
 
 *Edit Course must send back to course list, it currently just stays in the same page
@@ -65,3 +67,30 @@ calendar should recognize whether it is fall, spring or summer and from there it
 
 shopping cart
 classes should belong to fall, spring, summer
+
+
+When adding a class the shopping cart could have a number on top of the icon showning how many classes it has
+Log out icon turns into open door.
+Calendar showing the date.
+
+Commands
+-----Create classes------
+
+from datetime import date
+from registration.models import Course
+
+# Create 10 sample courses with start_date and end_date fields
+Course.objects.bulk_create([
+    Course(course_code='CEN4010', name='Software Engineering I', description='Introduction to Software Engineering', credits=3, capacity=30, available_seats=30, semester='fall', start_date=date(2024, 8, 20), end_date=date(2024, 12, 20)),
+    Course(course_code='CEN4021', name='Software Engineering II', description='Advanced Software Engineering topics', credits=3, capacity=25, available_seats=25, semester='spring', start_date=date(2025, 1, 10), end_date=date(2025, 5, 10)),
+    Course(course_code='COP3530', name='Data Structures and Algorithms', description='Study of data structures and algorithms', credits=4, capacity=40, available_seats=40, semester='fall', start_date=date(2024, 8, 20), end_date=date(2024, 12, 20)),
+    Course(course_code='COP4600', name='Operating Systems', description='Introduction to operating systems concepts', credits=4, capacity=35, available_seats=35, semester='summer', start_date=date(2025, 5, 15), end_date=date(2025, 8, 15)),
+    Course(course_code='CDA3103', name='Computer Architecture', description='Study of computer organization and architecture', credits=3, capacity=50, available_seats=50, semester='fall', start_date=date(2024, 8, 20), end_date=date(2024, 12, 20)),
+    Course(course_code='CIS4910', name='Capstone Project', description='Capstone project for computer science students', credits=3, capacity=20, available_seats=20, semester='spring', start_date=date(2025, 1, 10), end_date=date(2025, 5, 10)),
+    Course(course_code='COP4331', name='Object-Oriented Programming', description='Introduction to object-oriented programming concepts', credits=3, capacity=30, available_seats=30, semester='fall', start_date=date(2024, 8, 20), end_date=date(2024, 12, 20)),
+    Course(course_code='COP4710', name='Database Management', description='Study of database design and management systems', credits=4, capacity=40, available_seats=40, semester='summer', start_date=date(2025, 5, 15), end_date=date(2025, 8, 15)),
+    Course(course_code='CNT4713', name='Computer Networks', description='Introduction to computer networks and communication', credits=3, capacity=35, available_seats=35, semester='spring', start_date=date(2025, 1, 10), end_date=date(2025, 5, 10)),
+    Course(course_code='CIS4930', name='Special Topics in Computing', description='Various topics in computing', credits=3, capacity=30, available_seats=30, semester='fall', start_date=date(2024, 8, 20), end_date=date(2024, 12, 20)),
+])
+
+print("10 sample courses created successfully!")

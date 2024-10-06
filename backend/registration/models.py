@@ -8,6 +8,7 @@ class Course(models.Model):
         ('spring', 'Spring'),
         ('summer', 'Summer'),
     ]
+    course_code = models.CharField(max_length=10, unique=True, null=True, blank=True)
     name = models.CharField(max_length=100)
     description = models.TextField()
     start_date = models.DateField()
@@ -16,7 +17,7 @@ class Course(models.Model):
     start_time = models.TimeField(default='09:00:00')
     end_time = models.TimeField(default='17:00:00')
     session_type = models.CharField(max_length=50, default='Regular')
-    location = models.CharField(max_length=50, default='Campus')  # Corrected 'maxlength' to 'max_length'
+    location = models.CharField(max_length=50, default='Campus')
     available_seats = models.IntegerField(default=0, null=True, blank=True)
     capacity = models.IntegerField(default=10)
     credits = models.IntegerField(default=3)
@@ -143,3 +144,11 @@ class Announcement(models.Model):
 
     def __str__(self):
         return self.title
+    
+class Cart(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.student.user.username}'s Cart: {self.course.name}"

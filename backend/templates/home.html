@@ -124,25 +124,25 @@
 <div class="home-container">
     {% if user.is_authenticated %}
         {% if user.profile.role == 'admin' %}
-            <a href="#" class="box">
+            <a href="{% url 'student_list' %}" class="box">
                 <div class="icon"><i class="fas fa-user-graduate"></i></div>
                 <div class="box-content">
                     <span>Student List</span>
                 </div>
             </a>
-            <a href="#" class="box">
+            <a href="{% url 'course_list' %}" class="box">
                 <div class="icon"><i class="fas fa-book"></i></div>
                 <div class="box-content">
                     <span>Course List</span>
                 </div>
             </a>
-            <a href="#" class="box">
+            <a href="{% url 'professor_list' %}" class="box">
                 <div class="icon"><i class="fas fa-chalkboard-teacher"></i></div>
                 <div class="box-content">
                     <span>Professor List</span>
                 </div>
             </a>
-            <a href="#" class="box">
+            <a href="{% url 'admin_list' %}" class="box">
                 <div class="icon"><i class="fas fa-user-cog"></i></div>
                 <div class="box-content">
                     <span>Admin List</span>

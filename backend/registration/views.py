@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm
 from django.http import JsonResponse
-from .models import Course, Student, Professor, Admin, Profile, Enrollment, Assignment, Announcement
+from .models import Course, Student, Professor, Admin, Profile, Enrollment, Assignment, Announcement, Cart
 from .forms import CourseForm, StudentForm, ProfessorForm, AdminForm, GradeForm, ProfileForm, UserRegistrationForm, StudentRegistrationForm, ProfessorRegistrationForm, AssignmentForm, AnnouncementForm 
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -11,6 +11,7 @@ from django.db.models import Q, F
 from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta, date
 from django.core.paginator import Paginator
+from django.views.decorators.csrf import csrf_exempt
 
 def register_view(request):
     if request.method == 'POST':
@@ -123,14 +124,30 @@ def view_enrollments(request):
     enrollments = Enrollment.objects.filter(student=student)
     return render(request, 'registration/view_enrollments.html', {'enrollments': enrollments})
 
+# views.py
 def available_courses(request):
+    search_query = request.GET.get('search', '')
+    courses = None  # Initialize as None to indicate no search results initially
     student = request.user.student  # Assuming the user is logged in as a student
-    courses = Course.objects.all()  # Fetch all available courses
-    enrolled_courses = Enrollment.objects.filter(student=student).values_list('course', flat=True)
-    
+
+    # Only perform search if there is a search query
+    if search_query:
+        courses = Course.objects.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(days__icontains=search_query) |
+            Q(location__icontains=search_query) |
+            Q(professor__first_name__icontains=search_query) |
+            Q(professor__last_name__icontains=search_query)
+        )
+
+    # Fetch enrolled courses for the student if courses exist
+    enrolled_courses = Enrollment.objects.filter(student=student).values_list('course', flat=True) if courses else []
+
     context = {
         'courses': courses,
         'enrolled_courses': enrolled_courses,
+        'search_query': search_query,
     }
     return render(request, 'available_courses.html', context)
 
@@ -915,3 +932,37 @@ def my_requirements_view(request):
 
 def financials_view(request):
     return render(request, 'financials.html')
+
+def add_to_cart(request, course_id):
+    student = get_object_or_404(Student, user=request.user)
+    course = get_object_or_404(Course, id=course_id)
+    
+    # Check if the course is already in the cart
+    if Cart.objects.filter(student=student, course=course).exists():
+        return JsonResponse({'success': False, 'message': 'Course is already in the cart.'})
+
+    # Add course to the cart
+    Cart.objects.create(student=student, course=course)
+    return JsonResponse({'success': True})
+
+def remove_from_cart(request, cart_id):
+    cart_item = get_object_or_404(Cart, id=cart_id)
+    if cart_item.student.user == request.user:
+        cart_item.delete()
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False})
+
+
+def enroll_all_courses(request):
+    student = get_object_or_404(Student, user=request.user)
+    cart_items = Cart.objects.filter(student=student)
+    
+    for cart_item in cart_items:
+        course = cart_item.course
+        Enrollment.objects.create(student=student, course=course)
+        course.available_seats -= 1
+        course.save()
+        cart_item.delete()  # Remove item from cart after enrollment
+
+    messages.success(request, 'You have successfully enrolled in all courses.')
+    return redirect('student_schedule')

@@ -11,6 +11,7 @@ from .views import (
     drop_class, assign_professor, course_detail, view_user_profile, student_register, professor_register, 
     settings_view, dashboard_view, course_overview, class_detail, get_assignments, professor_info, course_syllabus,
     course_modules, course_assignments, course_announcements, course_grades, shopping_cart_view, my_requirements_view, financials_view, 
+    add_to_cart, remove_from_cart, enroll_all_courses
 )
 
 urlpatterns = [
@@ -69,6 +70,9 @@ urlpatterns = [
     path('shopping-cart/', shopping_cart_view, name='shopping_cart'),
     path('my-requirements/', my_requirements_view, name='my_requirements'),
     path('financials/', financials_view, name='financials'),
+    path('add_to_cart/<int:course_id>/', add_to_cart, name='add_to_cart'),
+    path('remove_from_cart/<int:cart_id>/', remove_from_cart, name='remove_from_cart'),
+    path('enroll_all_courses/', enroll_all_courses, name='enroll_all_courses'),
 ]
 
 if settings.DEBUG:

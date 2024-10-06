@@ -8,19 +8,20 @@ class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
         fields = [
-            'name', 
-            'description', 
-            'start_date', 
-            'end_date', 
-            'days', 
-            'start_time', 
-            'end_time', 
-            'session_type', 
-            'location', 
-            'available_seats', 
+            'course_code',  # Make sure this matches the model
+            'name',
+            'description',
+            'start_date',
+            'end_date',
+            'days',
+            'start_time',
+            'end_time',
+            'session_type',
+            'location',
+            'available_seats',
             'capacity',
-            'credits', 
-            'semester'
+            'credits',
+            'semester',
         ]
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
