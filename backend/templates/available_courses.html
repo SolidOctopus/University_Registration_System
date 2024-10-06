@@ -42,14 +42,12 @@
                                 {% if course.id in enrolled_courses %}
                                     Enrolled
                                 {% elif course.id in cart_courses %}
-                                    <!-- If the course is already in the cart, show "In Cart" button with filled cart icon -->
                                     <button class="in-cart" data-course-id="{{ course.pk }}" style="background: none; border: none; cursor: not-allowed;">
-                                        <img src="{% static 'icons/filled_cart_icon.png' %}" alt="In Cart" style="width: 24px; height: 24px; vertical-align: middle;"> In Cart
+                                        <i class="fa fa-shopping-cart" style="font-size: 24px; color: green;"></i> In Cart
                                     </button>
                                 {% elif course.available_seats > 0 %}
-                                    <!-- Show "Add to Cart" button with empty cart icon -->
                                     <button class="add-to-cart" data-course-id="{{ course.pk }}" style="background: none; border: none;">
-                                        <img src="{% static 'icons/empty_cart_icon.png' %}" alt="Add to Cart" style="width: 24px; height: 24px; vertical-align: middle;"> Add to Cart
+                                        <i class="fa fa-cart-plus" style="font-size: 24px;"></i> Add to Cart
                                     </button>
                                 {% else %}
                                     Full
@@ -137,7 +135,7 @@
         color: #08063f;
     }
 
-    .in-cart img {
+    .in-cart img, .add-to-cart img {
         vertical-align: middle;
     }
 </style>
@@ -145,34 +143,35 @@
 <!-- JavaScript to handle Add to Cart and dynamic changes -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.add-to-cart').forEach(function (button) {
-            button.addEventListener('click', function () {
-                const courseId = this.getAttribute('data-course-id');
-                
-                // Send AJAX request to add the course to the cart
-                fetch(`/add_to_cart/${courseId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Change the button to "In Cart" after successful addition
-                        this.classList.remove('add-to-cart');
-                        this.classList.add('in-cart');
-                        this.innerHTML = `<img src="{% static 'icons/filled_cart_icon.png' %}" alt="In Cart" style="width: 24px; height: 24px; vertical-align: middle;"> In Cart`;
-                        this.style.cursor = 'not-allowed'; // Update cursor style
-                        this.disabled = true; // Disable button to prevent additional clicks
-                    } else {
-                        alert('Failed to add course to the cart.');
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-            });
+    document.querySelectorAll('.add-to-cart').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const courseId = this.getAttribute('data-course-id');
+            
+            // Send AJAX request to add the course to the cart
+            fetch(`/add_to_cart/${courseId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.classList.remove('add-to-cart');
+                    this.classList.add('in-cart');
+                    this.innerHTML = `<i class="fa fa-shopping-cart" style="font-size: 24px; color: green;"></i> In Cart`;
+                    this.style.cursor = 'not-allowed';
+                    this.disabled = true;
+                } else if (data.message === 'Course is already in the cart.') {
+                    alert('This course is already in your cart.');
+                } else {
+                    alert('Failed to add course to the cart.');
+                }
+            })
+            .catch(error => console.error('Error:', error));
         });
     });
+});
 </script>
 {% endblock %}

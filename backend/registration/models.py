@@ -35,6 +35,7 @@ class Student(models.Model):
     courses = models.ManyToManyField(Course, through='Enrollment')
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
+    id_number = models.CharField(max_length=20, default='default_id')
 
     def delete(self, *args, **kwargs):
         enrollments = Enrollment.objects.filter(student=self)
@@ -66,6 +67,7 @@ class Professor(models.Model):
 
 class Admin(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    id_number = models.CharField(max_length=20, default='default_id')
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     email = models.EmailField()
