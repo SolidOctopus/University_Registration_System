@@ -925,7 +925,14 @@ def course_grades(request, course_id):
     return render(request, 'course_grades.html', {'course': course})
 
 def shopping_cart_view(request):
-    return render(request, 'shopping_cart.html')
+    student = request.user.student  # Retrieve the student object
+    cart_items = Cart.objects.filter(student=student).select_related('course')  # Get courses in cart for this student
+    
+    context = {
+        'cart_items': cart_items,  # Pass the cart items to the template
+        'courses': [item.course for item in cart_items],  # Pass the courses for displaying
+    }
+    return render(request, 'shopping_cart.html', context)
 
 def my_requirements_view(request):
     return render(request, 'my_requirements.html')
@@ -954,15 +961,20 @@ def remove_from_cart(request, cart_id):
 
 
 def enroll_all_courses(request):
-    student = get_object_or_404(Student, user=request.user)
-    cart_items = Cart.objects.filter(student=student)
-    
-    for cart_item in cart_items:
-        course = cart_item.course
-        Enrollment.objects.create(student=student, course=course)
-        course.available_seats -= 1
-        course.save()
-        cart_item.delete()  # Remove item from cart after enrollment
+    if request.method == 'POST':
+        student = get_object_or_404(Student, user=request.user)
+        selected_courses_ids = request.POST.getlist('selected_courses')  # Retrieve selected course IDs
+        cart_items = Cart.objects.filter(student=student, course__pk__in=selected_courses_ids)  # Filter selected courses in cart
 
-    messages.success(request, 'You have successfully enrolled in all courses.')
-    return redirect('student_schedule')
+        for cart_item in cart_items:
+            course = cart_item.course
+            if course.available_seats > 0:  # Only enroll if there are available seats
+                Enrollment.objects.create(student=student, course=course)
+                course.available_seats -= 1
+                course.save()
+                cart_item.delete()  # Remove item from cart after enrollment
+
+        messages.success(request, 'You have successfully enrolled in the selected courses.')
+        return redirect('student_schedule')
+
+    return redirect('shopping_cart')
