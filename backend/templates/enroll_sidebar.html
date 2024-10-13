@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Sidebar with Blurred Ripple Effect</title>
+    <title>Enhanced Sidebar with Notification Badge</title>
     <style>
         /* Sidebar Container Styles */
         .enroll-sidebar-container {
@@ -143,6 +143,24 @@
             color: #ffffff;
             text-shadow: 0 0 15px rgba(52, 152, 219, 0.7); /* Blue glow */
         }
+
+        /* Notification Badge */
+        .notification-badge {
+            position: fixed;           /* Absolute positioning */
+            top: 120px;                     /* Adjust vertical alignment */
+            right: 15px;                   /* Adjust horizontal alignment */
+            background-color: red;        /* Background color */
+            color: white;                 /* Text color */
+            border-radius: 50%;           /* Circular shape */
+            padding: 2px 9px;             /* Padding for better size */
+            font-size: 20px;              /* Smaller font size */
+            font-weight: bold;            /* Bold text */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);  /* Box shadow for depth */
+            z-index: 10;                  /* Higher z-index */
+            transform: translate(50%, -50%); /* Fine-tune positioning */
+            display: inline-block;        /* Ensure the badge displays inline */
+        }
+
 
         /* Tooltip for Collapsed Sidebar */
         .enroll-menu-item::after {
@@ -302,22 +320,6 @@
             }
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes slideInUp {
-            0% { transform: translateY(100px); }
-            100% { transform: translateY(0); }
-        }
-
-        @keyframes bounce {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-10px); }
-        }
-
         @keyframes bounceExpand {
             0% { width: 50px; }
             50% { width: 80px; }
@@ -339,9 +341,11 @@
                 <span class="icon">📅</span>
                 <span class="text">My Schedule</span>
             </a>
-            <a href="{% url 'shopping_cart' %}" class="enroll-menu-item" data-tooltip="Shopping Cart">
+            <a href="{% url 'shopping_cart' %}" class="enroll-menu-item" data-tooltip="Shopping Cart" style="position: relative;">
                 <span class="icon">🛒</span>
                 <span class="text">Shopping Cart</span>
+                <!-- Notification Badge Positioned Correctly -->
+                <span class="notification-badge" id="cart-badge">3</span>
             </a>
             <a href="{% url 'available_courses' %}" class="enroll-menu-item" data-tooltip="Enrollment">
                 <span class="icon">🎓</span>
@@ -356,7 +360,6 @@
                 <span class="text">Financials</span>
             </a>
         </div>
-
         <!-- User Info and Logout -->
         <div class="enroll-sidebar-user">
             <div class="enroll-user-info">
@@ -397,6 +400,28 @@
             icon.addEventListener('mouseleave', () => {
                 icon.style.transform = 'none'; /* Reset transform */
             });
+        });
+
+        // Function to update the cart badge with the count of items in the cart
+        function updateCartBadge(count) {
+            const cartBadge = document.getElementById('cart-badge');
+            if (count > 0) {
+                cartBadge.textContent = count;
+                cartBadge.style.display = 'inline-block';
+            } else {
+                cartBadge.style.display = 'none';
+            }
+        }
+
+        // Fetch and display the cart item count on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/get_cart_count/')
+                .then(response => response.json())
+                .then(data => {
+                    const cartCount = data.cart_count;  // Assuming your API returns { "cart_count": 3 }
+                    updateCartBadge(cartCount);
+                })
+                .catch(error => console.error('Error fetching cart count:', error));
         });
     </script>
 </body>

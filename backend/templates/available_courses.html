@@ -142,11 +142,11 @@
 
 <!-- JavaScript to handle Add to Cart and dynamic changes -->
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.add-to-cart').forEach(function (button) {
         button.addEventListener('click', function () {
             const courseId = this.getAttribute('data-course-id');
-            
+
             // Send AJAX request to add the course to the cart
             fetch(`/add_to_cart/${courseId}/`, {
                 method: 'POST',
@@ -163,15 +163,28 @@
                     this.innerHTML = `<i class="fa fa-shopping-cart" style="font-size: 24px; color: green;"></i> In Cart`;
                     this.style.cursor = 'not-allowed';
                     this.disabled = true;
-                } else if (data.message === 'Course is already in the cart.') {
-                    alert('This course is already in your cart.');
-                } else {
-                    alert('Failed to add course to the cart.');
+
+                    // Update the shopping cart badge with the new count
+                    updateCartBadge(data.cart_count);
+                } else if (data.message) {
+                    alert(data.message);
                 }
             })
             .catch(error => console.error('Error:', error));
         });
     });
 });
+
+// Function to update the cart badge
+function updateCartBadge(count) {
+    const cartBadge = document.getElementById('cart-badge');
+    if (count > 0) {
+        cartBadge.textContent = count;
+        cartBadge.style.display = 'inline-block';
+    } else {
+        cartBadge.style.display = 'none';
+    }
+}
+
 </script>
 {% endblock %}

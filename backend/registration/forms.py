@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Profile, Student, Professor, Admin, Enrollment, Course, Assignment, Announcement
+from .models import Profile, Student, Professor, Admin, Enrollment, Course, Assignment, Announcement, Message
 from django.contrib.auth.forms import UserCreationForm
 import re
 
@@ -286,3 +286,15 @@ class AnnouncementForm(forms.ModelForm):
             'due_date': forms.DateInput(attrs={'type': 'date'}),
             'due_time': forms.TimeInput(attrs={'type': 'time'}),
         }
+
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ['receiver', 'content']
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super(MessageForm, self).__init__(*args, **kwargs)
+        self.fields['receiver'].queryset = User.objects.filter(profile__role__in=['student', 'professor'])
+        self.fields['receiver'].label_from_instance = lambda obj: f"{obj.profile.role.capitalize()} - {obj.username}"
+

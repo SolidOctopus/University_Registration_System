@@ -2,8 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm
 from django.http import JsonResponse
-from .models import Course, Student, Professor, Admin, Profile, Enrollment, Assignment, Announcement, Cart
-from .forms import CourseForm, StudentForm, ProfessorForm, AdminForm, GradeForm, ProfileForm, UserRegistrationForm, StudentRegistrationForm, ProfessorRegistrationForm, AssignmentForm, AnnouncementForm 
+from .models import Course, Student, Professor, Admin, Profile, Enrollment, Assignment, Announcement, Cart, Message
+from .forms import CourseForm, StudentForm, ProfessorForm, AdminForm, GradeForm, ProfileForm, UserRegistrationForm, StudentRegistrationForm, ProfessorRegistrationForm, AssignmentForm, AnnouncementForm, MessageForm 
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db import transaction, IntegrityError
@@ -930,14 +930,15 @@ def course_grades(request, course_id):
     return render(request, 'course_grades.html', {'course': course})
 
 def shopping_cart_view(request):
+    # Get the current student's cart items
     student = request.user.student  # Retrieve the student object
-    cart_items = Cart.objects.filter(student=student).select_related('course')  # Get courses in cart for this student
-    
+    cart_items = Cart.objects.filter(student=student).select_related('course')  # Use Cart model
+
     context = {
         'cart_items': cart_items,  # Pass the cart items to the template
-        'courses': [item.course for item in cart_items],  # Pass the courses for displaying
     }
     return render(request, 'shopping_cart.html', context)
+
 
 def my_requirements_view(request):
     return render(request, 'my_requirements.html')
@@ -946,23 +947,39 @@ def financials_view(request):
     return render(request, 'financials.html')
 
 def add_to_cart(request, course_id):
-    student = get_object_or_404(Student, user=request.user)
-    course = get_object_or_404(Course, id=course_id)
-    
-    # Check if the course is already in the cart
-    if Cart.objects.filter(student=student, course=course).exists():
-        return JsonResponse({'success': False, 'message': 'Course is already in the cart.'})
+    if request.method == 'POST':
+        course = Course.objects.get(pk=course_id)
+        student = request.user.student  # Get the student object
 
-    # Add course to the cart
-    Cart.objects.create(student=student, course=course)
-    return JsonResponse({'success': True})
+        # Create or get Cart object based on the student and course
+        cart_item, created = Cart.objects.get_or_create(student=student, course=course)
+        
+        if created:
+            message = 'Course successfully added to your cart.'
+            success = True
+        else:
+            message = 'This course is already in your cart.'
+            success = False
+
+        # Return the updated cart count
+        cart_count = Cart.objects.filter(student=student).count()
+
+        return JsonResponse({'success': success, 'message': message, 'cart_count': cart_count})
 
 def remove_from_cart(request, cart_id):
-    cart_item = get_object_or_404(Cart, id=cart_id)
-    if cart_item.student.user == request.user:
+    if request.method == 'POST':
+        # Retrieve the cart item using the ID
+        cart_item = get_object_or_404(Cart, id=cart_id)
+        
+        # Delete the item from the cart
         cart_item.delete()
+        
+        # Return a success response
         return JsonResponse({'success': True})
-    return JsonResponse({'success': False})
+    
+    # If method is not POST, return an error response
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
 
 
 def enroll_all_courses(request):
@@ -983,3 +1000,46 @@ def enroll_all_courses(request):
         return redirect('student_schedule')
 
     return redirect('shopping_cart')
+
+def get_cart_count(request):
+    student = request.user.student  # Get the student object
+    cart_count = Cart.objects.filter(student=student).count()  # Use Cart model
+    return JsonResponse({'cart_count': cart_count})
+
+@login_required
+def message_list(request):
+    received_messages = Message.objects.filter(receiver=request.user)
+    sent_messages = Message.objects.filter(sender=request.user)
+    return render(request, 'message_list.html', {
+        'received_messages': received_messages,
+        'sent_messages': sent_messages,
+    })
+
+@login_required
+def send_message(request, parent_id=None):
+    parent_message = None
+    if parent_id:
+        parent_message = get_object_or_404(Message, id=parent_id)
+
+    if request.method == 'POST':
+        form = MessageForm(request.POST, user=request.user)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.sender = request.user
+            if parent_message:
+                message.receiver = parent_message.sender  # Automatically set the receiver
+            message.parent = parent_message  # Set the parent message if replying
+            message.save()
+            return redirect('message_list')
+    else:
+        form = MessageForm(user=request.user, initial={'receiver': parent_message.sender} if parent_message else None)
+    
+    return render(request, 'send_message.html', {'form': form, 'parent_message': parent_message})
+
+@login_required
+def message_detail(request, message_id):
+    message = get_object_or_404(Message, id=message_id)
+    replies = message.replies.all()
+    return render(request, 'message_detail.html', {'message': message, 'replies': replies})
+
+
