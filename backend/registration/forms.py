@@ -298,3 +298,4 @@ class MessageForm(forms.ModelForm):
         self.fields['receiver'].queryset = User.objects.filter(profile__role__in=['student', 'professor'])
         self.fields['receiver'].label_from_instance = lambda obj: f"{obj.profile.role.capitalize()} - {obj.username}"
 
+

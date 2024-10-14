@@ -1008,38 +1008,51 @@ def get_cart_count(request):
 
 @login_required
 def message_list(request):
-    received_messages = Message.objects.filter(receiver=request.user)
-    sent_messages = Message.objects.filter(sender=request.user)
+    other_user = None  # Set to None initially
+    other_user_id = request.GET.get('user')  # Get the other user ID from the query string
+    messages = None
+    
+    if other_user_id:
+        other_user = get_object_or_404(User, id=other_user_id)
+        # Filter the messages between the logged-in user and the selected user
+        messages = Message.objects.filter(
+            (Q(sender=request.user) & Q(receiver=other_user)) | 
+            (Q(receiver=request.user) & Q(sender=other_user))
+        ).order_by('timestamp')
+    
+    # Get the list of users the logged-in user has interacted with, excluding themselves
+    interacted_users = User.objects.filter(
+        Q(pk__in=Message.objects.filter(sender=request.user).values('receiver')) | 
+        Q(pk__in=Message.objects.filter(receiver=request.user).values('sender'))
+    ).exclude(id=request.user.id).distinct()
+
     return render(request, 'message_list.html', {
-        'received_messages': received_messages,
-        'sent_messages': sent_messages,
+        'messages': messages, 
+        'users': interacted_users, 
+        'other_user': other_user
     })
 
+
+
+
 @login_required
-def send_message(request, parent_id=None):
-    parent_message = None
-    if parent_id:
-        parent_message = get_object_or_404(Message, id=parent_id)
+def send_message(request, recipient_id):
+    # Get the recipient user using the recipient_id
+    recipient = get_object_or_404(User, id=recipient_id)
 
     if request.method == 'POST':
-        form = MessageForm(request.POST, user=request.user)
-        if form.is_valid():
-            message = form.save(commit=False)
-            message.sender = request.user
-            if parent_message:
-                message.receiver = parent_message.sender  # Automatically set the receiver
-            message.parent = parent_message  # Set the parent message if replying
-            message.save()
-            return redirect('message_list')
-    else:
-        form = MessageForm(user=request.user, initial={'receiver': parent_message.sender} if parent_message else None)
-    
-    return render(request, 'send_message.html', {'form': form, 'parent_message': parent_message})
+        # Get the content of the message from the form
+        content = request.POST.get('content')
+        if content:
+            # Create a new message with the sender, receiver, and content
+            Message.objects.create(sender=request.user, receiver=recipient, content=content)
+        # Redirect back to the same conversation with the recipient
+        return redirect(f'/messages/?user={recipient_id}')
+
 
 @login_required
 def message_detail(request, message_id):
     message = get_object_or_404(Message, id=message_id)
     replies = message.replies.all()
     return render(request, 'message_detail.html', {'message': message, 'replies': replies})
-
 

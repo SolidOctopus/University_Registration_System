@@ -75,7 +75,7 @@ urlpatterns = [
     path('enroll_all_courses/', enroll_all_courses, name='enroll_all_courses'),
     path('get_cart_count/', get_cart_count, name='get_cart_count'),
     path('messages/', message_list, name='message_list'),
-    path('messages/send/', send_message, name='send_message'),
+    path('messages/send/<int:recipient_id>/', send_message, name='send_message'),  # Updated
     path('messages/send/<int:parent_id>/', send_message, name='reply_message'),
     path('messages/<int:message_id>/', message_detail, name='message_detail'),
 
