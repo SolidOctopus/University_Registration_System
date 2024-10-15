@@ -160,8 +160,14 @@ class Message(models.Model):
     receiver = models.ForeignKey(User, related_name='received_messages', on_delete=models.CASCADE)
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)  # For read receipts
     parent = models.ForeignKey('self', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Message from {self.sender} to {self.receiver} at {self.timestamp}"
+        return f"Message from {self.sender.username} to {self.receiver.username} at {self.timestamp}"
+
+    def mark_as_read(self):
+        self.is_read = True
+        self.save()
+
 

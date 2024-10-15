@@ -5,56 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Send a Message</title>
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-        }
-
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-top: 40px;
-            font-size: 2.5rem;
-        }
-
-        form {
-            max-width: 600px;
-            margin: 40px auto;
-            padding: 30px;
-            background-color: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        textarea {
-            width: 100%;
-            padding: 15px;
-            font-size: 1rem;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-family: 'Poppins', sans-serif;
-            box-shadow: inset 0px 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        button[type="submit"] {
-            background-color: #2980b9;
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1.1rem;
-            width: 100%;
-        }
-
-        button[type="submit"]:hover {
-            background-color: #3498db;
-            box-shadow: 0px 10px 20px rgba(52, 152, 219, 0.4);
-        }
+        /* Your existing CSS */
     </style>
 </head>
 <body>
@@ -65,6 +16,38 @@
         {{ form.as_p }}
         <button type="submit">Send</button>
     </form>
+
+    <!-- Typing indicator -->
+    <div class="typing-indicator" style="display: none;">User is typing...</div>
+
+    <script>
+        const chatWindow = document.querySelector('.chat-messages');
+        
+        function scrollToBottom() {
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+    
+        // Scroll to the bottom when a message is sent
+        document.querySelector('form').onsubmit = function(e) {
+            e.preventDefault();
+            const messageInput = document.querySelector('textarea[name="content"]');
+            const message = messageInput.value;
+    
+            socket.send(JSON.stringify({
+                'message': message,
+                'sender': "{{ request.user.id }}"
+            }));
+    
+            messageInput.value = '';
+    
+            // Delay the scroll action to give time for new messages to be rendered
+            setTimeout(scrollToBottom, 100);
+        };
+    
+        // Scroll to the bottom on page load
+        window.onload = scrollToBottom;
+    </script>
+    
 
 </body>
 </html>

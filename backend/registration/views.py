@@ -1008,28 +1008,40 @@ def get_cart_count(request):
 
 @login_required
 def message_list(request):
-    other_user = None  # Set to None initially
-    other_user_id = request.GET.get('user')  # Get the other user ID from the query string
+    other_user = None
+    other_user_id = request.GET.get('user')
     messages = None
-    
+
     if other_user_id:
         other_user = get_object_or_404(User, id=other_user_id)
-        # Filter the messages between the logged-in user and the selected user
+        # Mark messages as read
+        Message.objects.filter(receiver=request.user, sender=other_user).update(is_read=True)
         messages = Message.objects.filter(
             (Q(sender=request.user) & Q(receiver=other_user)) | 
             (Q(receiver=request.user) & Q(sender=other_user))
         ).order_by('timestamp')
-    
-    # Get the list of users the logged-in user has interacted with, excluding themselves
+
+    # Get all users who have interacted with the current user
     interacted_users = User.objects.filter(
         Q(pk__in=Message.objects.filter(sender=request.user).values('receiver')) | 
         Q(pk__in=Message.objects.filter(receiver=request.user).values('sender'))
     ).exclude(id=request.user.id).distinct()
 
+    # Fetch the last message of each conversation with these users
+    last_messages = {}
+    for user in interacted_users:
+        last_message = Message.objects.filter(
+            Q(sender=user, receiver=request.user) | Q(sender=request.user, receiver=user)
+        ).order_by('-timestamp').first()  # Get the latest message
+        
+        # Ensure that there's a message before adding it to the dictionary
+        last_messages[user.id] = last_message if last_message else None
+
     return render(request, 'message_list.html', {
-        'messages': messages, 
-        'users': interacted_users, 
-        'other_user': other_user
+        'messages': messages,
+        'users': interacted_users,
+        'other_user': other_user,
+        'last_messages': last_messages  # Pass the last messages to the template
     })
 
 
@@ -1037,17 +1049,15 @@ def message_list(request):
 
 @login_required
 def send_message(request, recipient_id):
-    # Get the recipient user using the recipient_id
     recipient = get_object_or_404(User, id=recipient_id)
 
     if request.method == 'POST':
-        # Get the content of the message from the form
         content = request.POST.get('content')
         if content:
-            # Create a new message with the sender, receiver, and content
             Message.objects.create(sender=request.user, receiver=recipient, content=content)
-        # Redirect back to the same conversation with the recipient
         return redirect(f'/messages/?user={recipient_id}')
+
+    return JsonResponse({'status': 'Message sent'})
 
 
 @login_required
