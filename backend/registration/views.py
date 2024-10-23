@@ -1021,28 +1021,37 @@ def message_list(request):
             (Q(receiver=request.user) & Q(sender=other_user))
         ).order_by('timestamp')
 
+    # Get all users who are either students or professors (exclude admins)
+    all_users = User.objects.filter(profile__role__in=['student', 'professor']).exclude(id=request.user.id)
+    
     # Get all users who have interacted with the current user
     interacted_users = User.objects.filter(
         Q(pk__in=Message.objects.filter(sender=request.user).values('receiver')) | 
         Q(pk__in=Message.objects.filter(receiver=request.user).values('sender'))
     ).exclude(id=request.user.id).distinct()
 
-    # Fetch the last message of each conversation with these users
+    # Fetch the last message and unread message count for each user
     last_messages = {}
     for user in interacted_users:
         last_message = Message.objects.filter(
-            Q(sender=user, receiver=request.user) | Q(sender=request.user, receiver=user)
+            (Q(sender=user, receiver=request.user) | Q(sender=request.user, receiver=user))
         ).order_by('-timestamp').first()  # Get the latest message
-        
+
         # Ensure that there's a message before adding it to the dictionary
         last_messages[user.id] = last_message if last_message else None
+
+        # Attach unread count directly to the user object
+        unread_count = Message.objects.filter(sender=user, receiver=request.user, is_read=False).count()
+        user.unread_count = unread_count
 
     return render(request, 'message_list.html', {
         'messages': messages,
         'users': interacted_users,
         'other_user': other_user,
-        'last_messages': last_messages  # Pass the last messages to the template
+        'last_messages': last_messages,  # Pass the last messages to the template
+        'all_users': all_users,
     })
+
 
 
 
@@ -1059,10 +1068,27 @@ def send_message(request, recipient_id):
 
     return JsonResponse({'status': 'Message sent'})
 
-
 @login_required
 def message_detail(request, message_id):
     message = get_object_or_404(Message, id=message_id)
     replies = message.replies.all()
     return render(request, 'message_detail.html', {'message': message, 'replies': replies})
+
+@login_required
+def start_new_conversation(request):
+    if request.method == 'POST':
+        receiver_id = request.POST.get('receiver')
+        receiver = get_object_or_404(User, id=receiver_id)
+        Message.objects.create(sender=request.user, receiver=receiver, content='New conversation started.')
+        return redirect(f'/messages/?user={receiver_id}')
+
+
+@login_required
+def delete_conversation(request, user_id):
+    other_user = get_object_or_404(User, id=user_id)
+    Message.objects.filter(
+        (Q(sender=request.user) & Q(receiver=other_user)) | 
+        (Q(receiver=request.user) & Q(sender=other_user))
+    ).delete()
+    return redirect('message_list')
 

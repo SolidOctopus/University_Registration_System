@@ -11,7 +11,8 @@ from .views import (
     drop_class, assign_professor, course_detail, view_user_profile, student_register, professor_register, 
     settings_view, dashboard_view, course_overview, class_detail, get_assignments, professor_info, course_syllabus,
     course_modules, course_assignments, course_announcements, course_grades, shopping_cart_view, my_requirements_view, financials_view, 
-    add_to_cart, remove_from_cart, enroll_all_courses, get_cart_count, message_list, send_message, message_detail
+    add_to_cart, remove_from_cart, enroll_all_courses, get_cart_count, message_list, send_message, message_detail, start_new_conversation,
+    delete_conversation,
 )
 
 urlpatterns = [
@@ -78,6 +79,9 @@ urlpatterns = [
     path('messages/send/<int:recipient_id>/', send_message, name='send_message'),  # Updated
     path('messages/send/<int:parent_id>/', send_message, name='reply_message'),
     path('messages/<int:message_id>/', message_detail, name='message_detail'),
+    path('messages/start/', start_new_conversation, name='start_conversation'),
+    path('messages/delete/<int:user_id>/', delete_conversation, name='delete_conversation'),
+
 
 ]
 
