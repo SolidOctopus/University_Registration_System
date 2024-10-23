@@ -1,4 +1,4 @@
-
+{% extends 'base.html' %}
 {% include 'sidebar.html' %}
 {% block content %}
 <style>
@@ -153,13 +153,13 @@
             <a href="{% url 'available_courses' %}" class="box">
                 <div class="icon"><i class="fas fa-list-alt"></i></div>
                 <div class="box-content">
-                    <span>Student Available Courses</span>
+                    <span>Available Courses</span>
                 </div>
             </a>
             <a href="{% url 'student_schedule' %}" class="box">
                 <div class="icon"><i class="fas fa-calendar-alt"></i></div>
                 <div class="box-content">
-                    <span>Student Schedule</span>
+                    <span>Schedule</span>
                 </div>
             </a>
             <a href="{% url 'dashboard' %}" class="btn box">
