@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upgraded Top Bar</title>
+    <link rel="stylesheet" href="{% static 'css/topbar.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+    <div class="topbar-container">
+        <header>
+            <div id="branding">
+                <h1><a href="{% url 'home' %}">University Registration System</a></h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'home' %}" class="pulse">
+                        <i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="{% url 'dashboard' %}">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="{% url 'logout' %}">
+                        <i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <div class="top-right-icons">
+            <a href="{% url 'view_profile' %}" class="icon" title="Profile">
+                {% if user.profile.profile_picture %}
+                    <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="profile-pic">
+                {% else %}
+                    <i class="fas fa-user-circle"></i>
+                {% endif %}
+            </a>
+            <div class="icon settings-icon" title="Settings">
+                <i class="fas fa-cog"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script for Scroll Effect -->
+    <script>
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) {
+                document.body.classList.add('scrolled');
+            } else {
+                document.body.classList.remove('scrolled');
+            }
+        });
+    </script>
+</body>
+</html>

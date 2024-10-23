@@ -1,0 +1,189 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: whitesmoke;
+    margin: 0;
+    padding-top: 120px;
+}
+
+/* Top Bar Container (Holds everything) */
+.topbar-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    z-index: 10;
+    background-color: transparent;
+    margin-bottom: 20px;
+}
+
+/* Notch header */
+header {
+    background: radial-gradient(circle, #08063f, #1a1a52);
+    color: #e8cd7d;
+    padding: 25px 30px;
+    position: relative;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    border-bottom-left-radius: 40px;
+    border-bottom-right-radius: 40px;
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: slideDown 0.6s ease forwards;
+    box-shadow: 0 0 15px 5px rgba(128, 90, 213, 0.6); /* Purple glow effect matching the Home button */
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* Scroll effect */
+body.scrolled header {
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: scale(0.95);
+    transition: padding 0.3s ease, transform 0.3s ease;
+}
+
+/* Branding (Logo) */
+#branding h1 a {
+    color: #f5d78b;
+    text-decoration: none;
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+    font-family: 'Georgia', serif;
+}
+
+/* Navigation Buttons inside the Notch */
+nav ul {
+    display: flex;
+    list-style: none;
+    gap: 20px;
+}
+
+nav ul li a {
+    color: #e8cd7d;
+    background-color: #282c34;
+    padding: 12px 25px;
+    text-decoration: none;
+    border-radius: 15px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    border: 2px solid transparent;
+    gap: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+}
+
+nav ul li a i {
+    font-size: 18px;
+    background: linear-gradient(135deg, #e8cd7d, #f0c94d); 
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: color 0.3s ease;
+}
+
+nav ul li a:hover {
+    background: linear-gradient(135deg, #e8cd7d, #f0c94d);
+    color: #08063f;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); 
+    border-color: #08063f;
+}
+
+nav ul li a:hover i {
+    -webkit-text-fill-color: #08063f;
+}
+
+/* Pulse Effect */
+nav ul li a.pulse {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+    }
+}
+
+/* Top-right Profile and Settings Icons */
+.top-right-icons {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: absolute;
+    top: 25px;
+    right: 25px;
+}
+
+.icon {
+    cursor: pointer;
+    font-size: 2.4em;
+    color: #e8cd7d;
+    transition: transform 0.3s ease;
+}
+
+.settings-icon {
+    position: relative;
+    color: gray;
+}
+
+.icon:hover {
+    transform: scale(1.15);
+}
+
+.settings-icon:hover {
+    color: #e8cd7d;
+    transform: rotate(90deg);
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.settings-icon:hover::after {
+    content: 'Settings';
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background-color: #e8cd7d;
+    color: #08063f;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    white-space: nowrap;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Profile Image Styling */
+.profile-pic {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #e8cd7d;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.profile-pic:hover {
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
