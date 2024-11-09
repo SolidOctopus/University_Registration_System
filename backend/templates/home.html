@@ -1,5 +1,6 @@
 
 {% include 'topbar.html' %}
+{% load static %}
 {% block content %}
 <style>
     /* Main container styling */
@@ -168,12 +169,6 @@
                     <span>Go to Dashboard</span>
                 </div>
             </a>
-            <a href="#" class="box">
-                <div class="icon"><i class="fas fa-user"></i></div>
-                <div class="box-content">
-                    <span>Profile</span>
-                </div>
-            </a>
             <a href="{% url 'message_list' %}" class="box">
                 <div class="icon"><i class="fas fa-envelope"></i></div>
                 <div class="box-content">
@@ -253,4 +248,11 @@
         <p>Please <a href="{% url 'login' %}">log in</a> or <a href="{% url 'register' %}">register</a> to continue.</p>
     {% endif %}
 </div>
+
+<button onclick="applyHalloweenTheme()">Halloween Theme</button>
+<button onclick="applyWinterTheme()">Winter Theme</button>
+
+<link rel="stylesheet" href="{% static 'css/themes.css' %}">
+<script src="{% static 'js/themes.js' %}"></script>
+
 {% endblock %}

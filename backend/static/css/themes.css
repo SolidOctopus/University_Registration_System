@@ -1,0 +1,59 @@
+/* Halloween Theme */
+.halloween-theme .box {
+    background-color: #4b1d1d;
+    color: #ffb347;
+}
+
+/* Fixed spider animation */
+.spider {
+    position: fixed;
+    background: url('/static/images/spider.png') no-repeat center center;
+    background-size: contain;
+    animation: spiderHang 8s ease-in-out forwards;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Animation for spider to hang down and go back up */
+@keyframes spiderHang {
+    0% { transform: translateY(-150px); opacity: 0; }  /* Starts above screen */
+    30% { transform: translateY(200px); opacity: 1; }   /* Hangs down farther */
+    70% { transform: translateY(200px); opacity: 1; }   /* Pauses at the lowest point */
+    100% { transform: translateY(-150px); opacity: 0; } /* Goes back up */
+}
+
+/* Winter Theme */
+.winter-theme .box {
+    background-color: #b3d8ff;
+    color: #1f487e;
+}
+
+/* Snowflake styles */
+.snowflake {
+    position: fixed;
+    background: url('/static/images/snowflake.png') no-repeat center center;
+    background-size: contain;
+    top: -50px;
+    animation: fall linear infinite;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Snowflake falling animation */
+@keyframes fall {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(100vh); opacity: 0; }
+}
+
+/* Snow pile */
+.snow-pile {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0; /* Starts at 0 height */
+    background: url('/static/images/pile_of_snow.png') repeat-x bottom;
+    background-size: contain;
+    z-index: 15;
+    transition: height 0.2s ease; /* Smooth height transition */
+}

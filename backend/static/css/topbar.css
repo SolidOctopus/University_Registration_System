@@ -22,13 +22,13 @@ body {
 header {
     background: radial-gradient(circle, #08063f, #1a1a52);
     color: #e8cd7d;
-    padding: 25px 30px;
+    padding: 20px;
     position: relative;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
     border-bottom-left-radius: 40px;
     border-bottom-right-radius: 40px;
-    width: 100%;
-    max-width: 1200px;
+    height: 80px;
+    width: 70%;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -68,7 +68,7 @@ body.scrolled header {
 nav ul {
     display: flex;
     list-style: none;
-    gap: 20px;
+    gap: 10px;
 }
 
 nav ul li a {
@@ -82,13 +82,13 @@ nav ul li a {
     align-items: center;
     font-size: 16px;
     transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-    border: 2px solid transparent;
-    gap: 8px;
+    border: 0px solid transparent;
+    gap: 5px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
 }
 
 nav ul li a i {
-    font-size: 18px;
+    font-size: 16px;
     background: linear-gradient(135deg, #e8cd7d, #f0c94d); 
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -131,15 +131,16 @@ nav ul li a.pulse {
 .top-right-icons {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 20px;
     position: absolute;
-    top: 25px;
-    right: 25px;
+    top: 20px;
+    right: 20px;
 }
 
 .icon {
     cursor: pointer;
-    font-size: 2.4em;
+    font-size: 4.4em;
+    top: -5px;
     color: #e8cd7d;
     transition: transform 0.3s ease;
 }
@@ -175,8 +176,8 @@ nav ul li a.pulse {
 
 /* Profile Image Styling */
 .profile-pic {
-    width: 50px;
-    height: 50px;
+    width: 70px;
+    height: 70px;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid #e8cd7d;
