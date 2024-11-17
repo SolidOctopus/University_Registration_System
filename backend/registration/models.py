@@ -26,7 +26,14 @@ class Course(models.Model):
 
     def __str__(self):
         return self.name
+    
+class Major(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
 
+    def __str__(self):
+        return self.name
+    
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=30)
@@ -36,6 +43,9 @@ class Student(models.Model):
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
     id_number = models.CharField(max_length=20, default='default_id')
+    major = models.ForeignKey('Major', on_delete=models.SET_NULL, null=True, blank=True, related_name='students')
+
+
 
     def delete(self, *args, **kwargs):
         enrollments = Enrollment.objects.filter(student=self)
@@ -46,8 +56,8 @@ class Student(models.Model):
         super(Student, self).delete(*args, **kwargs)
 
     def __str__(self):
-        return self.first_name + " " + self.last_name
-
+        return f'{self.user.first_name} {self.user.last_name} (Student)'
+    
 class Professor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=30)
@@ -63,7 +73,7 @@ class Professor(models.Model):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='professor')
 
     def __str__(self):
-        return self.first_name + " " + self.last_name
+        return f'{self.user.first_name} {self.user.last_name} (Professor)'
 
 class Admin(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -77,7 +87,7 @@ class Admin(models.Model):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='admin')
 
     def __str__(self):
-        return self.first_name + " " + self.last_name
+        return f'{self.user.first_name} {self.user.last_name} (Admin)'
 
 class Enrollment(models.Model):
     student = models.ForeignKey('Student', on_delete=models.CASCADE)

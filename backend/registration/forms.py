@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Profile, Student, Professor, Admin, Enrollment, Course, Assignment, Announcement, Message
+from .models import Profile, Student, Professor, Admin, Enrollment, Course, Assignment, Announcement, Message, Major
 from django.contrib.auth.forms import UserCreationForm
 import re
 
@@ -38,6 +38,7 @@ class GradeForm(forms.ModelForm):
             'grade': forms.TextInput(attrs={'max_length': 4}),
         }
 
+
 class StudentForm(forms.ModelForm):
     courses = forms.ModelMultipleChoiceField(queryset=Course.objects.none(), widget=forms.CheckboxSelectMultiple, required=False)
     first_name = forms.CharField(max_length=30)
@@ -45,10 +46,12 @@ class StudentForm(forms.ModelForm):
     email = forms.EmailField()
     password = forms.CharField(widget=forms.PasswordInput(), required=False)
     confirm_password = forms.CharField(widget=forms.PasswordInput(), required=False)
+    major = forms.ModelChoiceField(queryset=Major.objects.all(), required=False)
+
 
     class Meta:
         model = Student
-        fields = ['first_name', 'last_name', 'email', 'password', 'confirm_password', 'courses', 'profile_picture']
+        fields = ['first_name', 'last_name', 'email', 'password', 'confirm_password', 'courses', 'profile_picture', 'major']
 
     def __init__(self, *args, **kwargs):
         super(StudentForm, self).__init__(*args, **kwargs)

@@ -178,11 +178,12 @@ def student_list(request):
 
 def student_create(request):
     if request.method == 'POST':
-        form = StudentForm(request.POST)
+        form = StudentForm(request.POST, request.FILES)
         if form.is_valid():
             student = form.save(commit=False)
             student.user = request.user
             student.save()
+            form.save_m2m()
             return redirect('student_list')
     else:
         form = StudentForm()
@@ -194,22 +195,11 @@ def student_detail(request, pk):
 
 def student_update(request, pk):
     student = get_object_or_404(Student, pk=pk)
-    if request.method == "POST":
+    if request.method == 'POST':
         form = StudentForm(request.POST, request.FILES, instance=student)
         if form.is_valid():
-            student = form.save(commit=False)
-            user = student.user
-            user.first_name = form.cleaned_data['first_name']
-            user.last_name = form.cleaned_data['last_name']
-            user.email = form.cleaned_data['email']
-            if form.cleaned_data['password']:
-                user.set_password(form.cleaned_data['password'])
-            user.save()
-            student.save()
-            form.save_m2m()
-            return redirect('student_list')
-        else:
-            return JsonResponse(form.errors, status=400)
+            form.save()
+            return redirect('student_detail', pk=pk)
     else:
         form = StudentForm(instance=student)
     return render(request, 'registration/student_form.html', {'form': form})

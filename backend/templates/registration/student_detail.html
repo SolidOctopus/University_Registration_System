@@ -22,6 +22,10 @@
         <th>Role</th>
         <td>{{ student.role }}</td>
     </tr>
+    <tr>
+        <th>Major</th>
+        <td>{{ student.major.name if student.major else "Not Assigned" }}</td>
+    </tr>
 </table>
 <a href="{% url 'student_list' %}">Back to Student List</a>
 {% endblock %}

@@ -1,79 +1,63 @@
+-----Majors-----
+-Add Majors to Students
 
----Basic stuff---
-*Double check Classes's having functional capacity, days, times and location.  
+-Add classes to each major
 
-*Make a registry of all the classes a student has to take and have taken
-	
-*Add majors to students
-	
-*User messaging each other - Inbox system
+-Make sure students can see the classes they need in "my requirements" page in the form of a list.
 
-*Professors should be able to complete/finish their courses from their course page
-	The completed class must show up in the sutdent's record.
+----SideBar-----
+-Include optimization and and shortcuts to the Shopping cart sidebar.
+	Also remove the tittle and logo.
 
-*A better graph for the student schedule
+-Replace all sidebars with the new updated sidebar.
 
-
+-Add Profiles (on the top) and settings (on the bottom next to log out) to sidebar.
 
 
+----Topbat-----
+-Fix the flashing
 
----Crazy shit----
+-Remove seetings and profile
 
-*Add a shopping card system (it must check for overlapping classes in schedule)
-	When searching for classes it can be searched by majors	
-	When searching for classes the students should have their schedule clearly visible
+-Fix the overlap when you scroll down
 
-*Add prerequisites and co-requisites
-
-*Forgot my password function.
+-add to every page
 
 
-*Add advisors?
-*Dark mode?
-*New project name?
+----Finantials----
+Add price to every class
+Make sure they show up for each student taking classes in their "finacials" page in the form of a list.
 
 
----The canvas 2.0----
+----Dashboard----
+Courses needs to be finished
 
-Classes must have Announcements, Assignments, Grades
+----Messages-----
+Improve the box that shows up when you start a new chat.
 
 
+-----Academic Records-----
 
---What we are working on--
-
-*When you add an Assignment or announcement the professor must have like a time window of when the things appear and dissapear from student view.
-*Make is so professors can also set time when making a new Assignemnt
-	The system must give the professor a dropbox so set days. 
-
-*Professor -> Manage Classes needs a complete rework.
-*Give professors a list of their assignments and anncouncemts in their class
-*Give professors the ability to hide and rewveal their assignments (with a checkbox)
+Give a list of all classes a student has already completed.
 
 
 
---Bugs--
+-----Manage classes (Professor) ------
 
-*Edit Course must send back to course list, it currently just stays in the same page
-*Late assignments are not showing in the correct date.
-Add a border to profile picture
-The sidebar in dashboard
+Needs to look better
 
 
---Ernesto--
-*top bar profiles and settings should be fixed on the top of the screen
-*Make it look better
-done*Make the assignments and annoucements be different depending on the class. 
-calendar should recognize whether it is fall, spring or summer and from there it will show only the corresponding 4 months
-
-shopping cart
-classes should belong to fall, spring, summer
 
 
-When adding a class the shopping cart could have a number on top of the icon showning how many classes it has
-Log out icon turns into open door.
-Calendar showing the date.
+
+
+
+
+
 
 Commands
+
+
 -----Create classes------
 
 from datetime import date
@@ -94,57 +78,4 @@ Course.objects.bulk_create([
 ])
 
 print("10 sample courses created successfully!")
-
-
----------Create users---------
-
-from django.contrib.auth.models import User
-from registration.models import Student, Professor, Admin
-
-# Common password for all users
-password = 'defaultpassword123'
-
-# Create Students
-for i in range(1, 11):  # Creating 10 students
-    username = f'student{i}'
-    first_name = 'Student'
-    last_name = str(i)
-    email = f'student{i}@university.edu'
-    id_number = f'STUD00{i}'
-
-    # Create User instance
-    user = User.objects.create_user(username=username, password=password, first_name=first_name, last_name=last_name, email=email)
-
-    # Create Student instance
-    Student.objects.create(user=user, id_number=id_number)
-
-# Create Professors
-for i in range(1, 6):  # Creating 5 professors
-    username = f'professor{i}'
-    first_name = 'Professor'
-    last_name = str(i)
-    email = f'professor{i}@university.edu'
-    id_number = f'PROF00{i}'
-
-    # Create User instance
-    user = User.objects.create_user(username=username, password=password, first_name=first_name, last_name=last_name, email=email)
-
-    # Create Professor instance
-    Professor.objects.create(user=user, id_number=id_number)
-
-# Create Admins
-for i in range(1, 4):  # Creating 3 admins
-    username = f'admin{i}'
-    first_name = 'Admin'
-    last_name = str(i)
-    email = f'admin{i}@university.edu'
-    id_number = f'ADMIN00{i}'
-
-    # Create User instance
-    user = User.objects.create_user(username=username, password=password, first_name=first_name, last_name=last_name, email=email)
-
-    # Create Admin instance
-    Admin.objects.create(user=user, id_number=id_number)
-
-print("Sample users created successfully!")
 
