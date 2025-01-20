@@ -16,6 +16,7 @@ body {
     overflow: hidden;
 }
 
+/* Sidebar */
 .sidebar {
     width: 30%;
     background: linear-gradient(145deg, #f0f9ff, #c7e3ff);
@@ -45,13 +46,17 @@ body {
     display: flex;
     align-items: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
     cursor: pointer;
 }
 
 .sidebar li:hover {
     transform: scale(1.05);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar li.active {
+    background-color: #bbdefb;
 }
 
 .sidebar li img {
@@ -71,6 +76,7 @@ body {
     color: #7f8c8d;
 }
 
+/* Chat Window */
 .chat-window {
     flex: 1;
     background-color: #f9f9f9;
@@ -89,6 +95,7 @@ body {
     margin-bottom: 15px;
     padding-bottom: 10px;
     border-bottom: 2px solid #ecf0f1;
+    text-align: center;
 }
 
 .chat-messages {
@@ -111,23 +118,24 @@ body {
     word-wrap: break-word;
     font-size: 1rem;
     position: relative;
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
 }
 
 .message:hover {
     transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
 }
 
-.sent {
+.message.sent {
     background: linear-gradient(to right, #74ebd5, #9face6);
     margin-left: auto;
-    text-align: right;
     color: white;
 }
 
-.received {
+.message.received {
     background: linear-gradient(to right, #ffffff, #dfe9f3);
-    text-align: left;
+    margin-right: auto;
+    color: #34495e;
 }
 
 .message .timestamp {
@@ -138,12 +146,7 @@ body {
     text-align: right;
 }
 
-.read-receipt {
-    font-size: 0.85rem;
-    color: #3498db;
-    margin-left: 5px;
-}
-
+/* Chat Input */
 .chat-input {
     display: flex;
     align-items: center;
@@ -219,4 +222,14 @@ body {
     border: 2px solid #ccc;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     z-index: 1000;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+    }
+    .chat-window {
+        width: 100%;
+    }
 }
