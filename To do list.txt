@@ -10,7 +10,7 @@
 	Also remove the tittle and logo.
 
 -Replace all sidebars with the new updated sidebar.
-
+ 
 -Add Profiles (on the top) and settings (on the bottom next to log out) to sidebar.
 
 
@@ -79,3 +79,66 @@ Course.objects.bulk_create([
 
 print("10 sample courses created successfully!")
 
+
+---------Create users---------
+
+from django.contrib.auth.models import User
+from registration.models import Student, Professor, Admin
+from django.db import transaction
+
+# Common password for all users
+password = 'defaultpassword123'
+
+# Wrap everything in a transaction
+with transaction.atomic():
+    for i in range(1, 11):  # Creating 10 users for each type
+        if i == 9:  # Skip number 9
+            continue
+
+        # For Students
+        student_username = f'student{i}'
+        student_first_name = 'Student'
+        student_last_name = str(i)
+        student_email = f'student{i}@university.edu'
+        student_id_number = f'STUD00{i}'
+
+        student_user = User.objects.create_user(
+            username=student_username,
+            password=password,
+            first_name=student_first_name,
+            last_name=student_last_name,
+            email=student_email
+        )
+        Student.objects.create(user=student_user, id_number=student_id_number)
+
+        # For Professors
+        professor_username = f'professor{i}'
+        professor_first_name = 'Professor'
+        professor_last_name = str(i)
+        professor_email = f'professor{i}@university.edu'
+
+        professor_user = User.objects.create_user(
+            username=professor_username,
+            password=password,
+            first_name=professor_first_name,
+            last_name=professor_last_name,
+            email=professor_email
+        )
+        Professor.objects.create(user=professor_user)
+
+        # For Admins
+        admin_username = f'admin{i}'
+        admin_first_name = 'Admin'
+        admin_last_name = str(i)
+        admin_email = f'admin{i}@university.edu'
+
+        admin_user = User.objects.create_user(
+            username=admin_username,
+            password=password,
+            first_name=admin_first_name,
+            last_name=admin_last_name,
+            email=admin_email
+        )
+        Admin.objects.create(user=admin_user)
+
+print("Users created successfully, except for number 9.")
