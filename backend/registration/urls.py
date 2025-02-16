@@ -1,5 +1,8 @@
 from django.urls import path
+from django.shortcuts import redirect
 from django.conf import settings
+from django.contrib.auth import views as auth_views
+from django.views.generic import RedirectView
 from django.conf.urls.static import static
 from .views import (
     register_view, login_view, logout_view, home_view,
@@ -8,14 +11,16 @@ from .views import (
     professor_list, professor_create, professor_update, professor_delete, enroll_course,
     admin_list, admin_create, admin_update, admin_delete,  available_courses, student_schedule,
     edit_course,  manage_classes, course_students, view_students, view_profile, edit_profile,
-    drop_class, assign_professor, course_detail, view_user_profile, student_register, professor_register, 
+    drop_class, assign_professor, course_detail, view_user_profile, student_register, professor_register, forgot_password_view
 )
 
 urlpatterns = [
+    path('', lambda request: redirect('/login/')), # Added this so when project opened, user starts on login page
     path('register/', register_view, name='register'),
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
-    path('home/', home_view, name='home'),  
+    path('home/', home_view, name='home'),
+    path('forgot-password/', forgot_password_view, name= 'forgot_password'),  
     path('courses/', course_list, name='course_list'),
     path('courses/create/', course_create, name='course_create'),
     path('courses/edit/<int:pk>/', course_edit, name='course_edit'),
@@ -53,6 +58,10 @@ urlpatterns = [
     path('profile/<int:pk>/', view_user_profile, name='view_user_profile'),
     path('register/student/', student_register, name='student_register'),  
     path('register/professor/', professor_register, name='professor_register'),  
+    path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('reset/done/', RedirectView.as_view(url='/login/'), name='password_reset_complete'),
 ]
 
 if settings.DEBUG:

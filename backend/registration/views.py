@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import PasswordResetForm
 from django.http import JsonResponse
 from .models import Course, Student, Professor, Admin, Profile, Enrollment
 from .forms import CourseForm, StudentForm, ProfessorForm, AdminForm, GradeForm, ProfileForm, UserRegistrationForm, StudentRegistrationForm, ProfessorRegistrationForm  
@@ -559,5 +560,9 @@ def student_delete(request, pk):
         user.delete()
         return redirect('student_list')
     return render(request, 'registration/student_confirm_delete.html', {'student': student})
+
+def forgot_password_view(request):
+    form = PasswordResetForm()
+    return render(request, 'forgot_password.html')
 
 
