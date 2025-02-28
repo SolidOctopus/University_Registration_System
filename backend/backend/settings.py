@@ -82,7 +82,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'university_db',
         'USER': 'root',
-        'PASSWORD': 'CEN4010',
+        'PASSWORD': 'john',
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -144,6 +144,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+<<<<<<< HEAD
 # ASGI configuration
 ASGI_APPLICATION = 'backend.asgi.application'
 
@@ -153,3 +154,16 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels.layers.InMemoryChannelLayer",  # Using in-memory layer for simplicity
     },
 }
+=======
+
+# Email configuration for forgot password feature - use Sendgrid
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.sendgrid.net"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "apikey"
+EMAIL_HOST_PASSWORD = "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"
+DEFAULT_FROM_EMAIL = "jonwright095@gmail.com"
+
+LOGIN_URL = '/login/'  # Custom login page URL
+>>>>>>> ac950a7bb7e9ce9f5b655d094d685dc1ac1b2431
