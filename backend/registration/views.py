@@ -499,14 +499,20 @@ def course_edit(request, pk):
 
 def edit_course(request, course_id): 
     course = get_object_or_404(Course, pk=course_id)
+
     if request.method == "POST":
         form = CourseForm(request.POST, instance=course)
         if form.is_valid():
             form.save()
-            return redirect('manage_classes')
+            messages.success(request, "Course updated successfully.")
+            return redirect('course_list')  # Redirect after successful save
+        else:
+            messages.error(request, "Error updating course. Please check your input.")
     else:
         form = CourseForm(instance=course)
+
     return render(request, 'registration/edit_course.html', {'form': form, 'course': course})
+
 
 def course_detail(request, pk):
     course = get_object_or_404(Course, pk=pk)
@@ -1046,10 +1052,6 @@ def message_list(request):
         'last_messages': last_messages,  # Pass the last messages to the template
         'all_users': all_users,
     })
-
-
-
-
 
 @login_required
 def send_message(request, recipient_id):
