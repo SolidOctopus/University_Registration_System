@@ -15,23 +15,11 @@ function App() {
   return (
     <Router>
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
+        <header className="App-header">          
         </header>
         <Routes>
-          <Route exact path="/register" element={<Register />} />
-          <Route exact path="/login" element={<Login />} />
+          <Route path="/" element={<Login />} /> {/* Default page - starts on Login page */}
+          <Route path="/register" element={<Register />} />          
           <Route path="/courses" element={<CourseList />} />
           <Route path="/courses/new" element={<CourseForm />} />
           <Route path="/courses/:id/edit" element={<CourseForm />} />
