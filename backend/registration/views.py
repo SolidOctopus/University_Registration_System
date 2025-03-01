@@ -1026,24 +1026,18 @@ def message_list(request):
     ).exclude(id=request.user.id).distinct()
 
     # Fetch the last message and unread message count for each user
-    last_messages = {}
     for user in interacted_users:
-        last_message = Message.objects.filter(
+        user.last_message = Message.objects.filter(
             (Q(sender=user, receiver=request.user) | Q(sender=request.user, receiver=user))
-        ).order_by('-timestamp').first()  # Get the latest message
+        ).order_by('-timestamp').first()  # Attach directly to user
 
-        # Ensure that there's a message before adding it to the dictionary
-        last_messages[user.id] = last_message if last_message else None
+        user.unread_count = Message.objects.filter(sender=user, receiver=request.user, is_read=False).count()
 
-        # Attach unread count directly to the user object
-        unread_count = Message.objects.filter(sender=user, receiver=request.user, is_read=False).count()
-        user.unread_count = unread_count
 
     return render(request, 'message_list.html', {
         'messages': messages,
         'users': interacted_users,
         'other_user': other_user,
-        'last_messages': last_messages,  # Pass the last messages to the template
         'all_users': all_users,
     })
 

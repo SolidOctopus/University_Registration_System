@@ -6,29 +6,26 @@ from django.views.generic import RedirectView
 from django.conf.urls.static import static
 from .views import (
     register_view, login_view, logout_view, home_view,
-    course_list, course_create, course_edit, course_delete, enroll_in_course, view_enrollments, 
+    course_list, course_create, course_edit, course_delete, enroll_in_course, view_enrollments,
     assign_grade, student_list, student_create, student_update, student_delete, student_detail,
     professor_list, professor_create, professor_update, professor_delete, enroll_course,
-    admin_list, admin_create, admin_update, admin_delete,  available_courses, student_schedule,
-    edit_course,  manage_classes, course_students, view_students, view_profile, edit_profile,
-<<<<<<< HEAD
-    drop_class, assign_professor, course_detail, view_user_profile, student_register, professor_register, 
-    settings_view, dashboard_view, course_overview, class_detail, get_assignments, professor_info, course_syllabus,
-    course_modules, course_assignments, course_announcements, course_grades, shopping_cart_view, my_requirements_view, financials_view, 
-    add_to_cart, remove_from_cart, enroll_all_courses, get_cart_count, message_list, send_message, message_detail, start_new_conversation,
-    delete_conversation,
-=======
-    drop_class, assign_professor, course_detail, view_user_profile, student_register, professor_register, forgot_password_view
->>>>>>> ac950a7bb7e9ce9f5b655d094d685dc1ac1b2431
+    admin_list, admin_create, admin_update, admin_delete, available_courses, student_schedule,
+    edit_course, manage_classes, course_students, view_students, view_profile, edit_profile,
+    drop_class, assign_professor, course_detail, view_user_profile, student_register, professor_register,
+    forgot_password_view, settings_view, dashboard_view, course_overview, class_detail, get_assignments, professor_info,
+    course_syllabus, course_modules, course_assignments, course_announcements, course_grades,
+    shopping_cart_view, my_requirements_view, financials_view, add_to_cart, remove_from_cart,
+    enroll_all_courses, get_cart_count, message_list, send_message, message_detail,
+    start_new_conversation, delete_conversation
 )
 
 urlpatterns = [
-    path('', lambda request: redirect('/login/')), # Added this so when project opened, user starts on login page
+    path('', lambda request: redirect('/login/')),  # Redirect to login page on project start
     path('register/', register_view, name='register'),
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
     path('home/', home_view, name='home'),
-    path('forgot-password/', forgot_password_view, name= 'forgot_password'),  
+    path('forgot-password/', forgot_password_view, name='forgot_password'),
     path('courses/', course_list, name='course_list'),
     path('courses/create/', course_create, name='course_create'),
     path('courses/edit/<int:pk>/', course_edit, name='course_edit'),
@@ -60,24 +57,23 @@ urlpatterns = [
     path('courses/<int:course_id>/students/', view_students, name='view_students'),
     path('profile/', view_profile, name='view_profile'),
     path('profile/edit/', edit_profile, name='edit_profile'),
-    path('drop-class/<int:enrollment_id>/',drop_class, name='drop_class'),
+    path('drop-class/<int:enrollment_id>/', drop_class, name='drop_class'),
     path('courses/<int:course_id>/assign_professor/', assign_professor, name='assign_professor'),
     path('courses/<int:pk>/', course_detail, name='course_detail'),
     path('profile/<int:pk>/', view_user_profile, name='view_user_profile'),
-    path('register/student/', student_register, name='student_register'),  
-    path('register/professor/', professor_register, name='professor_register'),  
-<<<<<<< HEAD
+    path('register/student/', student_register, name='student_register'),
+    path('register/professor/', professor_register, name='professor_register'),
     path('settings/', settings_view, name='settings'),
     path('dashboard/', dashboard_view, name='dashboard'),
     path('course/<int:course_id>/overview/', course_overview, name='course_overview'),
     path('class/<int:class_id>/', class_detail, name='class_detail'),
     path('get-assignments/', get_assignments, name='get_assignments'),
-    path('course/<int:course_id>/professor/',professor_info, name='professor_info'),
-    path('course/<int:course_id>/syllabus/',course_syllabus, name='course_syllabus'),
-    path('course/<int:course_id>/modules/',course_modules, name='course_modules'),
-    path('course/<int:course_id>/assignments/',course_assignments, name='course_assignments'),
-    path('course/<int:course_id>/announcements/',course_announcements, name='course_announcements'),
-    path('course/<int:course_id>/grades/',course_grades, name='course_grades'),
+    path('course/<int:course_id>/professor/', professor_info, name='professor_info'),
+    path('course/<int:course_id>/syllabus/', course_syllabus, name='course_syllabus'),
+    path('course/<int:course_id>/modules/', course_modules, name='course_modules'),
+    path('course/<int:course_id>/assignments/', course_assignments, name='course_assignments'),
+    path('course/<int:course_id>/announcements/', course_announcements, name='course_announcements'),
+    path('course/<int:course_id>/grades/', course_grades, name='course_grades'),
     path('shopping-cart/', shopping_cart_view, name='shopping_cart'),
     path('my-requirements/', my_requirements_view, name='my_requirements'),
     path('financials/', financials_view, name='financials'),
@@ -91,14 +87,10 @@ urlpatterns = [
     path('messages/<int:message_id>/', message_detail, name='message_detail'),
     path('messages/start/', start_new_conversation, name='start_conversation'),
     path('messages/delete/<int:user_id>/', delete_conversation, name='delete_conversation'),
-
-
-=======
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset/done/', RedirectView.as_view(url='/login/'), name='password_reset_complete'),
->>>>>>> ac950a7bb7e9ce9f5b655d094d685dc1ac1b2431
 ]
 
 if settings.DEBUG:
