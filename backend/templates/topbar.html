@@ -29,7 +29,7 @@
         <div class="top-right-icons">
             <a href="{% url 'view_profile' %}" class="icon" title="Profile">
                 {% if user.profile.profile_picture %}
-                    <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="profile-pic">
+                    <img src="{{ user.profile.profile_picture.url|default:'/static/default_profile.png' }}" alt="Profile Picture" class="profile-pic">
                 {% else %}
                     <i class="fas fa-user-circle"></i>
                 {% endif %}

@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.db import transaction, IntegrityError
 from django.db.models import Q, F
 from django.contrib.auth.decorators import login_required
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, time
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 
@@ -814,12 +814,6 @@ def dashboard_view(request):
     return render(request, 'dashboard.html', context)
 
 
-
-
-
-
-
-
 def course_overview(request, course_id):
     course = get_object_or_404(Course, id=course_id)
     assignments = Assignment.objects.filter(course=course)
@@ -833,36 +827,51 @@ def course_overview(request, course_id):
     }
     return render(request, 'course_overview.html', context)
 
-def class_detail(request, class_id):
-    course = get_object_or_404(Course, id=class_id)
+def create_assignment(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
     assignments = Assignment.objects.filter(course=course)
-    announcements = Announcement.objects.filter(course=course)
-    
-    if request.method == 'POST':
-        if 'add_assignment' in request.POST:
-            assignment_form = AssignmentForm(request.POST)
-            if assignment_form.is_valid():
-                assignment = assignment_form.save(commit=False)
-                assignment.course = course
-                assignment.save()
-        elif 'add_announcement' in request.POST:
-            announcement_form = AnnouncementForm(request.POST)
-            if announcement_form.is_valid():
-                announcement = announcement_form.save(commit=False)
-                announcement.course = course
-                announcement.save()
 
-    assignment_form = AssignmentForm()
-    announcement_form = AnnouncementForm()
+    if request.method == 'POST' and 'add_assignment' in request.POST:
+        assignment_form = AssignmentForm(request.POST)
+        if assignment_form.is_valid():
+            assignment = assignment_form.save(commit=False)
+            assignment.course = course
+            # Set default times if not provided
+            assignment.start_time = assignment.start_time or time(0, 0)  # 12:00 AM
+            assignment.due_time = assignment.due_time or time(23, 59)  # 11:59 PM
+            assignment.save()
+            return redirect('create_assignment', course_id=course.id)  # Prevent duplicate submissions on refresh
+
+    else:
+        assignment_form = AssignmentForm(initial={'start_time': time(0, 0), 'due_time': time(23, 59)})
 
     context = {
         'course': course,
         'assignments': assignments,
-        'announcements': announcements,
         'assignment_form': assignment_form,
-        'announcement_form': announcement_form
     }
-    return render(request, 'class_detail.html', context)
+    return render(request, 'create_assignment.html', context)
+
+def create_announcement(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    announcements = Announcement.objects.filter(course=course)
+
+    if request.method == 'POST' and 'add_announcement' in request.POST:
+        announcement_form = AnnouncementForm(request.POST)
+        if announcement_form.is_valid():
+            announcement = announcement_form.save(commit=False)
+            announcement.course = course
+            announcement.save()
+
+    else:
+        announcement_form = AnnouncementForm()
+
+    context = {
+        'course': course,
+        'announcements': announcements,
+        'announcement_form': announcement_form,
+    }
+    return render(request, 'create_announcement.html', context)
 
 def get_assignments(request):
     student = request.user.student
