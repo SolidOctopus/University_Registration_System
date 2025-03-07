@@ -1,3 +1,4 @@
+{% include 'topbar.html' %}
 {% load message_tags %}
 <!DOCTYPE html>
 <html lang="en">
@@ -8,45 +9,49 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/messages.css' %}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script src="{% static 'js/messages.js' %}"></script>
+
 </head>
 <body>
-    <button id="toggle-mode">Toggle Mode</button>
+    
 
     <div class="container">
+
         <div class="sidebar">
-            <h2>Messages</h2>
-            <button id="new-convo-btn">New Conversation</button>
+            <div class="sidebar-header">
+                <h2>Messages</h2>
+                <button id="new-convo-btn">New Conversation</button>
+            </div>
             <ul>
                 {% for user in users %}
-                <li>
-                    <a href="?user={{ user.id }}">
+                    <li onclick="location.href='?user={{ user.id }}'">
                         {% if user.profile.profile_picture %}
                             <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture">
                         {% endif %}
-            
                         <div>
                             <strong>{{ user.username }}</strong>
                             <p class="last-message">
-                                {% if user.last_message %}{{ user.last_message.content }}{% else %}No messages yet{% endif %}
-                            </p>                            
+                                {% if user.last_message %}
+                                    {{ user.last_message.content }}
+                                {% else %}
+                                    No messages yet
+                                {% endif %}
+                            </p>
                         </div>
-            
                         {% if user.unread_messages_count > 0 %}
                             <span class="unread-badge">{{ user.unread_messages_count }}</span>
                         {% endif %}
-                    </a>
-            
-                    <a href="{% url 'delete_conversation' user.id %}" class="delete-convo-btn">
-                        <i class="fas fa-trash"></i>
-                    </a>
-                </li>
+                        <a href="{% url 'delete_conversation' user.id %}" class="delete-convo-btn" onclick="event.stopPropagation();">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </li>
                 {% endfor %}
-            </ul>            
+            </ul>
         </div>
 
         <div class="chat-window">
             {% if messages and other_user %}
-            <div class="chat-header">Conversation with {{ other_user.username }}</div>
+            <div class="chat-header" data-user-id="{{ other_user.id }}">Conversation with {{ other_user.username }}</div>
             <div class="chat-messages">
                 {% for message in messages %}
                 <div class="message {% if message.sender == request.user %}sent{% else %}received{% endif %}">
@@ -73,32 +78,24 @@
 
     <!-- New Conversation Modal -->
     <div id="modal-overlay"></div>
-    <div id="new-convo-modal" class="modal">
-        <h3>Start a New Conversation</h3>
-        <form id="new-convo-form" method="POST" action="{% url 'start_conversation' %}">
-            {% csrf_token %}
-            <select name="receiver" required>
-                <option value="">-- Select a User --</option>
-                {% for user in all_users %}
-                    <option value="{{ user.id }}">{{ user.username }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit">Start Conversation</button>
-        </form>
-    </div>
+<div id="new-convo-modal" class="modal">
+    <button class="close-modal" id="close-modal-btn">&times;</button>
+    <h3>Start a New Conversation</h3>
+    <form id="new-convo-form" method="POST" action="{% url 'start_conversation' %}">
+        {% csrf_token %}
+        <select name="receiver" required>
+            <option value="">-- Select a User --</option>
+            {% for user in all_users %}
+                <option value="{{ user.id }}">{{ user.username }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Start Conversation</button>
+    </form>
+</div>
+
 
     <script>
-        // Dark Mode Toggle
-        const toggleButton = document.getElementById('toggle-mode');
-        toggleButton.addEventListener('click', function () {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-        });
-
-        // Apply saved theme
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-        }
+        
 
         // New Conversation Modal
         const modal = document.getElementById('new-convo-modal');
