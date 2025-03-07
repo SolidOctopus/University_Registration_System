@@ -1,3 +1,4 @@
+{% include 'topbar.html' %}
 {% load message_tags %}
 <!DOCTYPE html>
 <html lang="en">
@@ -7,70 +8,67 @@
     <title>Messages</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/messages.css' %}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script src="{% static 'js/messages.js' %}"></script>
+
 </head>
 <body>
+    
+
     <div class="container">
+
         <div class="sidebar">
-            <h2>Messages</h2>
-            <!-- New Conversation Button -->
-            <button id="new-convo-btn">New Conversation</button>
+            <div class="sidebar-header">
+                <h2>Messages</h2>
+                <button id="new-convo-btn">New Conversation</button>
+            </div>
             <ul>
                 {% for user in users %}
-                <li style="position: relative;">
-                    <a href="?user={{ user.id }}">
+                    <li onclick="location.href='?user={{ user.id }}'">
                         {% if user.profile.profile_picture %}
                             <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture">
-                        {% else %}
-                            <img src="{% static 'images/default_profile.png' %}" alt="Default Profile Picture">
                         {% endif %}
                         <div>
                             <strong>{{ user.username }}</strong>
-                            <p>
-                                {% with last_message=user|get_last_message:request.user %}
-                                    {% if last_message %}
-                                        {{ last_message.content|truncatechars:20 }}
-                                    {% else %}
-                                        No messages yet.
-                                    {% endif %}
-                                {% endwith %}
+                            <p class="last-message">
+                                {% if user.last_message %}
+                                    {{ user.last_message.content }}
+                                {% else %}
+                                    No messages yet
+                                {% endif %}
                             </p>
                         </div>
-                        <!-- Display unread message count -->
-                        {% if user.unread_count > 0 %}
-                            <span class="badge">{{ user.unread_count }}</span>
+                        {% if user.unread_messages_count > 0 %}
+                            <span class="unread-badge">{{ user.unread_messages_count }}</span>
                         {% endif %}
-                    </a>
-                    <!-- Delete conversation link -->
-                    <a href="{% url 'delete_conversation' user.id %}" class="delete-convo-btn">Delete</a>
-                </li>
+                        <a href="{% url 'delete_conversation' user.id %}" class="delete-convo-btn" onclick="event.stopPropagation();">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </li>
                 {% endfor %}
             </ul>
         </div>
 
         <div class="chat-window">
             {% if messages and other_user %}
-            <div class="chat-header">
-                Conversation with {{ other_user.username }}
-            </div>
-
+            <div class="chat-header" data-user-id="{{ other_user.id }}">Conversation with {{ other_user.username }}</div>
             <div class="chat-messages">
                 {% for message in messages %}
                 <div class="message {% if message.sender == request.user %}sent{% else %}received{% endif %}">
                     {{ message.content }}
-                    <span class="timestamp">({{ message.timestamp|date:"M d, Y, h:i a" }})</span>
+                    <span class="timestamp">{{ message.timestamp|date:"M d, Y, h:i a" }}</span>
                     {% if message.is_read and message.sender == request.user %}
-                    <span class="read-receipt">✓✓</span> <!-- Read receipt -->
+                    <span class="read-receipt">✓✓</span>
                     {% endif %}
                 </div>
                 {% endfor %}
             </div>
-
             <div class="chat-input">
-                <form action="{% url 'send_message' other_user.id %}" method="POST">
+                <form id="message-form">
                     {% csrf_token %}
-                    <textarea name="content" rows="2" placeholder="Type a message..."></textarea>
+                    <textarea name="content" id="message-input" placeholder="Type a message..."></textarea>
                     <button type="submit">Send</button>
-                </form>
+                </form>                
             </div>
             {% else %}
             <p>Select a user to view the conversation.</p>
@@ -79,45 +77,82 @@
     </div>
 
     <!-- New Conversation Modal -->
-    <div id="new-convo-modal" style="display:none;">
-        <h3>Select a User to Start a Conversation</h3>
-        <form id="new-convo-form" method="POST" action="{% url 'start_conversation' %}">
-            {% csrf_token %}
-            <select name="receiver" required>
-                <option value="">-- Select a User --</option> <!-- Default option -->
-                {% for user in all_users %}
-                    <option value="{{ user.id }}">{{ user.username }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit">Start Conversation</button>
-        </form>
-    </div>
+    <div id="modal-overlay"></div>
+<div id="new-convo-modal" class="modal">
+    <button class="close-modal" id="close-modal-btn">&times;</button>
+    <h3>Start a New Conversation</h3>
+    <form id="new-convo-form" method="POST" action="{% url 'start_conversation' %}">
+        {% csrf_token %}
+        <select name="receiver" required>
+            <option value="">-- Select a User --</option>
+            {% for user in all_users %}
+                <option value="{{ user.id }}">{{ user.username }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Start Conversation</button>
+    </form>
+</div>
+
 
     <script>
-        // Toggle the New Conversation modal
-        document.getElementById('new-convo-btn').onclick = function() {
-            document.getElementById('new-convo-modal').style.display = 'block';
-        };
+        
 
-        // Scroll to the bottom of the chat window
-        function scrollToBottom() {
-            const chatWindow = document.querySelector('.chat-messages');
-            if (chatWindow) {
-                chatWindow.scrollTop = chatWindow.scrollHeight;
-            }
+        // New Conversation Modal
+        const modal = document.getElementById('new-convo-modal');
+        const overlay = document.getElementById('modal-overlay');
+        const newConvoBtn = document.getElementById('new-convo-btn');
+
+        newConvoBtn.addEventListener('click', function () {
+            modal.style.display = 'block';
+            overlay.style.display = 'block';
+        });
+
+        overlay.addEventListener('click', function () {
+            modal.style.display = 'none';
+            overlay.style.display = 'none';
+        });
+
+        document.getElementById("message-form").addEventListener("submit", function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        let messageInput = document.getElementById("message-input");
+        let messageContent = messageInput.value.trim();
+        if (messageContent === "") return;
+
+        let formData = new FormData();
+        formData.append("content", messageContent);
+
+        let userId = "{{ other_user.id|default:'' }}";
+        if (userId) {
+            fetch(`/messages/send/${userId}/`, {  // Corrected URL format
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+                }
+            }).then(response => {
+                if (response.ok) {
+                    messageInput.value = ""; // Clear input after sending
+                    loadMessages(); // Reload messages without refreshing page
+                }
+            });
+        } else {
+            console.error("No recipient selected for sending messages.");
         }
+    });
 
-        // Scroll to the bottom when the page loads
-        window.onload = function() {
-            scrollToBottom();
-        }
-
-        // Scroll to the bottom after sending a message
-        document.querySelector('form').onsubmit = function(e) {
-            e.preventDefault();
-            this.submit();
-            setTimeout(scrollToBottom, 100);
-        };
+    function loadMessages() {
+        let chatMessages = document.querySelector(".chat-messages");
+        fetch(window.location.href)  // Reload the chat messages
+            .then(response => response.text())
+            .then(html => {
+                let parser = new DOMParser();
+                let doc = parser.parseFromString(html, "text/html");
+                let newMessages = doc.querySelector(".chat-messages").innerHTML;
+                chatMessages.innerHTML = newMessages;
+                chatMessages.scrollTop = chatMessages.scrollHeight; // Stay at bottom after sending
+            });
+    }
     </script>
 </body>
 </html>
