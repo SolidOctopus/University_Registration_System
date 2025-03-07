@@ -1,13 +1,77 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
 {% block content %}
+<div class="header">
     <h2>Your Classes</h2>
-    <ul>
-        {% for class in classes %}
-            <li>
-                <a href="{% url 'class_detail' class.id %}">{{ class.name }}</a> 
-                <!-- Links to a class detail page where they can add assignments/announcements -->
-            </li>
-        {% endfor %}
-    </ul>
+</div>
+
+<style>
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .schedule-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 40px;
+    }
+    .schedule-table, .schedule-table th, .schedule-table td {
+        border: 1px solid #000;
+    }
+    .schedule-table th, .schedule-table td {
+        padding: 8px;
+        text-align: left;
+    }
+    .class-header {
+        background-color: #08063f;
+        color: #e8cd7d;
+        font-weight: bold;
+        padding: 8px;
+    }
+    .class-title {
+        background-color: #e8cd7d;
+        color: #08063f;
+        font-weight: bold;
+        padding: 5px;
+        display: inline-block;
+        border-radius: 3px;
+    }
+    .class-title a {
+        text-decoration: none;
+        color: #08063f;
+        padding: 2px 4px;
+    }
+</style>
+
+{% for class in classes %}
+<table class="schedule-table">
+    <thead>
+        <tr class="class-header">
+            <td colspan="4">
+                <span class="class-title">
+                    <a href="{% url 'course_detail' class.id %}">{{ class.name }}</a>
+                </span>
+            </td>
+        </tr>
+        <tr>
+            <th>Schedule</th>
+            <th>Location</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{{ class.days }} | {{ class.start_time|date:"g:i a" }} - {{ class.end_time|date:"g:i a" }}</td>
+            <td>{{ class.location }}</td>
+            <td>
+                <a href="{% url 'course_overview' class.id %}">View</a> |
+                <a href="{% url 'create_assignment' class.id %}">Assignments</a> |
+                <a href="{% url 'create_announcement' class.id %}">Announcements</a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+{% endfor %}
+
 {% endblock %}
