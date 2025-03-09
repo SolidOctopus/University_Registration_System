@@ -95,6 +95,7 @@ urlpatterns = [
     path('reset/done/', RedirectView.as_view(url='/login/'), name='password_reset_complete')
 ]
 
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

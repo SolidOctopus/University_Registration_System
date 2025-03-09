@@ -1018,7 +1018,6 @@ def get_cart_count(request):
     cart_count = Cart.objects.filter(student=student).count()  # Use Cart model
     return JsonResponse({'cart_count': cart_count})
 
-
 def change_major(request):
     user = request.user 
     student = user.student  

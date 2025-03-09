@@ -4,7 +4,6 @@ from .models import Profile, Student, Professor, Admin, Enrollment, Course, Assi
 from django.contrib.auth.forms import UserCreationForm
 import re
 
-
 class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
