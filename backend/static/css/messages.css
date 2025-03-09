@@ -1,0 +1,236 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to right, #e0eafc, #cfdef3);
+    margin: 0;
+    padding-top: 120px; /* Adjust as needed based on topbar height */
+    box-sizing: border-box;
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* Fullscreen container */
+.container {
+    display: flex;
+    width: 100%;
+    height: calc(100vh - 120px);
+}
+
+/* Sidebar - fixed header */
+.sidebar {
+    width: 25%;
+    padding: 0;
+    overflow-y: auto;
+    position: relative;
+}
+
+
+.sidebar-header {
+    position: sticky;
+    top: 0;
+    padding: 20px;
+    text-align: center;
+    font-size: 1.6rem;
+    z-index: 10;
+    border-bottom: 1px solid #ddd;
+    background: inherit;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #ddd;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 10px;
+    margin: 0;
+}
+
+.sidebar li {
+    background: #fff;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+}
+
+.sidebar li:hover {
+    background: #ecf5ff;
+}
+
+.sidebar li img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.sidebar li strong {
+    font-size: 1rem;
+}
+
+.sidebar li p {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+}
+
+.unread-badge {
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    padding: 5px;
+    font-size: 0.8rem;
+    margin-left: auto;
+}
+
+#new-convo-btn {
+    margin-top: 10px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+/* Chat window fixed positioning */
+.chat-window {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.chat-header {
+    font-size: 1.4rem;
+    padding: 15px;
+    background: #f9f9f9;
+    border-bottom: 2px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Chat messages area */
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Dynamic message bubbles */
+.message {
+    padding: 12px 20px;
+    border-radius: 20px;
+    width: fit-content;
+    max-width: 75%;
+    position: relative;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.sent {
+    background: linear-gradient(to right, #74ebd5, #9face6);
+    margin-left: auto;
+    color: white;
+}
+
+.received {
+    background: white;
+    border: 1px solid #dfe9f3;
+}
+
+.message:hover {
+    transform: scale(1.03);
+}
+
+/* Timestamp tooltip */
+.message .timestamp {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0,0,0,0.8);
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 8px;
+    transition: opacity 0.3s, transform 0.3s;
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.sent .timestamp {
+    left: -140px;
+}
+
+.received .timestamp {
+    right: -130px;
+}
+
+.message:hover .timestamp {
+    visibility: visible;
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Chat input area */
+.chat-input {
+    padding: 10px;
+    background: #f1f1f1;
+    display: flex;
+}
+
+.chat-input textarea {
+    flex: 1;
+    border-radius: 10px;
+    padding: 10px;
+    resize: none;
+    border: 1px solid #ccc;
+}
+
+.chat-input button {
+    background: #3498db;
+    color: white;
+    border-radius: 10px;
+    border: none;
+    padding: 10px 15px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+.chat-input button:hover {
+    background: #2980b9;
+}
+
+/* Modal styling (unchanged) */
+#new-convo-modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Dark mode */
+.dark-mode {
+    background: #2c3e50;
+    color: white;
+}
+
+.dark-mode .sidebar {
+    background: #34495e;
+}
+
+.dark-mode .chat-window {
+    background: #3b4b61;
+}
+
+.dark-mode .chat-input {
+    background: #2c3e50;
+}
+

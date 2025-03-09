@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h1 class="class-name">{{ course.name }}</h1>
+        <h2>{{ course.professor.user.first_name }} {{ course.professor.user.last_name }}</h2>
+        <ul class="sidebar-menu">
+            <li><a href="{% url 'course_overview' course.id %}">Overview</a></li>
+            <li><a href="{% url 'professor_info' course.id %}">Professor Info</a></li>
+            <li><a href="{% url 'course_syllabus' course.id %}">Syllabus</a></li>
+            <li><a href="{% url 'course_modules' course.id %}">Modules</a></li>
+            <li><a href="{% url 'course_assignments' course.id %}">Assignments</a></li>
+            <li><a href="{% url 'course_announcements' course.id %}">Announcements</a></li>
+            <li><a href="{% url 'course_grades' course.id %}">Grades</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <h1>{{ course.name }} - Syllabus</h1>
+            <div class="syllabus-content">
+                <h2>Syllabus</h2>
+                <p>{{ course.syllabus }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sidebar and Main Content Styling (same as professor_info) -->
+<style>
+    .page-container {
+        display: flex;
+        flex-direction: row;
+    }
+    .sidebar {
+        width: 200px; /* Adjust sidebar width */
+        background-color: #34495e;
+        color: white;
+        padding: 20px;
+        height: 100vh;
+        position: fixed; /* Keep it fixed to the left */
+        top: 0;
+        left: 0;
+        border-radius: 0 10px 10px 0;
+    }
+    .sidebar h2 {
+        font-size: 1.5em;
+        margin-bottom: 25px;
+        text-align: center;
+        border-bottom: 1px solid #7f8c8d;
+        padding-bottom: 10px;
+    }
+    .sidebar-menu {
+        list-style: none;
+        padding: 0;
+    }
+    .sidebar-menu li {
+        margin: 20px 0;
+    }
+    .sidebar-menu li a {
+        color: white;
+        text-decoration: none;
+        font-size: 1.1em;
+        display: block;
+        padding: 12px 15px;
+        border-radius: 5px;
+        transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+    }
+    .sidebar-menu li a:hover {
+        background-color: #1abc9c;
+        color: #2c3e50;
+    }
+    .main-content {
+        width: calc(100% - 240px);
+        margin-left: 240px;
+        padding: 30px;
+        background-color: #ecf0f1;
+        border-radius: 10px;
+    }
+    .container {
+        margin: 20px auto;
+        padding: 20px;
+        max-width: 900px;
+        background-color: #f5f5f5;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    h1, h2 {
+        text-align: center;
+        color: #2980b9;
+    }
+    h1 {
+        font-size: 2.5em;
+        margin-bottom: 20px;
+    }
+    h2 {
+        font-size: 2em;
+        margin-bottom: 15px;
+    }
+    .syllabus-content {
+        font-size: 1.2em;
+        line-height: 1.6;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}

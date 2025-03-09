@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'registration',
 ]
 
@@ -77,11 +78,11 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-        'default': {
+    'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'university_db',
         'USER': 'root',
-        'PASSWORD': 'john',
+        'PASSWORD': 'CEN4010',
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -122,16 +123,36 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+
+# Directory where Django will look for additional static files
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # Assuming your static files are in a folder named 'static' in your base directory
+]
+
+# This is where Django will collect static files during deployment
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Media files (uploads, etc.)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
+# ASGI configuration
+ASGI_APPLICATION = 'backend.asgi.application'
+
+# Add channel layers for WebSocket communication
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",  # Using in-memory layer for simplicity
+    },
+}
 
 # Email configuration for forgot password feature - use Sendgrid
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -143,3 +164,4 @@ EMAIL_HOST_PASSWORD = "SG.5qH-R35lQFem1LKG9-U-iA.MYzHNixZmjj1OSz02qLNSUZPaB_4xaG
 DEFAULT_FROM_EMAIL = "jonwright095@gmail.com"
 
 LOGIN_URL = '/login/'  # Custom login page URL
+

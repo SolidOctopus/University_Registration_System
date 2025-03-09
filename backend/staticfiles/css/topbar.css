@@ -1,0 +1,92 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: whitesmoke;
+}
+
+.topbar-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    background-color: transparent;
+}
+
+header {
+    background-color: #08063f;
+    color: #e8cd7d;
+    padding: 20px;
+    position: relative;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-bottom-left-radius: 40px;
+    border-bottom-right-radius: 40px;
+    height: 80px;
+    width: 70%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#branding h1 a {
+    color: #e8cd7d;
+    text-decoration: none;
+    font-size: 24px;
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+    gap: 10px;
+    margin-right: 20px;
+}
+
+nav ul li a {
+    color: #e8cd7d;
+    background-color: #333;
+    padding: 10px 15px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s ease;
+}
+
+nav ul li a:hover {
+    background-color: #e8cd7d;
+    color: #08063f;
+}
+
+.top-right-icons {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 20px;
+}
+
+.icon {
+    cursor: pointer;
+    font-size: 3em;
+    color: #e8cd7d;
+    transition: transform 0.3s ease;
+}
+
+.settings-icon {
+    color: gray;
+}
+
+.icon:hover {
+    transform: scale(1.4);
+}
+
+.icon:hover ~ .icon {
+    transform: scale(0.8);
+}
+
+.profile-pic {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e8cd7d;
+}

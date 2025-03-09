@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send a Message</title>
+    <style>
+        /* Your existing CSS */
+    </style>
+</head>
+<body>
+
+    <h1>Send a Message</h1>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Send</button>
+    </form>
+
+    <!-- Typing indicator -->
+    <div class="typing-indicator" style="display: none;">User is typing...</div>
+
+    <script>
+        const chatWindow = document.querySelector('.chat-messages');
+        
+        function scrollToBottom() {
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+    
+        // Scroll to the bottom when a message is sent
+        document.querySelector('form').onsubmit = function(e) {
+            e.preventDefault();
+            const messageInput = document.querySelector('textarea[name="content"]');
+            const message = messageInput.value;
+    
+            socket.send(JSON.stringify({
+                'message': message,
+                'sender': "{{ request.user.id }}"
+            }));
+    
+            messageInput.value = '';
+    
+            // Delay the scroll action to give time for new messages to be rendered
+            setTimeout(scrollToBottom, 100);
+        };
+    
+        // Scroll to the bottom on page load
+        window.onload = scrollToBottom;
+    </script>
+    
+
+</body>
+</html>

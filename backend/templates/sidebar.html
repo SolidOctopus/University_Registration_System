@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Sidebar</title>
+    <link rel="stylesheet" href="{% static 'css/sidebar.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+</head>
+<body>
+
+    <div class="sidebar">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+            <img src="https://via.placeholder.com/50" alt="User Image">
+            <h3 class="glow-effect">Username</h3>
+        </div>
+
+        <!-- Menu Items -->
+        <ul class="menu">
+            <li class="menu-item glow-effect">
+                <button class="collapsible"><i class="fas fa-home"></i> Dashboard <i class="fas fa-chevron-down"></i></button>
+                <div class="content">
+                    <p>Dashboard Overview</p>
+                    <p>Recent Activity</p>
+                </div>
+            </li>
+
+            <li class="menu-item glow-effect">
+                <button class="collapsible"><i class="fas fa-book"></i> Courses <i class="fas fa-chevron-down"></i></button>
+                <div class="content">
+                    <p>Available Courses</p>
+                    <p>Course History</p>
+                </div>
+            </li>
+
+            <li class="menu-item glow-effect">
+                <button class="collapsible"><i class="fas fa-users"></i> Students <i class="fas fa-chevron-down"></i></button>
+                <div class="content">
+                    <p>Student List</p>
+                    <p>Manage Students</p>
+                </div>
+            </li>
+
+            <li class="menu-item glow-effect">
+                <button class="collapsible"><i class="fas fa-chalkboard-teacher"></i> Professors <i class="fas fa-chevron-down"></i></button>
+                <div class="content">
+                    <p>Professor List</p>
+                    <p>Manage Professors</p>
+                </div>
+            </li>
+
+            <li class="menu-item glow-effect">
+                <button class="collapsible"><i class="fas fa-calendar"></i> Schedule <i class="fas fa-chevron-down"></i></button>
+                <div class="content">
+                    <p>View Schedule</p>
+                    <p>Edit Schedule</p>
+                </div>
+            </li>
+
+            <!-- Collapsible Section for Settings -->
+            <li class="menu-item glow-effect">
+                <button class="collapsible"><i class="fas fa-cog"></i> Settings <i class="fas fa-chevron-down"></i></button>
+                <div class="content">
+                    <p>Profile Settings</p>
+                    <p>Account Settings</p>
+                </div>
+            </li>
+
+            <li class="menu-item glow-effect">
+                <button class="collapsible"><i class="fas fa-envelope"></i> Messages <i class="fas fa-chevron-down"></i></button>
+                <div class="content">
+                    <p>Inbox</p>
+                    <p>Sent Messages</p>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <!-- JavaScript for Collapsible Sections -->
+    <script>
+        // Handle collapsible dropdowns
+        const collapsibles = document.querySelectorAll('.collapsible');
+        collapsibles.forEach(item => {
+            item.addEventListener('click', function() {
+                this.classList.toggle('active');
+                const content = this.nextElementSibling;
+                if (content.style.maxHeight) {
+                    content.style.maxHeight = null;
+                } else {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="class-detail-container">
+    <h1>{{ course.name }} - Announcements</h1>
+
+    <!-- Announcement Form -->
+    <div class="form-section">
+        <h2>Add New Announcement</h2>
+        <form method="post" action="">
+            {% csrf_token %}
+            {{ announcement_form.as_p }}
+            <button type="submit" name="add_announcement" class="btn">Add Announcement</button>
+        </form>
+    </div>
+
+    <!-- Display Existing Announcements -->
+    <div class="section">
+        <h2>Announcements</h2>
+        <ul class="announcement-list">
+            {% for announcement in announcements %}
+            <li class="announcement-item">
+                <h3>{{ announcement.title }}</h3>
+                <p><strong>Details:</strong> {{ announcement.details }}</p>
+                <p><strong>Start Date:</strong> {{ announcement.start_date|date:"F j, Y" }} at {{ announcement.start_time|date:"h:i a" }}</p>
+                <p><strong>Due Date:</strong> {{ announcement.due_date|date:"F j, Y" }} at {{ announcement.due_time|date:"h:i a" }}</p>
+            </li>
+            {% empty %}
+            <p>No announcements available for this class.</p>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

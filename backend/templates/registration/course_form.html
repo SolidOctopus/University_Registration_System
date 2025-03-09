@@ -4,6 +4,10 @@
 <form method="post" class="course-form">
     {% csrf_token %}
     <div class="form-group">
+        {{ form.course_code.label_tag }}<br>
+        {{ form.course_code }}
+    </div>
+    <div class="form-group">
         {{ form.name.label_tag }}<br>
         {{ form.name }}
     </div>
@@ -54,6 +58,10 @@
     <div class="form-group">
         {{ form.credits.label_tag }}<br>
         {{ form.credits }}
+    </div>
+    <div class="form-group">
+        {{ form.semester.label_tag }}<br>
+        {{ form.semester }}
     </div>
     <button type="submit" class="btn btn-primary">Save</button>
 </form>

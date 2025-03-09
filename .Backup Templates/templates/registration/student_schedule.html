@@ -1,9 +1,0 @@
-{% extends "base.html" %}
-{% block content %}
-<h1>My Schedule</h1>
-<ul>
-    {% for enrollment in enrollments %}
-    <li>{{ enrollment.course.name }} - {{ enrollment.course.schedule }}</li>
-    {% endfor %}
-</ul>
-{% endblock %}

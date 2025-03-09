@@ -1,0 +1,190 @@
+{% include 'topbar.html' %}
+{% load static %}
+{% block content %}
+<div class="content-wrapper">
+    <!-- Include Sidebar -->
+    {% include "enroll_sidebar.html" %}
+
+    <div class="content-container">
+        <!-- Search Bar -->
+        <div class="search-bar">
+            <h2>Search For Classes</h2>
+            <form method="GET" action="{% url 'available_courses' %}">
+                <input type="text" name="search" placeholder="Enter keyword e.g. course, subject, class, topic, course attribute" class="search-input" value="{{ search_query }}">
+                <button type="submit" class="search-button">Search</button>
+            </form>
+        </div>
+
+        <!-- Course Results Table -->
+        <div class="course-results">
+            {% if courses %}
+                <h2>Class Search Results</h2>
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>Course</th>
+                            <th>Schedule</th>
+                            <th>Location</th>
+                            <th>Instructor</th>
+                            <th>Available Seats</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for course in courses %}
+                        <tr>
+                            <td><a href="{% url 'course_detail' course.pk %}">{{ course.name }}</a> - Units: {{ course.credits }}</td>
+                            <td>{{ course.days }} | {{ course.start_time|date:"g:i a" }} - {{ course.end_time|date:"g:i a" }}</td>
+                            <td>{{ course.location }}</td>
+                            <td>{{ course.professor.first_name }} {{ course.professor.last_name }}</td>
+                            <td>{{ course.available_seats }}</td>
+                            <td>
+                                {% if course.id in enrolled_courses %}
+                                    Enrolled
+                                {% elif course.id in cart_courses %}
+                                    <button class="in-cart" data-course-id="{{ course.pk }}" style="background: none; border: none; cursor: not-allowed;">
+                                        <i class="fa fa-shopping-cart" style="font-size: 24px; color: green;"></i> In Cart
+                                    </button>
+                                {% elif course.available_seats > 0 %}
+                                    <button class="add-to-cart" data-course-id="{{ course.pk }}" style="background: none; border: none;">
+                                        <i class="fa fa-cart-plus" style="font-size: 24px;"></i> Add to Cart
+                                    </button>
+                                {% else %}
+                                    Full
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% elif search_query %}
+                <p>No courses found for the search query "{{ search_query }}".</p>
+            {% else %}
+                <p>Please enter a search term to view available courses.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- CSS Styling -->
+<style>
+    .content-wrapper {
+        display: flex;
+    }
+
+    .content-container {
+        margin-left: 300px; /* Offset for sidebar */
+        padding: 40px;
+        background-color: #fff;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        margin-top: 20px; /* Offset from the top */
+        width: 1200px;
+    }
+
+    .search-bar {
+        margin-bottom: 20px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin-right: 10px;
+    }
+
+    .search-button {
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #08063f;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 5px;
+    }
+
+    .search-button:hover {
+        background-color: #e8cd7d;
+        color: #08063f;
+    }
+
+    .course-results {
+        margin-top: 20px;
+    }
+
+    .schedule-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 40px;
+    }
+
+    .schedule-table, .schedule-table th, .schedule-table td {
+        border: 1px solid #000;
+    }
+
+    .schedule-table th, .schedule-table td {
+        padding: 8px;
+        text-align: left;
+    }
+
+    .course-title a {
+        text-decoration: none;
+        color: #08063f;
+    }
+
+    .in-cart img, .add-to-cart img {
+        vertical-align: middle;
+    }
+</style>
+
+<!-- JavaScript to handle Add to Cart and dynamic changes -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.add-to-cart').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const courseId = this.getAttribute('data-course-id');
+
+            // Send AJAX request to add the course to the cart
+            fetch(`/add_to_cart/${courseId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.classList.remove('add-to-cart');
+                    this.classList.add('in-cart');
+                    this.innerHTML = `<i class="fa fa-shopping-cart" style="font-size: 24px; color: green;"></i> In Cart`;
+                    this.style.cursor = 'not-allowed';
+                    this.disabled = true;
+
+                    // Update the shopping cart badge with the new count
+                    updateCartBadge(data.cart_count);
+                } else if (data.message) {
+                    alert(data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+});
+
+// Function to update the cart badge
+function updateCartBadge(count) {
+    const cartBadge = document.getElementById('cart-badge');
+    if (count > 0) {
+        cartBadge.textContent = count;
+        cartBadge.style.display = 'inline-block';
+    } else {
+        cartBadge.style.display = 'none';
+    }
+}
+
+</script>
+{% endblock %}

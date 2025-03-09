@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Profile, Student, Professor, Admin, Enrollment, Course
+from .models import Profile, Student, Professor, Admin, Enrollment, Course, Assignment, Announcement, Message, Major
 from django.contrib.auth.forms import UserCreationForm
 import re
 
@@ -8,18 +8,20 @@ class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
         fields = [
-            'name', 
-            'description', 
-            'start_date', 
-            'end_date', 
-            'days', 
-            'start_time', 
-            'end_time', 
-            'session_type', 
-            'location', 
-            'available_seats', 
+            'course_code',  # Make sure this matches the model
+            'name',
+            'description',
+            'start_date',
+            'end_date',
+            'days',
+            'start_time',
+            'end_time',
+            'session_type',
+            'location',
+            'available_seats',
             'capacity',
-            'credits', 
+            'credits',
+            'semester',
         ]
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
@@ -36,6 +38,7 @@ class GradeForm(forms.ModelForm):
             'grade': forms.TextInput(attrs={'max_length': 4}),
         }
 
+
 class StudentForm(forms.ModelForm):
     courses = forms.ModelMultipleChoiceField(queryset=Course.objects.none(), widget=forms.CheckboxSelectMultiple, required=False)
     first_name = forms.CharField(max_length=30)
@@ -43,10 +46,12 @@ class StudentForm(forms.ModelForm):
     email = forms.EmailField()
     password = forms.CharField(widget=forms.PasswordInput(), required=False)
     confirm_password = forms.CharField(widget=forms.PasswordInput(), required=False)
+    major = forms.ModelChoiceField(queryset=Major.objects.all(), required=False)
+
 
     class Meta:
         model = Student
-        fields = ['first_name', 'last_name', 'email', 'password', 'confirm_password', 'courses', 'profile_picture']
+        fields = ['first_name', 'last_name', 'email', 'password', 'confirm_password', 'courses', 'profile_picture', 'major']
 
     def __init__(self, *args, **kwargs):
         super(StudentForm, self).__init__(*args, **kwargs)
@@ -262,3 +267,42 @@ class ProfessorRegistrationForm(UserCreationForm):
             Profile.objects.create(user=user, role='professor', first_name=user.first_name, last_name=user.last_name, email=user.email, id_number=self.cleaned_data['id_number'])
             Professor.objects.create(user=user, first_name=user.first_name, last_name=user.last_name, email=user.email)
         return user
+    
+class AssignmentForm(forms.ModelForm):
+    class Meta:
+        model = Assignment
+        fields = ['title', 'description', 'start_date', 'start_time', 'due_date', 'due_time']
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'start_time': forms.TimeInput(attrs={'type': 'time'}),
+            'due_date': forms.DateInput(attrs={'type': 'date'}),
+            'due_time': forms.TimeInput(attrs={'type': 'time'}),
+        }
+
+class AnnouncementForm(forms.ModelForm):
+    class Meta:
+        model = Announcement
+        fields = ['title', 'details', 'start_date', 'start_time', 'due_date', 'due_time']
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'start_time': forms.TimeInput(attrs={'type': 'time'}),
+            'due_date': forms.DateInput(attrs={'type': 'date'}),
+            'due_time': forms.TimeInput(attrs={'type': 'time'}),
+        }
+
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ['receiver', 'content']
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super(MessageForm, self).__init__(*args, **kwargs)
+        self.fields['receiver'].queryset = User.objects.filter(profile__role__in=['student', 'professor'])
+        self.fields['receiver'].label_from_instance = lambda obj: f"{obj.profile.role.capitalize()} - {obj.username}"
+
+class NewConversationForm(forms.Form):
+    receiver = forms.ModelChoiceField(queryset=User.objects.all())
+
+
+

@@ -1,0 +1,25 @@
+<h1>Message Thread</h1>
+
+<div>
+    <h2>From: {{ message.sender.username }}</h2>
+    <p>{{ message.content }}</p>
+    <span class="timestamp">Sent: {{ message.timestamp|date:"M d, Y, h:i a" }}</span>
+</div>
+
+<hr>
+
+<h3>Replies</h3>
+<ul>
+    {% for reply in replies %}
+    <li>
+        <strong>{{ reply.sender.username }}:</strong> {{ reply.content }}
+        <span class="timestamp">({{ reply.timestamp|date:"M d, Y, h:i a" }})</span>
+    </li>
+    {% empty %}
+    <li>No replies yet.</li>
+    {% endfor %}
+</ul>
+
+<hr>
+
+<a href="{% url 'reply_message' message.id %}">Reply to this message</a>

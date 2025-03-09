@@ -1,41 +1,144 @@
+-----Majors-----
+-Add Majors to Students
 
----Basic stuff---
-*Double check Classes's having functional capacity, days, times and location.  
+-Add classes to each major
 
-*Make a registry of all the classes a student has to take and have taken
-	
-*Add majors to students
-	
-*User messaging each other - Inbox system
+-Make sure students can see the classes they need in "my requirements" page in the form of a list.
 
-*Professors should be able to complete/finish their courses from their course page
-	The completed class must show up in the sutdent's record.
+----SideBar-----
+-Include optimization and and shortcuts to the Shopping cart sidebar.
+	Also remove the tittle and logo.
 
-*A better graph for the student schedule
-
-
+-Replace all sidebars with the new updated sidebar.
+ 
+-Add Profiles (on the top) and settings (on the bottom next to log out) to sidebar.
 
 
+----Topbat-----
+-Fix the flashing
 
----Crazy shit----
+-Remove seetings and profile
 
-*Add a shopping card system (it must check for overlapping classes in schedule)
-	When searching for classes it can be searched by majors	
-	When searching for classes the students should have their schedule clearly visible
+-Fix the overlap when you scroll down
 
-*Add prerequisites and co-requisites
-
-*Forgot my password function.
+-add to every page
 
 
-*Add advisors?
-*Dark mode?
-*New project name?
+----Finantials----
+Add price to every class
+Make sure they show up for each student taking classes in their "finacials" page in the form of a list.
 
 
----The canvas 2.0----
+----Dashboard----
+Courses needs to be finished
 
-Classes must have Announcements, Assignments, Grades
+----Messages-----
+Improve the box that shows up when you start a new chat.
+
+
+-----Academic Records-----
+
+Give a list of all classes a student has already completed.
 
 
 
+-----Manage classes (Professor) ------
+
+Needs to look better
+
+
+
+
+
+
+
+
+
+
+Commands
+
+
+-----Create classes------
+
+from datetime import date
+from registration.models import Course
+
+# Create 10 sample courses with start_date and end_date fields
+Course.objects.bulk_create([
+    Course(course_code='CEN4010', name='Software Engineering I', description='Introduction to Software Engineering', credits=3, capacity=30, available_seats=30, semester='fall', start_date=date(2024, 8, 20), end_date=date(2024, 12, 20)),
+    Course(course_code='CEN4021', name='Software Engineering II', description='Advanced Software Engineering topics', credits=3, capacity=25, available_seats=25, semester='spring', start_date=date(2025, 1, 10), end_date=date(2025, 5, 10)),
+    Course(course_code='COP3530', name='Data Structures and Algorithms', description='Study of data structures and algorithms', credits=4, capacity=40, available_seats=40, semester='fall', start_date=date(2024, 8, 20), end_date=date(2024, 12, 20)),
+    Course(course_code='COP4600', name='Operating Systems', description='Introduction to operating systems concepts', credits=4, capacity=35, available_seats=35, semester='summer', start_date=date(2025, 5, 15), end_date=date(2025, 8, 15)),
+    Course(course_code='CDA3103', name='Computer Architecture', description='Study of computer organization and architecture', credits=3, capacity=50, available_seats=50, semester='fall', start_date=date(2024, 8, 20), end_date=date(2024, 12, 20)),
+    Course(course_code='CIS4910', name='Capstone Project', description='Capstone project for computer science students', credits=3, capacity=20, available_seats=20, semester='spring', start_date=date(2025, 1, 10), end_date=date(2025, 5, 10)),
+    Course(course_code='COP4331', name='Object-Oriented Programming', description='Introduction to object-oriented programming concepts', credits=3, capacity=30, available_seats=30, semester='fall', start_date=date(2024, 8, 20), end_date=date(2024, 12, 20)),
+    Course(course_code='COP4710', name='Database Management', description='Study of database design and management systems', credits=4, capacity=40, available_seats=40, semester='summer', start_date=date(2025, 5, 15), end_date=date(2025, 8, 15)),
+    Course(course_code='CNT4713', name='Computer Networks', description='Introduction to computer networks and communication', credits=3, capacity=35, available_seats=35, semester='spring', start_date=date(2025, 1, 10), end_date=date(2025, 5, 10)),
+    Course(course_code='CIS4930', name='Special Topics in Computing', description='Various topics in computing', credits=3, capacity=30, available_seats=30, semester='fall', start_date=date(2024, 8, 20), end_date=date(2024, 12, 20)),
+])
+
+print("10 sample courses created successfully!")
+
+
+---------Create users---------
+
+from django.contrib.auth.models import User
+from registration.models import Student, Professor, Admin
+from django.db import transaction
+
+# Common password for all users
+password = 'defaultpassword123'
+
+# Wrap everything in a transaction
+with transaction.atomic():
+    for i in range(1, 11):  # Creating 10 users for each type
+        if i == 9:  # Skip number 9
+            continue
+
+        # For Students
+        student_username = f'student{i}'
+        student_first_name = 'Student'
+        student_last_name = str(i)
+        student_email = f'student{i}@university.edu'
+        student_id_number = f'STUD00{i}'
+
+        student_user = User.objects.create_user(
+            username=student_username,
+            password=password,
+            first_name=student_first_name,
+            last_name=student_last_name,
+            email=student_email
+        )
+        Student.objects.create(user=student_user, id_number=student_id_number)
+
+        # For Professors
+        professor_username = f'professor{i}'
+        professor_first_name = 'Professor'
+        professor_last_name = str(i)
+        professor_email = f'professor{i}@university.edu'
+
+        professor_user = User.objects.create_user(
+            username=professor_username,
+            password=password,
+            first_name=professor_first_name,
+            last_name=professor_last_name,
+            email=professor_email
+        )
+        Professor.objects.create(user=professor_user)
+
+        # For Admins
+        admin_username = f'admin{i}'
+        admin_first_name = 'Admin'
+        admin_last_name = str(i)
+        admin_email = f'admin{i}@university.edu'
+
+        admin_user = User.objects.create_user(
+            username=admin_username,
+            password=password,
+            first_name=admin_first_name,
+            last_name=admin_last_name,
+            email=admin_email
+        )
+        Admin.objects.create(user=admin_user)
+
+print("Users created successfully, except for number 9.")

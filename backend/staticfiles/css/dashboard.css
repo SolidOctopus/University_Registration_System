@@ -1,0 +1,299 @@
+/* Define CSS Variables */
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #27ae60;
+    --background-color: #f8f9fa;
+    --text-color: #2c3e50;
+    --navbar-color: linear-gradient(45deg, #34495e, #2c3e50);
+    --hover-color: #f39c12;
+    --shadow-light: 0 4px 8px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Global Styles */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+/* Dashboard Container */
+.dashboard-container {
+    padding: 30px;
+    margin-left: 80px; /* Adjusted margin for sidebar */
+    text-align: left;
+    background: #ffffff;
+    border-radius: 15px;
+    
+}
+
+/* Header */
+.navbar {
+    background: var(--navbar-color);
+    padding: 20px 40px;
+    box-shadow: var(--shadow-medium);
+    border-radius: 0 0 20px 20px;
+    color: #ecf0f1;
+    font-weight: bold;
+    font-size: 20px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.navbar .menu a {
+    color: #ecf0f1;
+    margin: 0 25px;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.navbar .menu a:hover {
+    color: var(--hover-color);
+    text-decoration: underline;
+}
+
+/* Sidebar */
+.sidebar-left {
+    height: 100%;
+    width: 0; /* Collapsed width */
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #2c3e50;
+    overflow-x: hidden;
+    transition: width 0.3s ease-in-out, background-color 0.3s ease-in-out;
+    z-index: 1000;
+    padding-top: 60px;
+    border-radius: 0 20px 20px 0;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-medium);
+    display: block !important; /* Ensure sidebar is visible */
+}
+
+.sidebar-left.show {
+    width: 250px; /* Expanded sidebar width */
+}
+
+.sidebar-left:hover {
+    background-color: #34495e;
+}
+
+/* Sidebar Content */
+.sidebar-content {
+    padding: 15px;
+    color: #ecf0f1;
+    font-size: 16px;
+    display: block !important; /* Ensure sidebar content is visible */
+}
+
+.sidebar-left a {
+    padding: 15px 20px;
+    text-decoration: none;
+    font-size: 18px;
+    color: #ecf0f1;
+    display: block;
+    transition: background-color 0.3s ease, padding-left 0.3s ease;
+}
+
+.sidebar-left a:hover {
+    background-color: var(--primary-color);
+    padding-left: 60px; /* Extra padding for hover effect */
+}
+
+/* Sidebar Toggle Switch */
+.sidebar-toggle {
+    position: absolute;
+    bottom: 20px;
+    left: 15px;
+    cursor: pointer;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 30px;
+}
+
+.switch input {
+    display: none;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 15px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--primary-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(30px);
+}
+
+/* Sidebar and Icon Transitions */
+.left-icons {
+    position: fixed;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 10px;
+    transition: left 0.3s ease;
+}
+
+.left-icons.show {
+    left: 10px; /* Show icons when sidebar is hovered or toggle is on */
+}
+
+.icon {
+    font-size: 45px;
+    color: var(--primary-color);
+    cursor: pointer;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.icon:hover {
+    transform: scale(1.2);
+    color: #e74c3c;
+}
+
+/* Button Styles */
+
+.view-mode-switch {
+    display: flex;
+    justify-content: space-between; /* Space out buttons evenly */
+    align-items: center;
+    margin: 20px 0;
+}
+
+.button, .view-mode-switch button {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    color: #ffffff;
+    font-size: 18px;
+    transition: background 0.3s ease, transform 0.3s ease;
+    box-shadow: var(--shadow-light);
+    cursor: pointer;
+}
+
+/* Individual Button Positioning */
+#filter-btn {
+    margin-left: 0; /* Align to the left */
+}
+
+#view-toggle-btn {
+    width: 1100px; /* Set a smaller width for the button */
+    padding: 15px 30px; /* Adjust padding to fit the new width */
+    font-size: 18px; /* Optionally reduce font size */
+    margin: 0 auto; /* Center the button */
+    text-align: center;
+}
+#today-btn {
+    margin-right: 0; /* Align to the right */
+}
+
+
+.button:hover, .view-mode-switch button:hover {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-medium);
+}
+
+/* Assignment & Announcement Cards */
+.assignment-item, .announcement-item {
+    margin-bottom: 25px;
+    padding: 25px;
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: var(--shadow-light);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.assignment-item:hover, .announcement-item:hover {
+    box-shadow: var(--shadow-medium);
+    transform: translateY(-8px);  /* Lift the card */
+}
+
+.assignment-item p, .announcement-item p {
+    margin: 8px 0;
+}
+
+.assignment-item p:first-child, .announcement-item p:first-child {
+    font-weight: bold;
+    font-size: 20px;
+    color: var(--text-color);
+}
+
+/* Calendar Styles */
+.custom-calendar .fc {
+    border: none;
+    background: #ffffff;
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-light);
+}
+
+.custom-calendar .fc .fc-header-toolbar {
+    background: var(--primary-color);
+    color: white;
+    border-radius: 5px;
+    padding: 8ypx;
+}
+
+.custom-calendar .fc .fc-button-primary {
+    background-color: var(--primary-color);
+    border: none;
+}
+
+.custom-calendar .fc .fc-button-primary:hover {
+    background-color: #2980b9;
+}
+
+/* Weekly & Daily Sections */
+.week-section, .day-section {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    box-shadow: var(--shadow-light);
+    font-size: 16px;
+}
+
+.week-section:hover, .day-section:hover {
+    background-color: #ecf0f1;
+}
+
+
+
+
+
+

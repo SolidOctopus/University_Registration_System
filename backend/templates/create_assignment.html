@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="class-detail-container">
+    <h1>{{ course.name }} - Assignments</h1>
+
+    <style>
+        .class-detail-container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-section {
+            margin-bottom: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .btn {
+            background-color: #08063f;
+            color: #e8cd7d;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #e8cd7d;
+            color: #08063f;
+        }
+        .section ul {
+            list-style: none;
+            padding: 0;
+        }
+        .assignment-item {
+            padding: 10px;
+            background: #f9f9f9;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+    </style>
+
+    <!-- Assignment Form -->
+    <div class="form-section">
+        <h2>Add New Assignment</h2>
+        <form method="post" action="">
+            {% csrf_token %}
+            {{ assignment_form.as_p }}
+            <button type="submit" name="add_assignment" class="btn">Add Assignment</button>
+        </form>
+    </div>
+
+    <!-- Display Existing Assignments -->
+    <div class="section">
+        <h2>Assignments</h2>
+        <ul class="assignment-list">
+            {% for assignment in assignments %}
+            <li class="assignment-item">
+                <h3>{{ assignment.title }}</h3>
+                <p><strong>Description:</strong> {{ assignment.description }}</p>
+                <p><strong>Start Date:</strong> {{ assignment.start_date|date:"F j, Y" }} at {{ assignment.start_time|date:"h:i a" }}</p>
+                <p><strong>Due Date:</strong> {{ assignment.due_date|date:"F j, Y" }} at {{ assignment.due_time|date:"h:i a" }}</p>
+            </li>
+            {% empty %}
+            <p>No assignments available for this class.</p>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

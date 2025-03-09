@@ -1,0 +1,212 @@
+/* Global styling */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to right, #e0eafc, #cfdef3);
+    color: #2c3e50;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Container for the layout */
+.container {
+    display: flex;
+    width: 80%;
+    height: 80vh;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* Sidebar - user list */
+.sidebar {
+    width: 30%;
+    background: linear-gradient(145deg, #f0f9ff, #c7e3ff);
+    padding: 20px;
+    overflow-y: auto;
+    border-right: 2px solid #e0e0e0;
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar h2 {
+    color: #2c3e50;
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    background: #fff;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.sidebar li:hover {
+    transform: scale(1.05);
+    background: #f0f9ff;
+}
+
+.sidebar li img {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    margin-right: 15px;
+}
+
+.sidebar li strong {
+    font-size: 1.1rem;
+    color: #34495e;
+}
+
+.sidebar li p {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+}
+
+.badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    padding: 5px;
+    font-size: 0.8rem;
+}
+
+/* Chat Window */
+.chat-window {
+    flex: 1;
+    background: #f9f9f9;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-left: 2px solid #e0e0e0;
+    position: relative;
+}
+
+.chat-header {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #34495e;
+    border-bottom: 2px solid #ecf0f1;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Message styling */
+.message {
+    padding: 12px 20px;
+    border-radius: 20px;
+    max-width: 60%;
+    word-wrap: break-word;
+    font-size: 1rem;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+    position: relative;
+}
+
+.message:hover {
+    transform: translateY(-2px);
+}
+
+.sent {
+    background: linear-gradient(to right, #74ebd5, #9face6);
+    margin-left: auto;
+    text-align: right;
+    color: white;
+}
+
+.received {
+    background: #ffffff;
+    text-align: left;
+    border: 1px solid #dfe9f3;
+}
+
+.timestamp {
+    font-size: 0.8rem;
+    color: #95a5a6;
+    display: block;
+    margin-top: 5px;
+    text-align: right;
+}
+
+.read-receipt {
+    font-size: 0.85rem;
+    color: #3498db;
+    margin-left: 5px;
+}
+
+/* Chat input field */
+.chat-input {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.chat-input textarea {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    font-size: 1rem;
+    resize: none;
+    background: white;
+}
+
+.chat-input button {
+    background: #3498db;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin-left: 10px;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.chat-input button:hover {
+    background: #2980b9;
+}
+
+/* Modal */
+#new-convo-modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}

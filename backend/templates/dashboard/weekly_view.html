@@ -1,0 +1,35 @@
+<!-- Weekly Assignments View -->
+<div class="weekly-assignments" id="weekly-view">
+    {% for week_data in weekly_assignments %}
+    <div class="week-section">
+        <h2>{{ week_data.week }}</h2>
+        
+        {% if not week_data.assignments and not week_data.announcements %}
+            <!-- Show message when there are no assignments or announcements for this week -->
+            <p>Nothing planned for this week.</p>
+        {% endif %}
+
+        <!-- Display Assignments -->
+        {% if week_data.assignments %}
+            <h3>Assignments:</h3>
+            {% for assignment in week_data.assignments %}
+            <div class="assignment-item">
+                <p>Assignment: <strong>{{ assignment.title }}</strong> - <span style="color: #009688;">{{ assignment.course_name }}</span></p> <!-- Include Course Name -->
+                <p>Due: {{ assignment.due_date }}</p>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Display Announcements -->
+        {% if week_data.announcements %}
+            <h3>Announcements:</h3>
+            {% for announcement in week_data.announcements %}
+            <div class="announcement-item">
+                <p>Announcement: <strong>{{ announcement.title }}</strong> - <span style="color: #f57c00;">{{ announcement.course_name }}</span></p> <!-- Include Course Name -->
+                <p>{{ announcement.details }}</p>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>

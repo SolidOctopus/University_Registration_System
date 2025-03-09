@@ -1,76 +1,185 @@
-{% extends "base.html" %}
+{% include 'topbar.html' %}
+{% load static %}
 {% block content %}
-<div class="header">
-    <h2>My Schedule</h2>
-</div>
 
+<!-- Include Sidebar -->
+{% include 'enroll_sidebar.html' %}
+
+<!-- Content Section Begin -->
+<div class="content-container">
+    <div class="header">
+        <h2>My Schedule</h2>
+        <p class="header-description">Manage your current semester's schedule and course details below.</p>
+    </div>
+
+    <!-- Course List Section -->
+    <div class="course-list">
+        {% for enrollment in enrollments %}
+        <div class="course-card">
+            <div class="course-header">
+                <div class="course-title">
+                    <a href="{% url 'course_detail' enrollment.course.pk %}">{{ enrollment.course.name }}</a> - Units: {{ enrollment.course.credits }}
+                </div>
+                <div class="course-schedule">
+                    {{ enrollment.course.days }} | {{ enrollment.course.start_time|date:"g:i a" }} - {{ enrollment.course.end_time|date:"g:i a" }}
+                </div>
+            </div>
+            <div class="course-body">
+                <p><strong>Location:</strong> {{ enrollment.course.location }}</p>
+                <p><strong>Instructor:</strong> {{ enrollment.course.professor.first_name }} {{ enrollment.course.professor.last_name }}</p>
+                <p><strong>Grade:</strong> {{ enrollment.grade }}</p>
+            </div>
+            <div class="course-footer">
+                <a href="{% url 'drop_class' enrollment.pk %}" class="btn drop-class-button">Drop Class</a>
+                <a href="{% url 'course_detail' enrollment.course.pk %}" class="btn class-info-button">Class Info</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<!-- Content Section End -->
+
+<!-- CSS Styling -->
 <style>
+    /* General Styling */
+    body {
+        font-family: 'Montserrat', sans-serif;
+        background-color: #f7f8fc;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Content Container */
+    .content-container {
+        margin-left: 100px; /* Offset for compact sidebar */
+        padding: 50px;
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        margin-top: 30px;
+        transition: margin 0.5s ease;
+    }
+
     .header {
+        font-size: 32px;
+        color: #34495e;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .header-description {
+        font-size: 16px;
+        color: #7f8c8d;
+        margin-bottom: 40px;
+        text-align: center;
+    }
+
+    /* Course Card Styling */
+    .course-card {
+        background: #f4f4f4;
+        border: 1px solid #ddd;
+        border-radius: 15px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        padding: 25px;
+        margin-bottom: 25px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .course-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 15px;
+        margin-bottom: 15px;
     }
-    .schedule-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 40px; 
-    }
-    .schedule-table, .schedule-table th, .schedule-table td {
-        border: 1px solid #000;
-    }
-    .schedule-table th, .schedule-table td {
-        padding: 8px;
-        text-align: left;
-    }
-    .course-header {
-        background-color: #f4f4f4;
-        font-weight: bold;
-    }
-    .course-details {
-        background-color: #e9e9e9;
-    }
+
     .course-title {
-        background-color: #08063f;
-        color: #e8cd7d; 
+        font-size: 22px;
         font-weight: bold;
+        color: #2c3e50;
     }
+
     .course-title a {
-        color: #08063f;
         text-decoration: none;
-        background-color: #e8cd7d; 
-        padding: 2px 4px;
-        border-radius: 3px; 
+        color: inherit;
+    }
+
+    .course-title a:hover {
+        color: #3498db;
+    }
+
+    .course-schedule {
+        font-size: 14px;
+        color: #7f8c8d;
+    }
+
+    .course-body {
+        margin-top: 10px;
+    }
+
+    .course-footer {
+        display: flex;
+        justify-content: flex-start;
+        margin-top: 20px;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        text-decoration: none;
+        margin-right: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .drop-class-button {
+        background-color: #e74c3c;
+        color: #ffffff;
+    }
+
+    .drop-class-button:hover {
+        background-color: #c0392b;
+        transform: translateY(-3px);
+    }
+
+    .class-info-button {
+        background-color: #3498db;
+        color: #ffffff;
+    }
+
+    .class-info-button:hover {
+        background-color: #2980b9;
+        transform: translateY(-3px);
+    }
+
+    /* Responsive Design */
+    @media only screen and (max-width: 768px) {
+        .sidebar-left-drawer {
+            width: 100%;
+            height: auto;
+            position: relative;
+            margin: 0;
+            padding: 20px;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .content-container {
+            margin-left: 0;
+            padding: 20px;
+        }
+
+        .course-card {
+            padding: 15px;
+        }
     }
 </style>
 
-{% for enrollment in enrollments %}
-    <table class="schedule-table">
-        <thead>
-            <tr class="course-title">
-                <td colspan="6"><a href="{% url 'course_detail' enrollment.course.pk %}">{{ enrollment.course.name }}</a> - Units: {{ enrollment.course.credits }}</td>
-            </tr>
-            <tr>
-                <th style="width: 40%;">Schedule</th>
-                <th style="width: 20%;">Location</th>
-                <th style="width: 20%;">Instructor(s)</th>
-                <th style="width: 20%;">Grade</th>
-                <th style="width: 20%;">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr class="course-details">
-                <td>{{ enrollment.course.days }} | {{ enrollment.course.start_time|date:"g:i a" }} - {{ enrollment.course.end_time|date:"g:i a" }}</td>
-                <td>{{ enrollment.course.location }}</td>
-                <td>{{ enrollment.course.professor.first_name }} {{ enrollment.course.professor.last_name }}</td>
-                <td>{{ enrollment.grade }}</td>
-                <td>
-                    <a href="{% url 'drop_class' enrollment.pk %}">Drop Class</a>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-{% endfor %}
-
 {% endblock %}
-
-

@@ -1,56 +1,86 @@
 {% extends "base.html" %}
+
 {% block content %}
 <h1 class="page-title">Edit Course</h1>
-<form method="post" class="course-form" enctype="multipart/form-data">
+
+<!-- Course Edit Form -->
+{% if course.id %}
+<form method="post" action="{% url 'edit_course' course.id %}" class="course-form">
+{% else %}
+<form method="post" action="#" class="course-form">
+{% endif %}
     {% csrf_token %}
+    
+    <div class="form-group">
+        {{ form.course_code.label_tag }}
+        {{ form.course_code }}
+    </div>
+
     <div class="form-group">
         {{ form.name.label_tag }}
         {{ form.name }}
     </div>
+
     <div class="form-group">
         {{ form.description.label_tag }}
         {{ form.description }}
     </div>
+
+    <div class="form-group">
+        {{ form.semester.label_tag }}
+        {{ form.semester }}
+    </div>
+
     <div class="form-group">
         {{ form.start_date.label_tag }}
         {{ form.start_date }}
     </div>
+
     <div class="form-group">
         {{ form.end_date.label_tag }}
         {{ form.end_date }}
     </div>
+
     <div class="form-group">
         {{ form.days.label_tag }}
         {{ form.days }}
     </div>
+
     <div class="form-group">
         {{ form.start_time.label_tag }}
         {{ form.start_time }}
     </div>
+
     <div class="form-group">
         {{ form.end_time.label_tag }}
         {{ form.end_time }}
     </div>
+
     <div class="form-group">
         {{ form.session_type.label_tag }}
         {{ form.session_type }}
     </div>
+
     <div class="form-group">
         {{ form.location.label_tag }}
         {{ form.location }}
     </div>
+
     <div class="form-group">
         {{ form.available_seats.label_tag }}
         {{ form.available_seats }}
     </div>
+
     <div class="form-group">
         {{ form.capacity.label_tag }}
         {{ form.capacity }}
     </div>
+
     <div class="form-group">
         {{ form.credits.label_tag }}
         {{ form.credits }}
     </div>
+
     <button type="submit" class="btn btn-primary">Save</button>
 </form>
 
@@ -60,6 +90,7 @@
         margin-bottom: 20px;
         color: #08063f;
     }
+
     .course-form {
         width: 60%;
         margin: auto;
@@ -68,15 +99,18 @@
         border-radius: 8px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
+
     .course-form .form-group {
         margin-bottom: 15px;
     }
+
     .course-form label {
         display: block;
         font-weight: bold;
         color: #08063f;
         margin-bottom: 5px;
     }
+
     .course-form input,
     .course-form textarea,
     .course-form select {
@@ -85,6 +119,7 @@
         border: 1px solid #ccc;
         border-radius: 4px;
     }
+
     .course-form button.btn {
         background-color: #08063f;
         color: #e8cd7d;
@@ -94,8 +129,10 @@
         cursor: pointer;
         font-size: 16px;
     }
+
     .course-form button.btn:hover {
         background-color: #333;
     }
 </style>
+
 {% endblock %}

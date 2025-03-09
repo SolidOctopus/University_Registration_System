@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="dashboard-container">
+    <!-- Removed calendar empty box if no events -->
+    <div id="calendar" class="custom-calendar" style="display: none;"></div>
+    <!-- View Mode Switch and "Today" Button -->
+    {% include 'dashboard/view_switch.html' %}
+
+    <!-- Scrollable Container for Calendar -->
+    <div class="scrollable-calendar">
+        <!-- Calendar -->
+        <div id="calendar" class="custom-calendar"></div>
+
+
+        {% include 'dashboard/weekly_view.html' %}
+        {% include 'dashboard/daily_view.html' %}
+    </div>
+</div>
+
+ <!-- Sidebar -->
+ {% include 'dashboard/sidebar.html' %}
+
+<!-- Link to CSS and JS -->
+<link rel="stylesheet" type="text/css" href="{% static 'css/dashboard.css' %}">
+<script src="{% static 'js/dashboard.js' %}"></script>
+
+
+{% endblock %}
