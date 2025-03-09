@@ -4,7 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import PasswordResetForm
 from django.http import JsonResponse
 from .models import Course, Student, Professor, Admin, Profile, Enrollment, Assignment, Announcement, Cart, Message
-from .forms import CourseForm, StudentForm, ProfessorForm, AdminForm, GradeForm, ProfileForm, UserRegistrationForm, StudentRegistrationForm, ProfessorRegistrationForm, AssignmentForm, AnnouncementForm, MessageForm 
+from .forms import CourseForm, MajorChangeForm, StudentForm, ProfessorForm, AdminForm, GradeForm, ProfileForm, UserRegistrationForm, StudentRegistrationForm, ProfessorRegistrationForm, AssignmentForm, AnnouncementForm, MessageForm 
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db import transaction, IntegrityError
@@ -22,6 +22,7 @@ def register_view(request):
                 with transaction.atomic():
                     user = form.save(commit=False)
                     role = form.cleaned_data.get('role')
+                    major = form.cleaned_data.get('major')
                     id_number = form.cleaned_data.get('id_number')
                     user.first_name = form.cleaned_data.get('first_name')
                     user.last_name = form.cleaned_data.get('last_name')
@@ -41,7 +42,8 @@ def register_view(request):
                             user=user,
                             first_name=user.first_name,
                             last_name=user.last_name,
-                            email=user.email
+                            email=user.email,
+                            major=major
                         )
                     elif role == 'professor':
                         Professor.objects.create(
@@ -1015,6 +1017,22 @@ def get_cart_count(request):
     student = request.user.student  # Get the student object
     cart_count = Cart.objects.filter(student=student).count()  # Use Cart model
     return JsonResponse({'cart_count': cart_count})
+
+def change_major(request):
+    user = request.user 
+    student = user.student  
+    
+    if request.method == 'POST':
+        form = MajorChangeForm(request.POST)
+        if form.is_valid():
+            student.major = form.cleaned_data['major']
+            student.save()
+            return redirect('view_profile')
+
+    else:
+        form = MajorChangeForm()
+
+    return render(request, 'registration/change_major.html', {'form': form})
 
 @login_required
 def message_list(request):

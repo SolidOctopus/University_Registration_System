@@ -16,7 +16,7 @@ from .views import (
     course_syllabus, course_modules, course_assignments, course_announcements, course_grades,
     shopping_cart_view, my_requirements_view, financials_view, add_to_cart, remove_from_cart,
     enroll_all_courses, get_cart_count, message_list, send_message, message_detail,
-    start_new_conversation, delete_conversation
+    start_new_conversation, delete_conversation, change_major
 )
 
 urlpatterns = [
@@ -57,6 +57,7 @@ urlpatterns = [
     path('courses/<int:course_id>/students/', view_students, name='view_students'),
     path('profile/', view_profile, name='view_profile'),
     path('profile/edit/', edit_profile, name='edit_profile'),
+    path('profile/change-major/', change_major, name='change_major'),
     path('drop-class/<int:enrollment_id>/', drop_class, name='drop_class'),
     path('courses/<int:course_id>/assign_professor/', assign_professor, name='assign_professor'),
     path('courses/<int:pk>/', course_detail, name='course_detail'),
@@ -66,7 +67,7 @@ urlpatterns = [
     path('settings/', settings_view, name='settings'),
     path('dashboard/', dashboard_view, name='dashboard'),
     path('course/<int:course_id>/overview/', course_overview, name='course_overview'),
-   path('course/<int:course_id>/create-assignment/', create_assignment, name='create_assignment'),
+    path('course/<int:course_id>/create-assignment/', create_assignment, name='create_assignment'),
     path('course/<int:course_id>/create-announcement/', create_announcement, name='create_announcement'),
     path('get-assignments/', get_assignments, name='get_assignments'),
     path('course/<int:course_id>/professor/', professor_info, name='professor_info'),
@@ -91,7 +92,7 @@ urlpatterns = [
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-    path('reset/done/', RedirectView.as_view(url='/login/'), name='password_reset_complete'),
+    path('reset/done/', RedirectView.as_view(url='/login/'), name='password_reset_complete')
 ]
 
 if settings.DEBUG:

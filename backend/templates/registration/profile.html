@@ -15,7 +15,7 @@
         </div>
         <div class="profile-detail">
             <h2>Role</h2>
-            <p>{{ user_profile.role }}</p>
+            <p id="role">{{ user_profile.role }}</p>
         </div>
         <div class="profile-detail">
             <h2>ID Number</h2>
@@ -24,6 +24,19 @@
         <div class="profile-detail">
             <h2>Biography</h2>
             <p>{{ user_profile.bio|default:"No biography available." }}</p>
+        </div>
+        <div id="majorGroup" class="major-group">
+            <div class="profile-detail">
+                <h2>Major</h2>
+                {% if user_profile.student %}
+                <p>{{ user_profile.student.major.name }}</p>
+                {% else %}
+                <p>No major assigned</p>
+                {% endif %}
+            </div>
+            <div>
+                <a href="{% url 'change_major' %}" class="btn-change-major">Change Major</a>
+            </div>
         </div>
     </div>
 </div>
@@ -92,5 +105,43 @@
         color: #666;
         margin-bottom: 20px;
     }
+    .major-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-top: 10px;
+    }
+    .btn-change-major {
+        background-color: #007BFF;
+        color: white;
+        padding: 5px 10px;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+    .btn-change-major:hover {
+        background-color: #0056b3;
+    }
 </style>
+
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+        var roleSelect = document.getElementById('role');  
+        var majorGroup = document.getElementById('majorGroup'); 
+
+        function showMajor() {
+            var selectedRole = roleSelect.textContent;
+            
+            if (selectedRole === 'student') {
+                majorGroup.style.display = 'block'; 
+            } else {
+                majorGroup.style.display = 'none'; 
+            }
+        }   
+
+        showMajor();
+    });
+</script>
+
 {% endblock %}
