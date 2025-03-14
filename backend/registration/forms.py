@@ -46,12 +46,10 @@ class StudentForm(forms.ModelForm):
     email = forms.EmailField()
     password = forms.CharField(widget=forms.PasswordInput(), required=False)
     confirm_password = forms.CharField(widget=forms.PasswordInput(), required=False)
-    major = forms.ModelChoiceField(queryset=Major.objects.all(), required=False)
-
 
     class Meta:
         model = Student
-        fields = ['first_name', 'last_name', 'email', 'password', 'confirm_password', 'courses', 'profile_picture', 'major']
+        fields = ['first_name', 'last_name', 'email', 'password', 'confirm_password', 'courses', 'profile_picture']
 
     def __init__(self, *args, **kwargs):
         super(StudentForm, self).__init__(*args, **kwargs)
@@ -133,16 +131,18 @@ class UserRegistrationForm(UserCreationForm):
         ('student', 'Student'),
         ('professor', 'Professor'),
         ('admin', 'Admin'),
-    )
+    )    
 
     role = forms.ChoiceField(choices=ROLE_CHOICES, required=True)
     id_number = forms.CharField(max_length=20)
     first_name = forms.CharField(max_length=30)
     last_name = forms.CharField(max_length=30)
+    major = forms.ModelChoiceField(queryset=Major.objects.all(), required=False)
+
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password1', 'password2', 'role', 'id_number', 'first_name', 'last_name']
+        fields = ['username', 'email', 'password1', 'password2', 'role', 'id_number', 'first_name', 'last_name', 'major']
 
     def clean(self):
         cleaned_data = super().clean()
@@ -173,12 +173,13 @@ class UserRegistrationForm(UserCreationForm):
         if commit:
             user.save()
             role = self.cleaned_data['role']
+            major = self.cleaned_data['major']
             id_number = self.cleaned_data['id_number']
             first_name = self.cleaned_data['first_name']
             last_name = self.cleaned_data['last_name']
             Profile.objects.create(user=user, id_number=id_number, first_name=first_name, last_name=last_name, role=role)
             if role == 'student':
-                Student.objects.create(user=user, first_name=first_name, last_name=last_name, email=user.email)
+                Student.objects.create(user=user, first_name=first_name, last_name=last_name, email=user.email, major=user.major)
             elif role == 'professor':
                 Professor.objects.create(user=user, first_name=first_name, last_name=last_name, email=user.email)
             elif role == 'admin':
@@ -230,7 +231,14 @@ class StudentRegistrationForm(UserCreationForm):
     first_name = forms.CharField(max_length=30, label="First name")
     last_name = forms.CharField(max_length=30, label="Last name")
     email = forms.EmailField(max_length=254, label="Email address")
-    id_number = forms.CharField(max_length=20, label="ID number")
+    id_number = forms.CharField(max_length=20, label="ID number")    
+
+    major = forms.ModelChoiceField(
+        queryset=Major.objects.all(),
+        required=False,  # Only required if the role is 'student'
+        empty_label="Select a Major",
+        label="Major"
+    )
 
     class Meta:
         model = User
@@ -303,6 +311,13 @@ class MessageForm(forms.ModelForm):
 
 class NewConversationForm(forms.Form):
     receiver = forms.ModelChoiceField(queryset=User.objects.all())
+
+class MajorChangeForm(forms.ModelForm):
+    class Meta:
+        model = Student
+        fields = ['major']
+
+    major = forms.ModelChoiceField(queryset=Major.objects.all(), empty_label="Select a Major")
 
 
 
