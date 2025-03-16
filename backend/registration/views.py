@@ -997,20 +997,46 @@ def remove_from_cart(request, cart_id):
 def enroll_all_courses(request):
     if request.method == 'POST':
         student = get_object_or_404(Student, user=request.user)
-        selected_courses_ids = request.POST.getlist('selected_courses')  # Retrieve selected course IDs
-        cart_items = Cart.objects.filter(student=student, course__pk__in=selected_courses_ids)  # Filter selected courses in cart
-
+        selected_courses_ids = request.POST.getlist('selected_courses')
+        cart_items = Cart.objects.filter(student=student, course__pk__in=selected_courses_ids)
+        
+        success = True
+        message_list = []
+        
         for cart_item in cart_items:
             course = cart_item.course
-            if course.available_seats > 0:  # Only enroll if there are available seats
+            if course.available_seats > 0 and student.major_id != course.major_id:
+                if course.major_id == 1:
+                    maj = "Computer Science"
+                elif course.major_id == 2:
+                    maj = "Mathematics"
+                else:
+                    maj = "English"
+                messages.error(request, f'Sorry - only students with the {maj} major can enroll in this course.')
+                message_list.append({'level': 'error', 'message': f'Sorry - only students with the {maj} major can enroll in this course.'})
+                success = False
+            elif course.available_seats > 0 and student.major_id == course.major_id:
                 Enrollment.objects.create(student=student, course=course)
                 course.available_seats -= 1
                 course.save()
-                cart_item.delete()  # Remove item from cart after enrollment
-
-        messages.success(request, 'You have successfully enrolled in the selected courses.')
-        return redirect('student_schedule')
-
+                cart_item.delete()
+        
+        if success:
+            messages.success(request, 'You have successfully enrolled in the selected courses.')
+            message_list.append({'level': 'success', 'message': 'You have successfully enrolled in the selected courses.'})
+        
+        # Check if this is an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': success,
+                'messages': message_list
+            })
+            
+        # If not AJAX, redirect as before
+        if success:
+            return redirect('student_schedule')
+        return redirect('shopping_cart')
+        
     return redirect('shopping_cart')
 
 def get_cart_count(request):

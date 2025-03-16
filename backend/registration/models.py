@@ -23,6 +23,7 @@ class Course(models.Model):
     credits = models.IntegerField(default=3)
     professor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name='courses', null=True, blank=True)
     semester = models.CharField(max_length=10, choices=SEMESTER_CHOICES, default='fall')
+    major_id = models.IntegerField()
 
     def __str__(self):
         return self.name
