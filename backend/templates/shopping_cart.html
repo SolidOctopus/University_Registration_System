@@ -13,7 +13,7 @@
                 {% if cart_items %}
                     <h2>Courses in Your Cart</h2>                   
 
-                    <form id="enroll-form" method="POST"> <!-- Submit using AJAX -->
+                    <form id="enroll-form" method="POST">
                         {% csrf_token %}
                         <table class="schedule-table">
                             <thead>
