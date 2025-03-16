@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class Course(models.Model):
     SEMESTER_CHOICES = [
@@ -130,10 +131,54 @@ class Assignment(models.Model):
     start_time = models.TimeField(null=True, blank=True)
     due_date = models.DateField()
     due_time = models.TimeField(null=True, blank=True)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    course = models.ForeignKey('Course', on_delete=models.CASCADE)  # Use string reference
+    is_closed = models.BooleanField(default=False)
+    is_completed = models.BooleanField(default=False)
+    extra_time_period = models.IntegerField(
+        default=2,  # Default to 2 days
+        help_text="Extra time (in days) for late submissions. Set to 0 for no extra time, or -1 for unlimited time."
+    )
 
     def __str__(self):
         return self.title
+
+    def days_left(self):
+        if self.extra_time_period == -1:  # Unlimited time
+            return "UNLIMITED TIME"
+        elif self.extra_time_period > 0:  # Extra time allowed
+            late_due_date = self.due_date + timezone.timedelta(days=self.extra_time_period)
+            now = timezone.now().date()  # Get today's date
+            days_left = (late_due_date - now).days
+
+            # If the due date is today, show "1 DAY LEFT" instead of "0 DAY(S) LEFT"
+            if days_left == 0:
+                return "1 DAY LEFT"
+            elif days_left > 0:
+                return f"{days_left} DAY(S) LEFT"
+            else:
+                return "CLOSED"
+        else:  # No extra time
+            if timezone.now().date() > self.due_date:
+                return "CLOSED"
+            else:
+                return "NO EXTRA TIME"
+
+    def check_and_close_assignment(self):
+        """
+        Automatically close the assignment if the late submission period has passed.
+        """
+        if self.extra_time_period == -1:  # Unlimited time, never close automatically
+            return
+        elif self.extra_time_period > 0:  # Extra time allowed
+            late_due_date = self.due_date + timezone.timedelta(days=self.extra_time_period)
+            if timezone.now().date() > late_due_date:
+                self.is_closed = True
+                self.save()
+        else:  # No extra time
+            if timezone.now().date() > self.due_date:
+                self.is_closed = True
+                self.save()
+
 
 class Submission(models.Model):
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name='submissions')

@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta, date, time
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 
 def register_view(request):
     if request.method == 'POST':
@@ -840,8 +841,9 @@ def create_assignment(request, course_id):
             assignment.start_time = assignment.start_time or time(0, 0)  # 12:00 AM
             assignment.due_time = assignment.due_time or time(23, 59)  # 11:59 PM
             assignment.save()
+            # Check and close the assignment if the late period is exceeded
+            assignment.check_and_close_assignment()
             return redirect('create_assignment', course_id=course.id)  # Prevent duplicate submissions on refresh
-
     else:
         assignment_form = AssignmentForm(initial={'start_time': time(0, 0), 'due_time': time(23, 59)})
 
@@ -852,6 +854,7 @@ def create_assignment(request, course_id):
     }
     return render(request, 'create_assignment.html', context)
 
+@login_required
 def create_announcement(request, course_id):
     course = get_object_or_404(Course, id=course_id)
     announcements = Announcement.objects.filter(course=course)
@@ -873,6 +876,7 @@ def create_announcement(request, course_id):
     }
     return render(request, 'create_announcement.html', context)
 
+@login_required
 def get_assignments(request):
     student = request.user.student
     enrollments = Enrollment.objects.filter(student=student).select_related('course')
@@ -927,8 +931,19 @@ def course_modules(request, course_id):
 
 def course_assignments(request, course_id):
     course = get_object_or_404(Course, id=course_id)
-    assignments = course.assignment_set.all()
-    return render(request, 'course_assignments.html', {'course': course, 'assignments': assignments})
+    assignments = Assignment.objects.filter(course=course).order_by('due_date')
+    current_date = timezone.now().date()  # Get the current date
+
+    # Automatically close assignments if the late period is exceeded
+    for assignment in assignments:
+        assignment.check_and_close_assignment()
+
+    context = {
+        'course': course,
+        'assignments': assignments,
+        'current_date': current_date,  # Pass current_date to the template
+    }
+    return render(request, 'course_assignments.html', context)
 
 def course_announcements(request, course_id):
     course = get_object_or_404(Course, id=course_id)
@@ -1092,3 +1107,77 @@ def delete_conversation(request, user_id):
     ).delete()
     return redirect('message_list')
 
+@login_required
+def assignment_details(request, course_id, assignment_id):
+    assignment = get_object_or_404(Assignment, pk=assignment_id, course_id=course_id)
+    context = {
+        'assignment': assignment,
+        'course_id': course_id,
+    }
+    return render(request, 'assignment_details.html', context)
+
+@login_required
+def edit_assignment(request, course_id, assignment_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
+
+    if request.method == 'POST':
+        form = AssignmentForm(request.POST, instance=assignment)
+        if form.is_valid():
+            form.save()
+            # Check and close the assignment if the late period is exceeded
+            assignment.check_and_close_assignment()
+            return redirect('assignment_details', course_id=course_id, assignment_id=assignment_id)
+    else:
+        form = AssignmentForm(instance=assignment)
+
+    # Debugging: Print context variables
+    print(f"Course ID: {course_id}, Assignment ID: {assignment.id}")
+
+    return render(request, 'edit_assignment.html', {
+        'form': form,
+        'course_id': course_id,  # Pass course_id to the template
+        'assignment': assignment,  # Pass assignment to the template
+    })
+
+@login_required
+def close_assignment(request, course_id, assignment_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
+    assignment.is_closed = not assignment.is_closed  # Toggle the is_closed status
+    assignment.save()
+    return redirect('edit_assignment', course_id=course_id, assignment_id=assignment_id)
+
+@login_required
+def complete_assignment(request, course_id, assignment_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
+    assignment.is_completed = True
+    assignment.save()
+    return redirect('course_assignments', course_id=course_id)
+
+@login_required
+def submit_assignment(request, course_id, assignment_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
+    
+    # Mark the assignment as completed
+    assignment.is_completed = True
+    assignment.save()
+    
+    # Redirect back to the assignment details page
+    return redirect('assignment_details', course_id=course_id, assignment_id=assignment_id)
+
+@login_required
+def delete_assignment(request, course_id, assignment_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
+    assignment.delete()
+    return redirect('course_assignments', course_id=course_id)
+
+@login_required
+def reopen_assignment(request, course_id, assignment_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
+    
+    # Set the due date to 1 day from now
+    assignment.due_date = timezone.now().date() + timezone.timedelta(days=1)
+    assignment.extra_time_period = 1  # Set extra time to 1 day
+    assignment.is_closed = False
+    assignment.save()
+    
+    return redirect('assignment_details', course_id=course_id, assignment_id=assignment_id)

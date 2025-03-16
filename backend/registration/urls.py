@@ -16,7 +16,7 @@ from .views import (
     course_syllabus, course_modules, course_assignments, course_announcements, course_grades,
     shopping_cart_view, my_requirements_view, financials_view, add_to_cart, remove_from_cart,
     enroll_all_courses, get_cart_count, message_list, send_message, message_detail,
-    start_new_conversation, delete_conversation
+    start_new_conversation, delete_conversation, assignment_details, edit_assignment, close_assignment, complete_assignment, submit_assignment, delete_assignment, reopen_assignment
 )
 
 urlpatterns = [
@@ -66,7 +66,7 @@ urlpatterns = [
     path('settings/', settings_view, name='settings'),
     path('dashboard/', dashboard_view, name='dashboard'),
     path('course/<int:course_id>/overview/', course_overview, name='course_overview'),
-   path('course/<int:course_id>/create-assignment/', create_assignment, name='create_assignment'),
+    path('course/<int:course_id>/create-assignment/', create_assignment, name='create_assignment'),
     path('course/<int:course_id>/create-announcement/', create_announcement, name='create_announcement'),
     path('get-assignments/', get_assignments, name='get_assignments'),
     path('course/<int:course_id>/professor/', professor_info, name='professor_info'),
@@ -92,9 +92,14 @@ urlpatterns = [
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset/done/', RedirectView.as_view(url='/login/'), name='password_reset_complete'),
+    path('course/<int:course_id>/assignments/<int:assignment_id>/', assignment_details, name='assignment_details'),
+    path('course/<int:course_id>/assignments/<int:assignment_id>/edit/', edit_assignment, name='edit_assignment'),
+    path('course/<int:course_id>/assignments/<int:assignment_id>/close/', close_assignment, name='close_assignment'),
+    path('course/<int:course_id>/assignments/<int:assignment_id>/complete/', complete_assignment, name='complete_assignment'),
+    path('course/<int:course_id>/assignments/<int:assignment_id>/submit/', submit_assignment, name='submit_assignment'),
+    path('course/<int:course_id>/assignment/<int:assignment_id>/delete/', delete_assignment, name='delete_assignment'),
+    path('course/<int:course_id>/assignments/<int:assignment_id>/reopen/', reopen_assignment, name='reopen_assignment'),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-

@@ -269,9 +269,25 @@ class ProfessorRegistrationForm(UserCreationForm):
         return user
     
 class AssignmentForm(forms.ModelForm):
+    EXTRA_TIME_CHOICES = [
+        (2, "2 days"),
+        (3, "3 days"),
+        (5, "5 days"),
+        (7, "7 days"),
+        (-1, "Unlimited time"),
+        (0, "None"),
+    ]
+
+    extra_time_period = forms.ChoiceField(
+        choices=EXTRA_TIME_CHOICES,
+        initial=2,  # Default to 2 days
+        widget=forms.Select(attrs={"class": "form-control"}),
+        help_text="Set an extra time period for late submissions."
+    )
+
     class Meta:
         model = Assignment
-        fields = ['title', 'description', 'start_date', 'start_time', 'due_date', 'due_time']
+        fields = ['title', 'description', 'start_date', 'start_time', 'due_date', 'due_time', 'extra_time_period']
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'start_time': forms.TimeInput(attrs={'type': 'time'}),
