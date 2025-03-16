@@ -97,6 +97,8 @@ urlpatterns = [
     path('course/<int:course_id>/assignments/<int:assignment_id>/submit/', submit_assignment, name='submit_assignment'),
     path('course/<int:course_id>/assignment/<int:assignment_id>/delete/', delete_assignment, name='delete_assignment'),
     path('course/<int:course_id>/assignments/<int:assignment_id>/reopen/', reopen_assignment, name='reopen_assignment'),
+    path('course/<int:course_id>/grades/students/', course_grades_students, name='course_grades_students'),
+    path('course/<int:course_id>/grades/professors/', course_grades_professors, name='course_grades_professors'),
 ]
 
 
