@@ -1,20 +1,8 @@
-{% extends 'base.html' %}
+{% extends 'topbar.html' %}
 {% block content %}
 <div class="page-container">
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <h1 class="class-name">{{ course.name }}</h1>
-        <h2>{{ course.professor.user.first_name }} {{ course.professor.user.last_name }}</h2>
-        <ul class="sidebar-menu">
-            <li><a href="{% url 'course_overview' course.id %}">Overview</a></li>
-            <li><a href="{% url 'professor_info' course.id %}">Professor Info</a></li>
-            <li><a href="{% url 'course_syllabus' course.id %}">Syllabus</a></li>
-            <li><a href="{% url 'course_modules' course.id %}">Modules</a></li>
-            <li><a href="{% url 'course_assignments' course.id %}">Assignments</a></li>
-            <li><a href="{% url 'course_announcements' course.id %}">Announcements</a></li>
-            <li><a href="{% url 'course_grades' course.id %}">Grades</a></li>
-        </ul>
-    </div>
+    <!-- Include the sidebar -->
+    {% include 'course_sidebar.html' %}
 
     <!-- Main Content -->
     <div class="main-content">
@@ -80,49 +68,11 @@
     </div>
 </div>
 
-<!-- Sidebar Styling -->
+<!-- Main Content Styling -->
 <style>
     .page-container {
         display: flex;
         flex-direction: row;
-    }
-    .sidebar {
-        width: 200px;
-        background-color: #34495e;
-        color: white;
-        padding: 20px;
-        height: 100vh;
-        position: fixed;
-        top: 0;
-        left: 0;
-        border-radius: 0 10px 10px 0;
-    }
-    .sidebar h2 {
-        font-size: 1.5em;
-        margin-bottom: 25px;
-        text-align: center;
-        border-bottom: 1px solid #7f8c8d;
-        padding-bottom: 10px;
-    }
-    .sidebar-menu {
-        list-style: none;
-        padding: 0;
-    }
-    .sidebar-menu li {
-        margin: 20px 0;
-    }
-    .sidebar-menu li a {
-        color: white;
-        text-decoration: none;
-        font-size: 1.1em;
-        display: block;
-        padding: 12px 15px;
-        border-radius: 5px;
-        transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
-    }
-    .sidebar-menu li a:hover {
-        background-color: #1abc9c;
-        color: #2c3e50;
     }
     .main-content {
         width: calc(100% - 240px);
@@ -197,7 +147,7 @@
         padding: 25px;
         margin-bottom: 25px;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
-        position: relative; /* For status text positioning */
+        position: relative;
     }
     .assignment-card:hover {
         transform: translateY(-5px);
@@ -226,12 +176,12 @@
         font-weight: bold;
         color: #2c3e50;
         margin-bottom: 10px;
-        text-decoration: none; /* Remove underline from the title */
+        text-decoration: none;
     }
     .assignment-description {
         font-size: 1em;
         color: #34495e;
-        word-wrap: break-word; /* Ensure long descriptions wrap */
+        word-wrap: break-word;
     }
     .assignment-footer {
         display: flex;
@@ -254,26 +204,26 @@
 
     /* Green border for completed assignments */
     .assignment-card.completed {
-        border: 2px solid #4CAF50; /* Green border */
-        background-color: rgba(76, 175, 80, 0.1); /* Faded green background */
+        border: 2px solid #4CAF50;
+        background-color: rgba(76, 175, 80, 0.1);
     }
 
     /* Past Due but Accessible Assignments */
     .assignment-card.past-due-accessible {
-        border: 2px solid #FFA500; /* Orange border */
-        background-color: rgba(255, 165, 0, 0.1); /* Faded orange background */
+        border: 2px solid #FFA500;
+        background-color: rgba(255, 165, 0, 0.1);
     }
 
     /* Closed Assignments */
     .assignment-card.past-due-closed {
-        border: 2px solid #e74c3c; /* Red border */
-        background-color: rgba(231, 76, 60, 0.1); /* Faded red background */
+        border: 2px solid #e74c3c;
+        background-color: rgba(231, 76, 60, 0.1);
     }
 
     /* Remove underline from assignment links */
     .assignment-link {
-        text-decoration: none; /* Remove underline from the link */
-        color: inherit; /* Inherit the text color */
+        text-decoration: none;
+        color: inherit;
     }
 
     /* Status Text Styling */
@@ -285,33 +235,33 @@
         border-radius: 5px;
         font-weight: bold;
         color: white;
-        text-transform: uppercase; /* Ensure text is in uppercase */
+        text-transform: uppercase;
     }
 
     .status-open {
-        background-color: #4CAF50; /* Bright green for open assignments */
+        background-color: #4CAF50;
     }
 
     .status-late {
-        background-color: #FFA500; /* Orange for late assignments */
+        background-color: #FFA500;
     }
 
     .status-completed {
-        background-color: #4CAF50; /* Green for completed assignments */
+        background-color: #4CAF50;
     }
 
     .status-closed {
-        background-color: #e74c3c; /* Bright red for closed assignments */
+        background-color: #e74c3c;
     }
 
     .status-days-left {
-        background-color: #FFA500; /* Orange for days left */
+        background-color: #FFA500;
         color: white;
     }
 
     .status-urgent {
-    background-color: #800080; /* Purple for urgency */
-    color: white; /* White text for better contrast */
+    background-color: #800080;
+    color: white;
     }
 </style>
 

@@ -13,10 +13,9 @@ from .views import (
     edit_course, manage_classes, course_students, view_students, view_profile, edit_profile,
     drop_class, assign_professor, course_detail, view_user_profile, student_register, professor_register,
     forgot_password_view, settings_view, dashboard_view, course_overview, create_assignment, create_announcement, get_assignments, professor_info,
-    course_syllabus, course_modules, course_assignments, course_announcements, course_grades,
-    shopping_cart_view, my_requirements_view, financials_view, add_to_cart, remove_from_cart,
-    enroll_all_courses, get_cart_count, message_list, send_message, message_detail,
-    start_new_conversation, delete_conversation, assignment_details, edit_assignment, close_assignment, complete_assignment, submit_assignment, delete_assignment, reopen_assignment
+    course_syllabus, course_modules, course_assignments, course_announcements, shopping_cart_view, my_requirements_view, financials_view, add_to_cart, remove_from_cart,
+    enroll_all_courses, get_cart_count, message_list, send_message, message_detail, start_new_conversation, delete_conversation, assignment_details, edit_assignment, close_assignment, complete_assignment, submit_assignment, delete_assignment, reopen_assignment,
+    course_grades_professors, course_grades_students
 )
 
 urlpatterns = [
@@ -74,7 +73,6 @@ urlpatterns = [
     path('course/<int:course_id>/modules/', course_modules, name='course_modules'),
     path('course/<int:course_id>/assignments/', course_assignments, name='course_assignments'),
     path('course/<int:course_id>/announcements/', course_announcements, name='course_announcements'),
-    path('course/<int:course_id>/grades/', course_grades, name='course_grades'),
     path('shopping-cart/', shopping_cart_view, name='shopping_cart'),
     path('my-requirements/', my_requirements_view, name='my_requirements'),
     path('financials/', financials_view, name='financials'),
@@ -99,7 +97,10 @@ urlpatterns = [
     path('course/<int:course_id>/assignments/<int:assignment_id>/submit/', submit_assignment, name='submit_assignment'),
     path('course/<int:course_id>/assignment/<int:assignment_id>/delete/', delete_assignment, name='delete_assignment'),
     path('course/<int:course_id>/assignments/<int:assignment_id>/reopen/', reopen_assignment, name='reopen_assignment'),
+    path('course/<int:course_id>/grades/students/', course_grades_students, name='course_grades_students'),
+    path('course/<int:course_id>/grades/professors/', course_grades_professors, name='course_grades_professors'),
 ]
+
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

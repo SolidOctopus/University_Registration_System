@@ -3,7 +3,7 @@ from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import PasswordResetForm
 from django.http import JsonResponse
-from .models import Course, Student, Professor, Admin, Profile, Enrollment, Assignment, Announcement, Cart, Message
+from .models import Course, Student, Professor, Admin, Profile, Enrollment, Assignment, Announcement, Cart, Message, Grade
 from .forms import CourseForm, StudentForm, ProfessorForm, AdminForm, GradeForm, ProfileForm, UserRegistrationForm, StudentRegistrationForm, ProfessorRegistrationForm, AssignmentForm, AnnouncementForm, MessageForm 
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -950,9 +950,32 @@ def course_announcements(request, course_id):
     announcements = course.announcement_set.all()
     return render(request, 'course_announcements.html', {'course': course, 'announcements': announcements})
 
-def course_grades(request, course_id):
+
+def course_grades_students(request, course_id):
+    # Fetch the course
     course = get_object_or_404(Course, id=course_id)
-    return render(request, 'course_grades.html', {'course': course})
+
+    # Fetch grades for the logged-in student
+    grades = Grade.objects.filter(course=course, student=request.user)
+
+    # Render the student-specific grades template
+    return render(request, 'course_grades_students.html', {
+        'course': course,
+        'grades': grades
+    })
+
+def course_grades_professors(request, course_id):
+    # Fetch the course
+    course = get_object_or_404(Course, id=course_id)
+
+    # Fetch all grades for the course
+    all_grades = Grade.objects.filter(course=course)
+
+    # Render the professor-specific grades template
+    return render(request, 'course_grades_professors.html', {
+        'course': course,
+        'all_grades': all_grades
+    })
 
 def shopping_cart_view(request):
     # Get the current student's cart items

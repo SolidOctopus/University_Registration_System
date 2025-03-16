@@ -1,0 +1,83 @@
+{% extends 'topbar.html' %}
+{% block content %}
+<div class="page-container">
+    {% include 'course_sidebar.html' %}
+    <div class="main-content">
+        <div class="container">
+            <h1>{{ course.name }} - Your Grades</h1>
+            <div class="grades-list">
+                <h2>Your Grades</h2>
+                {% if grades %}
+                    <ul>
+                        {% for grade in grades %}
+                        <li class="grade-item">
+                            <strong>Assignment:</strong> {{ grade.assignment.title }} - <strong>Grade:</strong> {{ grade.grade }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No grades available yet. Keep up the good work!</p>
+                {% endif %}
+            </div>
+            <div class="student-message">
+                <h3>Tips for Success:</h3>
+                <ul>
+                    <li>Review your assignments regularly.</li>
+                    <li>Ask questions if you're unsure about anything.</li>
+                    <li>Stay consistent with your studies.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Embedded Styles for Student Page -->
+<style>
+    .page-container {
+        display: flex;
+        flex-direction: row;
+    }
+    .main-content {
+        width: calc(100% - 240px);
+        margin-left: 240px;
+        padding: 30px;
+        background-color: #ecf0f1;
+        border-radius: 10px;
+    }
+    .container {
+        margin: 20px auto;
+        padding: 20px;
+        max-width: 900px;
+        background-color: #f5f5f5;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+        text-align: center;
+        font-size: 2.5em;
+        color: #2980b9;
+        margin-bottom: 20px;
+    }
+    .grades-list ul {
+        list-style-type: none;
+        padding: 0;
+    }
+    .grade-item {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+        background-color: #fff;
+        margin-bottom: 10px;
+        border-radius: 5px;
+    }
+    .student-message {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #e8f5e9;
+        border-radius: 5px;
+    }
+    .student-message ul {
+        list-style-type: disc;
+        padding-left: 20px;
+    }
+</style>
+{% endblock %}

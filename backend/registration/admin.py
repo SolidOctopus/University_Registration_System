@@ -10,3 +10,4 @@ admin.site.register(Professor, ProfessorAdmin)
 admin.site.register(Admin)
 admin.site.register(Course)
 admin.site.register(Major)
+

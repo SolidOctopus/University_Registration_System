@@ -109,9 +109,9 @@ class Profile(models.Model):
         ('admin', 'Admin'),
     )
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)  # Fixed: 'User' instead of 'user', and 'on_delete'
     id_number = models.CharField(max_length=20)
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')  # Fixed: '=' instead of '-'
     first_name = models.CharField(max_length=30, blank=True)
     last_name = models.CharField(max_length=30, blank=True)
     email = models.EmailField()
@@ -120,7 +120,7 @@ class Profile(models.Model):
     dark_mode = models.BooleanField(default=False)
     font_size = models.CharField(max_length=10, default='medium')
     ui_preset = models.CharField(max_length=20, default='classic')
-    
+
     def __str__(self):
         return self.user.username
 
@@ -225,4 +225,22 @@ class Message(models.Model):
         self.is_read = True
         self.save()
 
+class Grade(models.Model):
+    # Link to the Course model
+    course = models.ForeignKey('Course', on_delete=models.CASCADE)
 
+    # Link to the User model (student)
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    # Link to the Assignment model (optional, depending on your requirements)
+    assignment = models.ForeignKey('Assignment', on_delete=models.CASCADE, null=True, blank=True)
+
+    # Grade value (e.g., 85.5)
+    grade = models.DecimalField(max_digits=5, decimal_places=2)
+
+    # Timestamp for when the grade was recorded
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.student.username} - {self.course.name} - {self.grade}"
+        

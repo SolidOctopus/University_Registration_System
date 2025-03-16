@@ -1,0 +1,115 @@
+{% extends 'topbar.html' %}
+{% block content %}
+<div class="page-container">
+    {% include 'course_sidebar.html' %}
+    <div class="main-content">
+        <div class="container">
+            <h1>{{ course.name }} - All Students' Grades</h1>
+            <div class="grades-list">
+                <h2>All Students' Grades</h2>
+                {% if all_grades %}
+                    <table class="grades-table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Assignment</th>
+                                <th>Grade</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student_grade in all_grades %}
+                            <tr>
+                                <td>{{ student_grade.student.username }}</td>
+                                <td>{{ student_grade.assignment.title }}</td>
+                                <td>{{ student_grade.grade }}</td>
+                                <td>
+                                    <a href="#" class="btn-edit">Edit</a>
+                                    <a href="#" class="btn-delete">Delete</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>No grades have been recorded yet.</p>
+                {% endif %}
+            </div>
+            <div class="professor-message">
+                <h3>Manage Grades:</h3>
+                <ul>
+                    <li>Use the "Edit" button to update grades.</li>
+                    <li>Use the "Delete" button to remove incorrect grades.</li>
+                    <li>Ensure all grades are entered accurately.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Embedded Styles for Professor/Admin Page -->
+<style>
+    .page-container {
+        display: flex;
+        flex-direction: row;
+    }
+    .main-content {
+        width: calc(100% - 240px);
+        margin-left: 240px;
+        padding: 30px;
+        background-color: #ecf0f1;
+        border-radius: 10px;
+    }
+    .container {
+        margin: 20px auto;
+        padding: 20px;
+        max-width: 900px;
+        background-color: #f5f5f5;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+        text-align: center;
+        font-size: 2.5em;
+        color: #2980b9;
+        margin-bottom: 20px;
+    }
+    .grades-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    .grades-table th, .grades-table td {
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+    .grades-table th {
+        background-color: #f5f5f5;
+    }
+    .btn-edit, .btn-delete {
+        padding: 5px 10px;
+        margin-right: 5px;
+        text-decoration: none;
+        border-radius: 3px;
+    }
+    .btn-edit {
+        background-color: #4CAF50;
+        color: white;
+    }
+    .btn-delete {
+        background-color: #f44336;
+        color: white;
+    }
+    .professor-message {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #fff3e0;
+        border-radius: 5px;
+    }
+    .professor-message ul {
+        list-style-type: disc;
+        padding-left: 20px;
+    }
+</style>
+{% endblock %}
