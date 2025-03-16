@@ -1012,7 +1012,7 @@ def enroll_all_courses(request):
                     maj = "Mathematics"
                 else:
                     maj = "English"
-                messages.error(request, f'Sorry - only students with the {maj} major can enroll in this course.')
+                messages.error(request, f'Sorry - only students with the {maj} major can enroll in this course.') # Major Check
                 message_list.append({'level': 'error', 'message': f'Sorry - only students with the {maj} major can enroll in this course.'})
                 success = False
             elif course.available_seats > 0 and student.major_id == course.major_id:
