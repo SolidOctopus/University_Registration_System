@@ -21,10 +21,12 @@
         <div class="container">
             <h1>{{ course.name }} - Assignments</h1>
 
-            <!-- Add New Assignment Button -->
-            <div class="add-assignment-container">
-                <a href="{% url 'create_assignment' course.id %}" class="btn-add">Add New Assignment</a>
-            </div>
+            <!-- Add New Assignment Button (Only for Professors/Admins) -->
+            {% if user.profile.role != 'student' %}
+                <div class="add-assignment-container">
+                    <a href="{% url 'create_assignment' course.id %}" class="btn-add">Add New Assignment</a>
+                </div>
+            {% endif %}
 
             <!-- Filter Buttons -->
             <div class="filter-buttons">
@@ -40,8 +42,8 @@
                 <div class="assignment-grid">
                     {% for assignment in assignments %}
                         <div class="assignment-card 
-                            {% if assignment.is_closed %}past-due-closed
-                            {% elif assignment.is_completed %}completed
+                            {% if assignment.is_completed_for_user %}completed
+                            {% elif assignment.is_closed %}past-due-closed
                             {% elif assignment.due_date < current_date %}past-due-accessible
                             {% endif %}"
                             data-due-date="{{ assignment.due_date|date:'Y-m-d' }}">
@@ -52,15 +54,14 @@
                                     <!-- Status Text -->
                                     <span class="status-text 
                                         {% if assignment.is_closed %}status-closed
-                                        {% elif assignment.is_completed and assignment.due_date < current_date %}status-late
-                                        {% elif assignment.is_completed %}status-completed
-                                        {% elif assignment.days_left == '1 DAY(S) LEFT' %}status-urgent
-                                        {% else %}status-days-left
+                                        {% elif assignment.is_completed_for_user and assignment.due_date < current_date %}status-late
+                                        {% elif assignment.is_completed_for_user %}status-completed
+                                        {% elif assignment.days_left %}status-days-left
                                         {% endif %}">
                                         {% if assignment.is_closed %}CLOSED
-                                        {% elif assignment.is_completed and assignment.due_date < current_date %}LATE
-                                        {% elif assignment.is_completed %}COMPLETED
-                                        {% else %}{{ assignment.days_left|upper }}
+                                        {% elif assignment.is_completed_for_user and assignment.due_date < current_date %}LATE
+                                        {% elif assignment.is_completed_for_user %}COMPLETED
+                                        {% elif assignment.days_left %}{{ assignment.days_left|upper }}
                                         {% endif %}
                                     </span>
                                 </div>
@@ -69,9 +70,12 @@
                                     <p class="assignment-description">{{ assignment.description|truncatechars:100 }}</p>
                                 </div>
                             </a>
-                            <div class="assignment-footer">
-                                <a href="{% url 'edit_assignment' course.id assignment.id %}" class="btn-edit">Edit Assignment</a>
-                            </div>
+                            <!-- Edit Assignment Button (Only for Professors/Admins) -->
+                            {% if user.profile.role != 'student' %}
+                                <div class="assignment-footer">
+                                    <a href="{% url 'edit_assignment' course.id assignment.id %}" class="btn-edit">Edit Assignment</a>
+                                </div>
+                            {% endif %}
                         </div>
                     {% endfor %}
                 </div>
@@ -258,13 +262,13 @@
         background-color: rgba(76, 175, 80, 0.1); /* Faded green background */
     }
 
-    /* Past Due but Accessible Assignments */
+    /* Yellow border for past-due but accessible assignments */
     .assignment-card.past-due-accessible {
         border: 2px solid #FFA500; /* Orange border */
         background-color: rgba(255, 165, 0, 0.1); /* Faded orange background */
     }
 
-    /* Closed Assignments */
+    /* Red border for closed assignments */
     .assignment-card.past-due-closed {
         border: 2px solid #e74c3c; /* Red border */
         background-color: rgba(231, 76, 60, 0.1); /* Faded red background */
@@ -288,8 +292,8 @@
         text-transform: uppercase; /* Ensure text is in uppercase */
     }
 
-    .status-open {
-        background-color: #4CAF50; /* Bright green for open assignments */
+    .status-closed {
+        background-color: #e74c3c; /* Bright red for closed assignments */
     }
 
     .status-late {
@@ -300,18 +304,9 @@
         background-color: #4CAF50; /* Green for completed assignments */
     }
 
-    .status-closed {
-        background-color: #e74c3c; /* Bright red for closed assignments */
-    }
-
     .status-days-left {
         background-color: #FFA500; /* Orange for days left */
         color: white;
-    }
-
-    .status-urgent {
-    background-color: #800080; /* Purple for urgency */
-    color: white; /* White text for better contrast */
     }
 </style>
 

@@ -3,7 +3,7 @@ from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import PasswordResetForm
 from django.http import JsonResponse
-from .models import Course, Student, Professor, Admin, Profile, Enrollment, Assignment, Announcement, Cart, Message
+from .models import Course, Student, Professor, Admin, Profile, Enrollment, Assignment, Announcement, Cart, Message, Submission, UserAssignmentCompletion
 from .forms import CourseForm, MajorChangeForm, StudentForm, ProfessorForm, AdminForm, GradeForm, ProfileForm, UserRegistrationForm, StudentRegistrationForm, ProfessorRegistrationForm, AssignmentForm, AnnouncementForm, MessageForm 
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -128,7 +128,6 @@ def view_enrollments(request):
     enrollments = Enrollment.objects.filter(student=student)
     return render(request, 'registration/view_enrollments.html', {'enrollments': enrollments})
 
-# views.py
 def available_courses(request):
     search_query = request.GET.get('search', '')
     courses = None  # Initialize as None to indicate no search results initially
@@ -302,21 +301,23 @@ def course_students(request, course_id):
     enrollments = Enrollment.objects.filter(course=course)
     return render(request, 'registration/course_students.html', {'course': course, 'enrollments': enrollments})
 
-def assign_grade(request, enrollment_id):
-
-    enrollment = get_object_or_404(Enrollment, id=enrollment_id)
-    student_name = f"{enrollment.student.user.first_name} {enrollment.student.user.last_name}"  
-
+def assign_grade(request, course_id, assignment_id, student_id):
+    enrollment = get_object_or_404(Enrollment, course_id=course_id, student_id=student_id)
     if request.method == 'POST':
         form = GradeForm(request.POST, instance=enrollment)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Grade assigned successfully.')
-            return redirect('view_students', course_id=enrollment.course.id)
+            return redirect('professor_assignment_details', course_id=course_id, assignment_id=assignment_id)
     else:
         form = GradeForm(instance=enrollment)
-
-    return render(request, 'registration/assign_grade.html', {'form': form, 'student_name': student_name})
+    
+    context = {
+        'form': form,
+        'course_id': course_id,
+        'assignment_id': assignment_id,
+        'student': enrollment.student,
+    }
+    return render(request, 'assign_grade.html', context)
 
 def view_students(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
@@ -845,7 +846,7 @@ def create_assignment(request, course_id):
             assignment.save()
             # Check and close the assignment if the late period is exceeded
             assignment.check_and_close_assignment()
-            return redirect('create_assignment', course_id=course.id)  # Prevent duplicate submissions on refresh
+            return redirect('course_assignments', course_id=course.id)  # Prevent duplicate submissions on refresh
     else:
         assignment_form = AssignmentForm(initial={'start_time': time(0, 0), 'due_time': time(23, 59)})
 
@@ -932,18 +933,25 @@ def course_modules(request, course_id):
     return render(request, 'course_modules.html', {'course': course})
 
 def course_assignments(request, course_id):
+    # Fetch the course object using the course_id
     course = get_object_or_404(Course, id=course_id)
-    assignments = Assignment.objects.filter(course=course).order_by('due_date')
-    current_date = timezone.now().date()  # Get the current date
+    
+    # Fetch all assignments for the course
+    assignments = Assignment.objects.filter(course=course)
+    current_date = timezone.now().date()
 
-    # Automatically close assignments if the late period is exceeded
+    # Precompute completion status for the current user
     for assignment in assignments:
-        assignment.check_and_close_assignment()
+        assignment.is_completed_for_user = UserAssignmentCompletion.objects.filter(
+            user=request.user,
+            assignment=assignment,
+            is_completed=True
+        ).exists()
 
     context = {
-        'course': course,
+        'course': course,  # Pass the course object to the template
         'assignments': assignments,
-        'current_date': current_date,  # Pass current_date to the template
+        'current_date': current_date,
     }
     return render(request, 'course_assignments.html', context)
 
@@ -1127,10 +1135,19 @@ def delete_conversation(request, user_id):
 
 @login_required
 def assignment_details(request, course_id, assignment_id):
-    assignment = get_object_or_404(Assignment, pk=assignment_id, course_id=course_id)
+    # Fetch the assignment object
+    assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
+    
+    # Check if the assignment is completed for the current user
+    is_completed_for_user = UserAssignmentCompletion.objects.filter(
+        user=request.user,
+        assignment=assignment,
+        is_completed=True
+    ).exists()
+
     context = {
         'assignment': assignment,
-        'course_id': course_id,
+        'is_completed_for_user': is_completed_for_user,  # Pass the completion status to the template
     }
     return render(request, 'assignment_details.html', context)
 
@@ -1144,7 +1161,7 @@ def edit_assignment(request, course_id, assignment_id):
             form.save()
             # Check and close the assignment if the late period is exceeded
             assignment.check_and_close_assignment()
-            return redirect('assignment_details', course_id=course_id, assignment_id=assignment_id)
+            return redirect('course_assignments', course_id=course_id)
     else:
         form = AssignmentForm(instance=assignment)
 
@@ -1173,14 +1190,39 @@ def complete_assignment(request, course_id, assignment_id):
 
 @login_required
 def submit_assignment(request, course_id, assignment_id):
-    assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
-    
-    # Mark the assignment as completed
-    assignment.is_completed = True
-    assignment.save()
-    
-    # Redirect back to the assignment details page
-    return redirect('assignment_details', course_id=course_id, assignment_id=assignment_id)
+    if request.method == 'POST':
+        # Fetch the assignment object
+        assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
+        user = request.user
+
+        # Ensure the user is a student
+        if user.profile.role != 'student':
+            messages.error(request, "Only students can submit assignments.")
+            return redirect('course_assignments', course_id=course_id)
+
+        # Create or update the UserAssignmentCompletion record
+        completion, created = UserAssignmentCompletion.objects.get_or_create(
+            user=user,
+            assignment=assignment,
+            defaults={'is_completed': True}  # Mark as completed by default
+        )
+        if not created:
+            completion.is_completed = True
+            completion.save()
+
+        # Create the submission record
+        Submission.objects.create(
+            assignment=assignment,
+            student=user.student,
+            content=request.POST.get('content')  # Assuming content is submitted via a form
+        )
+
+        # Notify the user of successful submission
+        messages.success(request, "Assignment submitted successfully!")
+        return redirect('course_assignments', course_id=course_id)
+
+    # If the request method is not POST, redirect to the assignment details page
+    return redirect('course_assignments', course_id=course_id)
 
 @login_required
 def delete_assignment(request, course_id, assignment_id):
@@ -1199,3 +1241,32 @@ def reopen_assignment(request, course_id, assignment_id):
     assignment.save()
     
     return redirect('assignment_details', course_id=course_id, assignment_id=assignment_id)
+
+def professor_assignment_details(request, course_id, assignment_id):
+    # Fetch the assignment and course
+    assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
+    course = assignment.course
+
+    # Fetch all students enrolled in the course
+    enrollments = Enrollment.objects.filter(course=course).select_related('student')
+
+    # Fetch submissions for the assignment
+    submissions = Submission.objects.filter(assignment=assignment).select_related('student')
+
+    # Create a list of students with their submission status and grade
+    students = []
+    for enrollment in enrollments:
+        student = enrollment.student
+        submission = submissions.filter(student=student).first()
+        students.append({
+            'student': student,
+            'submission': submission,
+            'grade': enrollment.grade,  # Grade from the Enrollment model
+        })
+
+    context = {
+        'course': course,
+        'assignment': assignment,
+        'students': students,
+    }
+    return render(request, 'professor_assignment_details.html', context)

@@ -140,40 +140,40 @@ class Assignment(models.Model):
     is_completed = models.BooleanField(default=False)
     extra_time_period = models.IntegerField(
         default=2,  # Default to 2 days
-        help_text="Extra time (in days) for late submissions. Set to 0 for no extra time, or -1 for unlimited time."
+        help_text="Extra time (in days) for late submissions. Set to 0 for no extra time."
     )
 
     def __str__(self):
         return self.title
 
     def days_left(self):
-        if self.extra_time_period == -1:  # Unlimited time
-            return "UNLIMITED TIME"
-        elif self.extra_time_period > 0:  # Extra time allowed
+        now = timezone.now().date()  # Get today's date
+
+        if self.extra_time_period > 0:  # Extra time allowed
             late_due_date = self.due_date + timezone.timedelta(days=self.extra_time_period)
-            now = timezone.now().date()  # Get today's date
             days_left = (late_due_date - now).days
 
-            # If the due date is today, show "1 DAY LEFT" instead of "0 DAY(S) LEFT"
-            if days_left == 0:
-                return "1 DAY LEFT"
-            elif days_left > 0:
-                return f"{days_left} DAY(S) LEFT"
+            # Only show days left if the assignment is late or reopened
+            if now > self.due_date:  # Assignment is late
+                if days_left == 0:
+                    return "1 DAY LEFT"
+                elif days_left > 0:
+                    return f"{days_left} DAY(S) LEFT"
+                else:
+                    return "CLOSED"
             else:
-                return "CLOSED"
+                return None  # Don't show days left if not late
         else:  # No extra time
-            if timezone.now().date() > self.due_date:
+            if now > self.due_date:
                 return "CLOSED"
             else:
-                return "NO EXTRA TIME"
+                return None  # Don't show days left if not late
 
     def check_and_close_assignment(self):
         """
         Automatically close the assignment if the late submission period has passed.
         """
-        if self.extra_time_period == -1:  # Unlimited time, never close automatically
-            return
-        elif self.extra_time_period > 0:  # Extra time allowed
+        if self.extra_time_period > 0:  # Extra time allowed
             late_due_date = self.due_date + timezone.timedelta(days=self.extra_time_period)
             if timezone.now().date() > late_due_date:
                 self.is_closed = True
@@ -182,7 +182,6 @@ class Assignment(models.Model):
             if timezone.now().date() > self.due_date:
                 self.is_closed = True
                 self.save()
-
 
 class Submission(models.Model):
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name='submissions')
@@ -228,5 +227,15 @@ class Message(models.Model):
     def mark_as_read(self):
         self.is_read = True
         self.save()
+        
+class UserAssignmentCompletion(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='completed_assignments')
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name='user_completions')
+    is_completed = models.BooleanField(default=False)
 
+    class Meta:
+        unique_together = ('user', 'assignment')  # Ensure each user can only have one completion record per assignment
+
+    def __str__(self):
+        return f"{self.user.username} - {self.assignment.title} (Completed: {self.is_completed})"
 
