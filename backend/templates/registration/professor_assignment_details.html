@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="main-content">
+    <div class="container">
+        <h1>{{ course.name }} - {{ assignment.title }}</h1>
+        <p><strong>Description:</strong> {{ assignment.description }}</p>
+        <p><strong>Due Date:</strong> {{ assignment.due_date|date:"F j, Y" }}</p>
+
+        <!-- List of Students and Their Submissions -->
+        <div class="student-submissions">
+            <h2>Student Submissions</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Submission</th>
+                        <th>Grade</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student_data in students %}
+                        <tr>
+                            <td>{{ student_data.student.user.first_name }} {{ student_data.student.user.last_name }}</td>
+                            <td>
+                                {% if student_data.submission %}
+                                    <a href="{% url 'view_submission' course.id assignment.id student_data.student.id %}">
+                                        View Submission
+                                    </a>
+                                {% else %}
+                                    No submission
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if student_data.grade %}
+                                    {{ student_data.grade }}
+                                {% else %}
+                                    Not graded
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'assign_grade' course.id assignment.id student_data.student.id %}" class="btn-grade">
+                                    Assign Grade
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .student-submissions {
+        margin-top: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    th, td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    th {
+        background-color: #f5f5f5;
+    }
+    .btn-grade {
+        background-color: #3498db;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 5px;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+    }
+    .btn-grade:hover {
+        background-color: #2980b9;
+    }
+</style>
+{% endblock %}
