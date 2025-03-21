@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Profile, Student, Professor, Admin, Enrollment, Course, Assignment, Announcement, Message, Major
+from .models import Profile, Student, Professor, Admin, Enrollment, Course, Assignment, Announcement, Message, Major, Grade
 from django.contrib.auth.forms import UserCreationForm
 import re
 
@@ -33,14 +33,6 @@ class CourseForm(forms.ModelForm):
             'end_date': forms.DateInput(attrs={'type': 'date'}),
             'start_time': forms.TimeInput(attrs={'type': 'time'}),
             'end_time': forms.TimeInput(attrs={'type': 'time'}),
-        }
-
-class GradeForm(forms.ModelForm):
-    class Meta:
-        model = Enrollment
-        fields = ['grade']
-        widgets = {
-            'grade': forms.TextInput(attrs={'max_length': 4}),
         }
 
 
@@ -341,4 +333,10 @@ class MajorChangeForm(forms.ModelForm):
     major = forms.ModelChoiceField(queryset=Major.objects.all(), empty_label="Select a Major")
 
 
+class GradeForm(forms.ModelForm):
+    major = forms.ModelChoiceField(queryset=Major.objects.all(), empty_label="Select a Major")
+    grade = forms.ChoiceField(choices=[('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D'), ('F', 'F')])
 
+    class Meta:
+        model = Grade
+        fields = ['student', 'assignment', 'grade', 'major']
