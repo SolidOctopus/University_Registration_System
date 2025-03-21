@@ -1038,8 +1038,6 @@ def remove_from_cart(request, cart_id):
     # If method is not POST, return an error response
     return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
-
-
 def enroll_all_courses(request):
     if request.method == 'POST':
         student = get_object_or_404(Student, user=request.user)
@@ -1051,17 +1049,12 @@ def enroll_all_courses(request):
         
         for cart_item in cart_items:
             course = cart_item.course
-            if course.available_seats > 0 and student.major_id != course.major_id:
-                if course.major_id == 1:
-                    maj = "Computer Science"
-                elif course.major_id == 2:
-                    maj = "Mathematics"
-                else:
-                    maj = "English"
-                messages.error(request, f'Sorry - only students with the {maj} major can enroll in this course.')
-                message_list.append({'level': 'error', 'message': f'Sorry - only students with the {maj} major can enroll in this course.'})
+            if course.available_seats > 0 and student.major not in course.majors.all():  # Updated this line
+                major_names = ", ".join([major.name for major in course.majors.all()])
+                messages.error(request, f'Sorry - only students with the {major_names} major(s) can enroll in this course.')
+                message_list.append({'level': 'error', 'message': f'Sorry - only students with the {major_names} major(s) can enroll in this course.'})
                 success = False
-            elif course.available_seats > 0 and student.major_id == course.major_id:
+            elif course.available_seats > 0 and student.major in course.majors.all():  # Updated this line
                 Enrollment.objects.create(student=student, course=course)
                 course.available_seats -= 1
                 course.save()
