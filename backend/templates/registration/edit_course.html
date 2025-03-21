@@ -81,6 +81,14 @@
         {{ form.credits }}
     </div>
 
+    <!-- Majors Field as Checkboxes with Scrollbar -->
+    <div class="form-group">
+        <label for="id_majors">Majors:</label><br>
+        <div class="scrollable-checkboxes">
+            {{ form.majors }}  <!-- Render the majors field directly -->
+        </div>
+    </div>
+
     <button type="submit" class="btn btn-primary">Save</button>
 </form>
 
@@ -132,6 +140,21 @@
 
     .course-form button.btn:hover {
         background-color: #333;
+    }
+
+    /* Style for scrollable checkboxes */
+    .scrollable-checkboxes {
+        max-height: 200px;  /* Adjust height as needed */
+        overflow-y: auto;  /* Add vertical scrollbar */
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 10px;
+    }
+    .scrollable-checkboxes .checkbox {
+        margin-bottom: 10px;
+    }
+    .scrollable-checkboxes input[type="checkbox"] {
+        margin-right: 10px;
     }
 </style>
 

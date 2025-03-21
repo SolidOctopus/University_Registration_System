@@ -57,7 +57,11 @@
 <table class="schedule-table">
     <thead>
         <tr class="course-title">
-            <td colspan="6"><a href="{% url 'course_detail' course.pk %}">{{ course.name }}</a> - Units: {{ course.credits }}</td>
+            <td colspan="6">
+                <a href="{% url 'course_detail' course.pk %}">{{ course.name }}</a> - Units: {{ course.credits }}
+                <br>
+                <small>Majors: {{ course.majors.all|join:", " }}</small>
+            </td>
         </tr>
         <tr>
             <th style="width: 40%;">Schedule</th>

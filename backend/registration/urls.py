@@ -15,7 +15,7 @@ from .views import (
     forgot_password_view, settings_view, dashboard_view, course_overview, create_assignment, create_announcement, get_assignments, professor_info,
     course_syllabus, course_modules, course_assignments, course_announcements, shopping_cart_view, my_requirements_view, financials_view, add_to_cart, remove_from_cart,
     enroll_all_courses, get_cart_count, message_list, send_message, message_detail, start_new_conversation, delete_conversation, assignment_details, edit_assignment, close_assignment, complete_assignment, submit_assignment, delete_assignment, reopen_assignment,
-    course_grades_professors, course_grades_students
+    course_grades_professors, course_grades_students,change_major
 )
 
 urlpatterns = [
@@ -99,6 +99,8 @@ urlpatterns = [
     path('course/<int:course_id>/assignments/<int:assignment_id>/reopen/', reopen_assignment, name='reopen_assignment'),
     path('course/<int:course_id>/grades/students/', course_grades_students, name='course_grades_students'),
     path('course/<int:course_id>/grades/professors/', course_grades_professors, name='course_grades_professors'),
+    path('change-major/', change_major, name='change_major'),
+
 ]
 
 
