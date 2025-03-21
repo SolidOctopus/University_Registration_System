@@ -3,6 +3,13 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+class Major(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+    
 class Course(models.Model):
     SEMESTER_CHOICES = [
         ('fall', 'Fall'),
@@ -24,14 +31,7 @@ class Course(models.Model):
     credits = models.IntegerField(default=3)
     professor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name='courses', null=True, blank=True)
     semester = models.CharField(max_length=10, choices=SEMESTER_CHOICES, default='fall')
-    major_id = models.IntegerField()
-
-    def __str__(self):
-        return self.name
-    
-class Major(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    description = models.TextField(blank=True, null=True)
+    majors = models.ManyToManyField(Major, related_name='courses')
 
     def __str__(self):
         return self.name

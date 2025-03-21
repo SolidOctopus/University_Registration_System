@@ -5,6 +5,10 @@ from django.contrib.auth.forms import UserCreationForm
 import re
 
 class CourseForm(forms.ModelForm):
+    majors = forms.ModelMultipleChoiceField(
+        queryset=Major.objects.all(),
+        widget=forms.CheckboxSelectMultiple,  # Use checkboxes instead of a dropdown
+    )
     class Meta:
         model = Course
         fields = [
@@ -22,6 +26,7 @@ class CourseForm(forms.ModelForm):
             'capacity',
             'credits',
             'semester',
+            'majors'
         ]
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
