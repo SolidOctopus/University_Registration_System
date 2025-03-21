@@ -981,10 +981,30 @@ def course_grades_professors(request, course_id):
     # Fetch all grades for the course
     all_grades = Grade.objects.filter(course=course)
 
+    # Handle form submission for adding/editing grades
+    if request.method == 'POST':
+        form = GradeForm(request.POST)
+        if form.is_valid():
+            student = form.cleaned_data['student']
+            assignment = form.cleaned_data['assignment']
+
+            # Check if a grade already exists for this student and assignment
+            if Grade.objects.filter(student=student, assignment=assignment).exists():
+                messages.error(request, "This student already has a grade for this assignment.")
+            else:
+                grade = form.save(commit=False)
+                grade.course = course
+                grade.save()
+                messages.success(request, "Grade saved successfully!")
+                return redirect('course_grades_professors', course_id=course.id)
+    else:
+        form = GradeForm()
+
     # Render the professor-specific grades template
     return render(request, 'course_grades_professors.html', {
         'course': course,
-        'all_grades': all_grades
+        'all_grades': all_grades,
+        'form': form,
     })
 
 def shopping_cart_view(request):

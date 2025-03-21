@@ -241,20 +241,13 @@ class UserAssignmentCompletion(models.Model):
         return f"{self.user.username} - {self.assignment.title} (Completed: {self.is_completed})"
     
 class Grade(models.Model):
-    # Link to the Course model
-    course = models.ForeignKey('Course', on_delete=models.CASCADE)
-
-    # Link to the User model (student)
     student = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    # Link to the Assignment model (optional, depending on your requirements)
     assignment = models.ForeignKey('Assignment', on_delete=models.CASCADE, null=True, blank=True)
+    grade = models.CharField(max_length=2, choices=[('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D'), ('F', 'F')])
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
 
-    # Grade value (e.g., 85.5)
-    grade = models.DecimalField(max_digits=5, decimal_places=2)
-
-    # Timestamp for when the grade was recorded
-    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        unique_together = ('student', 'assignment')
 
     def __str__(self):
-        return f"{self.student.username} - {self.course.name} - {self.grade}"
+        return f"{self.student.username} - {self.assignment.title} - {self.grade}"

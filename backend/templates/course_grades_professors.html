@@ -11,18 +11,18 @@
                     <table class="grades-table">
                         <thead>
                             <tr>
-                                <th>Student</th>
-                                <th>Assignment</th>
-                                <th>Grade</th>
+                                <th><a href="?sort=student">Student</a></th>
+                                <th><a href="?sort=assignment">Assignment</a></th>
+                                <th><a href="?sort=grade">Grade</a></th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for student_grade in all_grades %}
+                            {% for grade in all_grades %}
                             <tr>
-                                <td>{{ student_grade.student.username }}</td>
-                                <td>{{ student_grade.assignment.title }}</td>
-                                <td>{{ student_grade.grade }}</td>
+                                <td>{{ grade.student.username }}</td>
+                                <td>{{ grade.assignment.title }}</td>
+                                <td>{{ grade.grade }}</td>
                                 <td>
                                     <a href="#" class="btn-edit">Edit</a>
                                     <a href="#" class="btn-delete">Delete</a>
@@ -37,11 +37,11 @@
             </div>
             <div class="professor-message">
                 <h3>Manage Grades:</h3>
-                <ul>
-                    <li>Use the "Edit" button to update grades.</li>
-                    <li>Use the "Delete" button to remove incorrect grades.</li>
-                    <li>Ensure all grades are entered accurately.</li>
-                </ul>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn-save">Save Grade</button>
+                </form>
             </div>
         </div>
     </div>
@@ -87,7 +87,14 @@
     .grades-table th {
         background-color: #f5f5f5;
     }
-    .btn-edit, .btn-delete {
+    .grades-table th a {
+        text-decoration: none;
+        color: #2980b9;
+    }
+    .grades-table th a:hover {
+        text-decoration: underline;
+    }
+    .btn-edit, .btn-delete, .btn-save {
         padding: 5px 10px;
         margin-right: 5px;
         text-decoration: none;
@@ -100,6 +107,12 @@
     .btn-delete {
         background-color: #f44336;
         color: white;
+    }
+    .btn-save {
+        background-color: #2980b9;
+        color: white;
+        border: none;
+        cursor: pointer;
     }
     .professor-message {
         margin-top: 20px;
