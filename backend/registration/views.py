@@ -3,8 +3,8 @@ from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import PasswordResetForm
 from django.http import JsonResponse
-from .models import Course, Student, Professor, Admin, Profile, Enrollment, Assignment, Announcement, Cart, Message, Submission, UserAssignmentCompletion, Grade
-from .forms import CourseForm, MajorChangeForm, StudentForm, ProfessorForm, AdminForm, GradeForm, ProfileForm, UserRegistrationForm, StudentRegistrationForm, ProfessorRegistrationForm, AssignmentForm, AnnouncementForm, MessageForm 
+from .models import Course, Student, Professor, Admin, Profile, Enrollment, Assignment, Announcement, Cart, Message, Submission, UserAssignmentCompletion, Grade, Module
+from .forms import CourseForm, MajorChangeForm, StudentForm, ProfessorForm, AdminForm, GradeForm, ProfileForm, UserRegistrationForm, StudentRegistrationForm, ProfessorRegistrationForm, AssignmentForm, AnnouncementForm, ModuleForm
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db import transaction, IntegrityError
@@ -859,22 +859,27 @@ def create_assignment(request, course_id):
 
 @login_required
 def create_announcement(request, course_id):
+    # Fetch the course object
     course = get_object_or_404(Course, id=course_id)
-    announcements = Announcement.objects.filter(course=course)
 
-    if request.method == 'POST' and 'add_announcement' in request.POST:
+    if request.method == 'POST':
+        # If the form is submitted, process the data
         announcement_form = AnnouncementForm(request.POST)
         if announcement_form.is_valid():
+            # Save the announcement and associate it with the course
             announcement = announcement_form.save(commit=False)
             announcement.course = course
             announcement.save()
 
+            # Redirect to the course_announcements page after successful creation
+            return redirect('course_announcements', course_id=course.id)
     else:
+        # If it's a GET request, initialize an empty form
         announcement_form = AnnouncementForm()
 
+    # Render the create_announcement template with the form
     context = {
         'course': course,
-        'announcements': announcements,
         'announcement_form': announcement_form,
     }
     return render(request, 'create_announcement.html', context)
@@ -1332,3 +1337,61 @@ def professor_assignment_details(request, course_id, assignment_id):
         'students': students,
     }
     return render(request, 'professor_assignment_details.html', context)
+
+def edit_announcement(request, course_id, announcement_id):
+    announcement = get_object_or_404(Announcement, id=announcement_id, course_id=course_id)
+    if request.method == 'POST':
+        form = AnnouncementForm(request.POST, instance=announcement)
+        if form.is_valid():
+            form.save()
+            return redirect('course_announcements', course_id=course_id)
+    else:
+        form = AnnouncementForm(instance=announcement)
+    return render(request, 'edit_announcement.html', {'form': form, 'course_id': course_id, 'announcement': announcement})
+
+def delete_announcement(request, course_id, announcement_id):
+    announcement = get_object_or_404(Announcement, id=announcement_id, course_id=course_id)
+    announcement.delete()
+    return redirect('course_announcements', course_id=course_id)
+
+def announcement_detail(request, course_id, announcement_id):
+    # Fetch the announcement object
+    announcement = get_object_or_404(Announcement, id=announcement_id, course_id=course_id)
+    
+    # Render the announcement detail template
+    return render(request, 'announcement_detail.html', {'announcement': announcement})
+
+def course_modules(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    modules = course.modules.all()
+    return render(request, 'course_modules.html', {'course': course, 'modules': modules})
+
+def create_module(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    if request.method == 'POST':
+        form = ModuleForm(request.POST)
+        if form.is_valid():
+            module = form.save(commit=False)
+            module.course = course
+            module.save()
+            return redirect('course_modules', course_id=course.id)
+    else:
+        form = ModuleForm()
+    return render(request, 'create_module.html', {'form': form, 'course': course})
+
+def edit_module(request, module_id):
+    module = get_object_or_404(Module, id=module_id)
+    if request.method == 'POST':
+        form = ModuleForm(request.POST, instance=module)
+        if form.is_valid():
+            form.save()
+            return redirect('course_modules', course_id=module.course.id)
+    else:
+        form = ModuleForm(instance=module)
+    return render(request, 'edit_module.html', {'form': form, 'module': module})
+
+def delete_module(request, module_id):
+    module = get_object_or_404(Module, id=module_id)
+    course_id = module.course.id
+    module.delete()
+    return redirect('course_modules', course_id=course_id)

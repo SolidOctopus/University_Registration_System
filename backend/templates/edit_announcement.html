@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="main-content">
+    <div class="container">
+        <div class="form-section">
+            <h2>Edit Announcement: {{ announcement.title }}</h2>
+
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">Save Changes</button>
+                    <!-- Delete Announcement Button with Confirmation -->
+                    <a href="{% url 'delete_announcement' course_id=course_id announcement_id=announcement.id %}" class="btn-delete" onclick="return confirm('Are you sure you want to delete this announcement?');">Delete Announcement</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-section {
+        max-width: 800px;
+        margin: auto;
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .btn-save, .btn-delete {
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.3s ease-in-out;
+    }
+    .btn-save {
+        background-color: #2980b9; /* Blue for save */
+    }
+    .btn-delete {
+        background-color: #e74c3c; /* Red for delete */
+    }
+    .btn-save:hover {
+        background-color: #1abc9c; /* Green on hover */
+    }
+    .btn-delete:hover {
+        background-color: #c0392b; /* Darker red on hover */
+    }
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}

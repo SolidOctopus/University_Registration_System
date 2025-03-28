@@ -15,7 +15,7 @@ from .views import (
     forgot_password_view, settings_view, dashboard_view, course_overview, create_assignment, create_announcement, get_assignments, professor_info,
     course_syllabus, course_modules, course_assignments, course_announcements, shopping_cart_view, my_requirements_view, financials_view, add_to_cart, remove_from_cart,
     enroll_all_courses, get_cart_count, message_list, send_message, message_detail, start_new_conversation, delete_conversation, assignment_details, edit_assignment, close_assignment, complete_assignment, submit_assignment, delete_assignment, reopen_assignment,
-    course_grades_professors, course_grades_students,change_major
+    course_grades_professors, course_grades_students,change_major,edit_announcement,delete_announcement, announcement_detail,create_module, edit_module, delete_module
 )
 
 urlpatterns = [
@@ -100,7 +100,12 @@ urlpatterns = [
     path('course/<int:course_id>/grades/students/', course_grades_students, name='course_grades_students'),
     path('course/<int:course_id>/grades/professors/', course_grades_professors, name='course_grades_professors'),
     path('change-major/', change_major, name='change_major'),
-
+    path('course/<int:course_id>/announcements/<int:announcement_id>/edit/', edit_announcement, name='edit_announcement'),
+    path('course/<int:course_id>/announcements/<int:announcement_id>/delete/', delete_announcement, name='delete_announcement'),
+    path('course/<int:course_id>/announcements/<int:announcement_id>/', announcement_detail, name='announcement_detail'),
+    path('course/<int:course_id>/modules/create/', create_module, name='create_module'),
+    path('course/<int:course_id>/modules/<int:module_id>/edit/', edit_module, name='edit_module'),
+    path('course/<int:course_id>/modules/<int:module_id>/delete/', delete_module, name='delete_module'),
 ]
 
 

@@ -1,0 +1,61 @@
+<!-- edit_module.html -->
+{% extends 'topbar.html' %}
+{% block content %}
+<div class="page-container">
+    <div class="main-content">
+        <div class="container">
+            <div class="form-section">
+                <h2>Edit Module: {{ module.title }}</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <div class="form-actions">
+                        <button type="submit" class="btn-save">Save Changes</button>
+                        <a href="{% url 'course_overview' course_id=course.id %}" class="btn-cancel">Back to Course Overview</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-section {
+        max-width: 800px;
+        margin: auto;
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .btn-save, .btn-cancel {
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.3s ease-in-out;
+    }
+    .btn-save {
+        background-color: #2980b9; /* Blue for save */
+    }
+    .btn-cancel {
+        background-color: #7f8c8d; /* Gray for cancel */
+    }
+    .btn-save:hover {
+        background-color: #1abc9c; /* Green on hover */
+    }
+    .btn-cancel:hover {
+        background-color: #95a5a6; /* Darker gray on hover */
+    }
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+</style>
+
+<p>Course ID: {{ course_id }}</p>
+
+{% endblock %}

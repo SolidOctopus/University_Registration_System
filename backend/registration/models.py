@@ -129,6 +129,17 @@ class Profile(models.Model):
     def student(self):
         return getattr(self.user, 'student', None)
 
+
+class Module(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='modules')
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
 class Assignment(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
@@ -143,6 +154,7 @@ class Assignment(models.Model):
         default=2,  # Default to 2 days
         help_text="Extra time (in days) for late submissions. Set to 0 for no extra time."
     )
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name='assignment_modules', null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -202,6 +214,7 @@ class Announcement(models.Model):
     due_time = models.TimeField(null=True, blank=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     posted_at = models.DateTimeField(auto_now_add=True)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name='announcement_modules', null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -252,3 +265,4 @@ class Grade(models.Model):
 
     def __str__(self):
         return f"{self.student.username} - {self.assignment.title} - {self.grade}"
+    

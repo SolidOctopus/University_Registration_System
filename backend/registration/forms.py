@@ -1,8 +1,9 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Profile, Student, Professor, Admin, Enrollment, Course, Assignment, Announcement, Message, Major, Grade
+from .models import Profile, Student, Professor, Admin, Enrollment, Course, Assignment, Announcement, Message, Major, Grade, Module
 from django.contrib.auth.forms import UserCreationForm
 import re
+from datetime import datetime, time
 
 class CourseForm(forms.ModelForm):
     majors = forms.ModelMultipleChoiceField(
@@ -292,7 +293,7 @@ class AssignmentForm(forms.ModelForm):
 
     class Meta:
         model = Assignment
-        fields = ['title', 'description', 'start_date', 'start_time', 'due_date', 'due_time', 'extra_time_period']
+        fields = ['title', 'description', 'start_date', 'start_time', 'due_date', 'due_time', 'extra_time_period', 'module']
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'start_time': forms.TimeInput(attrs={'type': 'time'}),
@@ -303,13 +304,7 @@ class AssignmentForm(forms.ModelForm):
 class AnnouncementForm(forms.ModelForm):
     class Meta:
         model = Announcement
-        fields = ['title', 'details', 'start_date', 'start_time', 'due_date', 'due_time']
-        widgets = {
-            'start_date': forms.DateInput(attrs={'type': 'date'}),
-            'start_time': forms.TimeInput(attrs={'type': 'time'}),
-            'due_date': forms.DateInput(attrs={'type': 'date'}),
-            'due_time': forms.TimeInput(attrs={'type': 'time'}),
-        }
+        fields = ['title', 'details', 'module']
 
 class MessageForm(forms.ModelForm):
     class Meta:
@@ -340,3 +335,8 @@ class GradeForm(forms.ModelForm):
     class Meta:
         model = Grade
         fields = ['student', 'assignment', 'grade', 'major']
+
+class ModuleForm(forms.ModelForm):
+    class Meta:
+        model = Module
+        fields = ['title', 'description']

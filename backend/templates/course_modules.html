@@ -1,3 +1,4 @@
+<!-- course_modules.html -->
 {% extends 'topbar.html' %}
 {% block content %}
 <div class="page-container">
@@ -8,11 +9,44 @@
     <div class="main-content">
         <div class="container">
             <h1>{{ course.name }} - Modules</h1>
+            
+            <!-- Add a button to create a new module -->
+            {% if request.user.profile.role == 'professor' %}
+                <div class="add-module-container">
+                    <a href="{% url 'create_module' course.id %}" class="btn-add">Create New Module</a>
+                </div>
+            {% endif %}
+
             <div class="module-list">
                 <h2>Modules</h2>
                 <ul>
                     {% for module in modules %}
-                    <li class="module-item">{{ module.title }}</li>
+                    <li class="module-item">
+                        <h3>{{ module.title }}</h3>
+                        <p>{{ module.description }}</p>
+                        <p>Created: {{ module.created_at|date:"M d, Y" }}</p>
+                        
+                        <!-- Display assignments and announcements in this module -->
+                        <h4>Assignments</h4>
+                        <ul>
+                            {% for assignment in module.assignments.all %}
+                            <li>{{ assignment.title }} - Due: {{ assignment.due_date }}</li>
+                            {% endfor %}
+                        </ul>
+
+                        <h4>Announcements</h4>
+                        <ul>
+                            {% for announcement in module.announcements.all %}
+                            <li>{{ announcement.title }} - Posted: {{ announcement.posted_at|date:"M d, Y" }}</li>
+                            {% endfor %}
+                        </ul>
+
+                        <!-- Add buttons for editing and deleting modules -->
+                        {% if request.user.profile.role == 'professor' %}
+                            <a href="{% url 'edit_module' course.id module.id %}" class="btn-edit">Edit</a>
+                            <a href="{% url 'delete_module' course.id module.id %}" class="btn-delete">Delete</a>
+                        {% endif %}
+                    </li>
                     {% endfor %}
                 </ul>
             </div>
@@ -47,6 +81,21 @@
         color: #2980b9;
         margin-bottom: 20px;
     }
+    .add-module-container {
+        text-align: right;
+        margin-bottom: 20px;
+    }
+    .btn-add {
+        background-color: #2980b9;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        transition: background-color 0.3s ease-in-out;
+    }
+    .btn-add:hover {
+        background-color: #1abc9c;
+    }
     .module-list {
         margin-top: 20px;
     }
@@ -56,6 +105,27 @@
         margin-bottom: 10px;
         border-radius: 5px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .btn-edit, .btn-delete {
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.3s ease-in-out;
+    }
+    .btn-edit {
+        background-color: #3498db; /* Blue for edit */
+    }
+    .btn-delete {
+        background-color: #e74c3c; /* Red for delete */
+    }
+    .btn-edit:hover {
+        background-color: #2980b9; /* Darker blue on hover */
+    }
+    .btn-delete:hover {
+        background-color: #c0392b; /* Darker red on hover */
     }
 </style>
 {% endblock %}

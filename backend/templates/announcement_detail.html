@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="announcement-detail-container">
+    <h1>{{ announcement.title }}</h1>
+    <div class="announcement-meta">
+        <span class="posted-date">{{ announcement.posted_at|date:"F j, Y" }}</span>
+        <span class="posted-time">{{ announcement.posted_at|time:"g:i A" }}</span>
+    </div>
+    <div class="announcement-content">
+        <p>{{ announcement.details|linebreaks }}</p>
+    </div>
+</div>
+
+<style>
+    .announcement-detail-container {
+        max-width: 800px;
+        margin: auto;
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
+    .announcement-meta {
+        font-size: 0.9em;
+        color: #777;
+        margin-bottom: 20px;
+    }
+    .announcement-content {
+        font-size: 1.1em;
+        line-height: 1.6;
+    }
+    .announcement-content p {
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}

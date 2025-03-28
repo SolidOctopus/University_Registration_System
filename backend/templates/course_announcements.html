@@ -8,13 +8,40 @@
     <div class="main-content">
         <div class="container">
             <h1>{{ course.name }} - Announcements</h1>
+
+            <!-- Add New Announcement Button (Only for Professors/Admins) -->
+            {% if user.profile.role != 'student' %}
+                <div class="add-announcement-container">
+                    <a href="{% url 'create_announcement' course.id %}" class="btn-add">Add New Announcement</a>
+                </div>
+            {% endif %}
+
+            <!-- Announcements List -->
             <div class="announcements-list">
-                <h2>Announcements</h2>
-                <ul>
-                    {% for announcement in announcements %}
-                    <li class="announcement-item">{{ announcement.title }} - {{ announcement.details }}</li>
+                <div class="announcement-header">
+                    <h2>All Announcements</h2>
+                    <div class="announcement-actions">
+                        <button class="btn-mark-read">Mark All as Read</button>
+                        <input type="text" class="search-bar" placeholder="Search...">
+                    </div>
+                </div>
+
+                <div class="announcement-grid">
+                    {% for announcement in announcements|dictsortreversed:"posted_at" %}
+                        <div class="announcement-card">
+                            <!-- Wrap the entire card content in an <a> tag -->
+                            <a href="{% url 'announcement_detail' course.id announcement.id %}" class="announcement-link">
+                                <div class="announcement-content">
+                                    <h3 class="announcement-title">{{ announcement.title }}</h3>
+                                    <p class="announcement-details">{{ announcement.details|truncatechars:200 }}</p>
+                                    <div class="announcement-meta">
+                                        <span class="posted-date">{{ announcement.posted_at|date:"F j, Y, g:i A" }}</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
                     {% endfor %}
-                </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -47,15 +74,135 @@
         color: #2980b9;
         margin-bottom: 20px;
     }
+    .add-announcement-container {
+        text-align: right;
+        margin-bottom: 20px;
+    }
+    .btn-add {
+        background-color: #2980b9;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        transition: background-color 0.3s ease-in-out;
+    }
+    .btn-add:hover {
+        background-color: #1abc9c;
+    }
     .announcements-list {
         margin-top: 20px;
     }
-    .announcement-item {
-        padding: 15px;
-        background-color: #fff;
-        margin-bottom: 10px;
+    .announcement-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .announcement-header h2 {
+        font-size: 1.8em;
+        color: #2c3e50;
+    }
+    .announcement-actions {
+        display: flex;
+        gap: 10px;
+    }
+    .btn-mark-read {
+        background-color: #3498db;
+        color: white;
+        padding: 10px 20px;
+        border: none;
         border-radius: 5px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        transition: background-color 0.3s ease-in-out;
+    }
+    .btn-mark-read:hover {
+        background-color: #2980b9;
+    }
+    .search-bar {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+    .announcement-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    .announcement-card {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 15px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        padding: 25px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+    }
+    .announcement-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1);
+    }
+    .announcement-link {
+        display: block; /* Make the link cover the entire card */
+        text-decoration: none; /* Remove underline */
+        color: inherit; /* Inherit text color */
+    }
+    .announcement-content {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .announcement-title {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+    .announcement-details {
+        font-size: 1em;
+        color: #34495e;
+        word-wrap: break-word;
+    }
+    .announcement-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 15px;
+    }
+    .posted-date {
+        font-size: 0.9em;
+        color: #7f8c8d;
     }
 </style>
+
+<!-- JavaScript for Mark All as Read and Search -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Mark All as Read Button
+        const markReadButton = document.querySelector('.btn-mark-read');
+        if (markReadButton) {
+            markReadButton.addEventListener('click', function () {
+                alert('All announcements marked as read.');
+                // Add logic to mark all announcements as read
+            });
+        }
+
+        // Search Functionality
+        const searchBar = document.querySelector('.search-bar');
+        const announcementCards = document.querySelectorAll('.announcement-card');
+        if (searchBar) {
+            searchBar.addEventListener('input', function () {
+                const searchQuery = this.value.toLowerCase();
+                announcementCards.forEach(card => {
+                    const title = card.querySelector('.announcement-title').textContent.toLowerCase();
+                    const details = card.querySelector('.announcement-details').textContent.toLowerCase();
+                    if (title.includes(searchQuery) || details.includes(searchQuery)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
+    });
+</script>
 {% endblock %}
