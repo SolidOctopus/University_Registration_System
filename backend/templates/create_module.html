@@ -9,6 +9,37 @@
                 <form method="post">
                     {% csrf_token %}
                     {{ form.as_p }}
+                    
+                    <!-- Add Existing Assignments Section -->
+                    <div class="existing-items">
+                        <h3>Add Existing Assignments</h3>
+                        {% for assignment in course_assignments %}
+                        <div class="item-checkbox">
+                            <input type="checkbox" 
+                                   name="assignments" 
+                                   value="{{ assignment.id }}">
+                            <label>{{ assignment.title }} (Due: {{ assignment.due_date|date:"M d, Y" }})</label>
+                        </div>
+                        {% empty %}
+                        <p class="no-items">No assignments available in this course</p>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Add Existing Announcements Section -->
+                    <div class="existing-items">
+                        <h3>Add Existing Announcements</h3>
+                        {% for announcement in course_announcements %}
+                        <div class="item-checkbox">
+                            <input type="checkbox" 
+                                   name="announcements" 
+                                   value="{{ announcement.id }}">
+                            <label>{{ announcement.title }} (Posted: {{ announcement.posted_at|date:"M d, Y" }})</label>
+                        </div>
+                        {% empty %}
+                        <p class="no-items">No announcements available in this course</p>
+                        {% endfor %}
+                    </div>
+
                     <div class="form-actions">
                         <button type="submit" class="btn-save">Create Module</button>
                         <a href="{% url 'course_modules' course.id %}" class="btn-cancel">Cancel</a>
@@ -24,9 +55,14 @@
         max-width: 800px;
         margin: auto;
         background: #fff;
-        padding: 20px;
+        padding: 30px;
         border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .form-section h2 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+        text-align: center;
     }
     .btn-save, .btn-cancel {
         color: white;
@@ -35,24 +71,114 @@
         border-radius: 5px;
         cursor: pointer;
         text-decoration: none;
-        transition: background-color 0.3s ease-in-out;
+        transition: all 0.3s ease;
+        font-size: 1em;
     }
     .btn-save {
-        background-color: #2980b9; /* Blue for save */
+        background-color: #2980b9;
     }
     .btn-cancel {
-        background-color: #7f8c8d; /* Gray for cancel */
+        background-color: #7f8c8d;
     }
     .btn-save:hover {
-        background-color: #1abc9c; /* Green on hover */
+        background-color: #1abc9c;
+        transform: translateY(-2px);
     }
     .btn-cancel:hover {
-        background-color: #95a5a6; /* Darker gray on hover */
+        background-color: #95a5a6;
+        transform: translateY(-2px);
     }
     .form-actions {
         display: flex;
         justify-content: space-between;
-        margin-top: 20px;
+        margin-top: 30px;
+    }
+    .existing-items {
+        margin: 25px 0;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+    }
+    .existing-items h3 {
+        color: #2c3e50;
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-size: 1.2em;
+    }
+    .item-checkbox {
+        margin: 12px 0;
+        padding: 12px;
+        background: white;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
+    }
+    .item-checkbox:hover {
+        transform: translateX(5px);
+    }
+    .item-checkbox input {
+        margin-right: 15px;
+        transform: scale(1.2);
+    }
+    .item-checkbox label {
+        margin: 0;
+        flex: 1;
+        color: #34495e;
+    }
+    .no-items {
+        color: #95a5a6;
+        font-style: italic;
+        padding: 10px;
+    }
+
+    /* Form field styling */
+    .form-section p {
+        margin-bottom: 20px;
+    }
+    .form-section label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #2c3e50;
+    }
+    .form-section input[type="text"],
+    .form-section textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 1em;
+        transition: border-color 0.3s ease;
+    }
+    .form-section input[type="text"]:focus,
+    .form-section textarea:focus {
+        border-color: #3498db;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(52,152,219,0.2);
+    }
+    .form-section textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    @media (max-width: 768px) {
+        .main-content {
+            padding: 15px;
+        }
+        .form-section {
+            padding: 20px;
+        }
+        .form-actions {
+            flex-direction: column;
+            gap: 10px;
+        }
+        .btn-save, .btn-cancel {
+            width: 100%;
+            text-align: center;
+        }
     }
 </style>
 {% endblock %}

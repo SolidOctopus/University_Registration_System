@@ -1366,32 +1366,90 @@ def course_modules(request, course_id):
     modules = course.modules.all()
     return render(request, 'course_modules.html', {'course': course, 'modules': modules})
 
+@login_required
 def create_module(request, course_id):
     course = get_object_or_404(Course, id=course_id)
+    
     if request.method == 'POST':
         form = ModuleForm(request.POST)
         if form.is_valid():
             module = form.save(commit=False)
             module.course = course
             module.save()
+            
+            # Handle selected assignments
+            assignment_ids = request.POST.getlist('assignments')
+            assignments = Assignment.objects.filter(id__in=assignment_ids)
+            module.assignment_modules.set(assignments)
+            
+            # Handle selected announcements
+            announcement_ids = request.POST.getlist('announcements')
+            announcements = Announcement.objects.filter(id__in=announcement_ids)
+            module.announcement_modules.set(announcements)
+            
+            messages.success(request, 'Module created successfully!')
             return redirect('course_modules', course_id=course.id)
     else:
         form = ModuleForm()
-    return render(request, 'create_module.html', {'form': form, 'course': course})
+    
+    # Get all assignments and announcements for this course
+    course_assignments = Assignment.objects.filter(course=course)
+    course_announcements = Announcement.objects.filter(course=course)
+    
+    context = {
+        'form': form,
+        'course': course,
+        'course_assignments': course_assignments,
+        'course_announcements': course_announcements,
+    }
+    return render(request, 'create_module.html', context)
 
-def edit_module(request, module_id):
+def edit_module(request, course_id, module_id):
     module = get_object_or_404(Module, id=module_id)
+    course = get_object_or_404(Course, id=course_id)
+    
     if request.method == 'POST':
         form = ModuleForm(request.POST, instance=module)
         if form.is_valid():
-            form.save()
-            return redirect('course_modules', course_id=module.course.id)
-    else:
-        form = ModuleForm(instance=module)
-    return render(request, 'edit_module.html', {'form': form, 'module': module})
+            module = form.save()
+            
+            # Get the actual Assignment objects from the IDs
+            assignment_ids = request.POST.getlist('assignments')
+            assignments = Assignment.objects.filter(id__in=assignment_ids)
+            module.assignment_modules.set(assignments)
+            
+            # Get the actual Announcement objects from the IDs
+            announcement_ids = request.POST.getlist('announcements')
+            announcements = Announcement.objects.filter(id__in=announcement_ids)
+            module.announcement_modules.set(announcements)
+            
+            return redirect('course_modules', course_id=course_id)
+    
+    form = ModuleForm(instance=module)
+    course_assignments = Assignment.objects.filter(course=course)
+    course_announcements = Announcement.objects.filter(course=course)
+    
+    return render(request, 'edit_module.html', {
+        'form': form,
+        'module': module,
+        'course_assignments': course_assignments,
+        'course_announcements': course_announcements,
+        'course': course
+    })
 
-def delete_module(request, module_id):
+def delete_module(request, course_id, module_id):
     module = get_object_or_404(Module, id=module_id)
-    course_id = module.course.id
     module.delete()
     return redirect('course_modules', course_id=course_id)
+
+def module_detail(request, course_id, module_id):
+    course = get_object_or_404(Course, id=course_id)
+    module = get_object_or_404(Module, id=module_id, course=course)
+    current_date = timezone.now().date()
+    
+    context = {
+        'course': course,
+        'module': module,
+        'current_date': current_date,
+    }
+    return render(request, 'module_detail.html', context)
