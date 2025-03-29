@@ -1,3 +1,11 @@
+'''TO USE:
+python manage.py shell
+
+from create_students import create_students
+create_students()
+
+'''
+
 from django.contrib.auth.models import User
 from registration.models import Profile, Student
 import random

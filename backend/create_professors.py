@@ -1,3 +1,11 @@
+'''TO USE:
+python manage.py shell
+
+from create_professors import create_professors
+create_professors()
+
+'''
+
 from django.contrib.auth.models import User
 from registration.models import Profile, Professor
 import random
