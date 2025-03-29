@@ -2,68 +2,291 @@
 {% load static %}
 {% block content %}
 <div class="page-container">
-    <!-- Include the sidebar -->
     {% include 'course_sidebar.html' %}
 
-    <!-- Main Content -->
     <div class="main-content">
         <div class="container">
-            <h1>About Professor {{ professor.user.first_name }} {{ professor.user.last_name }}</h1>
-            <div class="professor-details">
-                <img src="{% static 'profile_picture_placeholder.png' %}" alt="Professor Image" class="professor-image">
-                <p><strong>Full Name:</strong> {{ professor.user.first_name }} {{ professor.user.last_name }}</p>
-                <p><strong>Email:</strong> {{ professor.user.email }}</p>
-                <p><strong>Office Hours:</strong> {{ professor.office_hours }}</p>
-                <p><strong>Biography:</strong> {{ professor.bio }}</p>
+            <h1>About Professor</h1>
+            
+            <div class="profile-container">
+                <div class="profile-header">
+                    <div class="profile-image-container">
+                        <img src="{% if professor.user.profile.profile_picture %}{{ professor.user.profile.profile_picture.url }}{% else %}{% static 'profile_picture_placeholder.png' %}{% endif %}" 
+                             alt="Professor Image" 
+                             class="profile-picture">
+                        <div class="profile-info">
+                            <h2>{{ professor.user.first_name }} {{ professor.user.last_name }}</h2>
+                            <p class="role">{{ professor.user.profile.role|title }}</p>
+                        </div>
+                    </div>
+                    {% if can_edit %}
+                    <a href="#" class="btn-edit-profile" id="edit-toggle">Edit Profile</a>
+                    {% endif %}
+                </div>
+
+                <div class="profile-details">
+                    <div class="detail-section">
+                        <div class="detail-row">
+                            <span class="detail-label">Email</span>
+                            <span class="detail-value">{{ professor.user.email }}</span>
+                        </div>
+                    </div>
+                    
+                    <form method="post" class="professor-form">
+                        {% csrf_token %}
+                        <div class="detail-section">
+                            <div class="detail-row">
+                                <span class="detail-label">Office Hours</span>
+                                <input type="text" 
+                                       name="office_hours" 
+                                       class="detail-input"
+                                       value="{{ course.office_hours|default:'Not specified' }}"
+                                       disabled>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <div class="detail-row">
+                                <span class="detail-label">Biography</span>
+                                <textarea name="bio" 
+                                          class="detail-textarea"
+                                          disabled>{{ professor.user.profile.bio|default:'No biography available' }}</textarea>
+                            </div>
+                        </div>
+                        
+                        {% if can_edit %}
+                        <div class="form-actions">
+                            <button type="submit" class="btn-save" id="save-button" style="display:none;">Save Changes</button>
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Main Content Styling -->
 <style>
     .page-container {
         display: flex;
-        flex-direction: row;
+        min-height: 100vh;
     }
+    
     .main-content {
-        width: calc(100% - 240px);
-        margin-left: 240px;
+        flex: 1;
         padding: 30px;
-        background-color: #ecf0f1;
-        border-radius: 10px;
+        background-color: #f8f9fa;
     }
+    
     .container {
-        margin: 20px auto;
-        padding: 20px;
         max-width: 900px;
-        background-color: #f5f5f5;
+        margin: 0 auto;
+        background: white;
         border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        padding: 30px;
     }
+    
     h1 {
+        color: #2c3e50;
+        font-size: 28px;
+        margin-bottom: 30px;
         text-align: center;
-        font-size: 2.5em;
-        color: #2980b9;
-        margin-bottom: 20px;
+        font-weight: 600;
     }
-    .professor-details {
+    
+    .profile-container {
+        margin-top: 20px;
+    }
+    
+    .profile-header {
         display: flex;
-        flex-direction: column;
+        justify-content: space-between;
         align-items: center;
-        text-align: left;
-        font-size: 1.2em;
-        line-height: 1.6;
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
     }
-    .professor-image {
-        width: 150px;
-        height: 150px;
+    
+    .profile-image-container {
+        display: flex;
+        align-items: center;
+        gap: 25px;
+    }
+    
+    .profile-picture {
+        width: 120px;
+        height: 120px;
         border-radius: 50%;
-        margin-bottom: 20px;
+        object-fit: cover;
+        border: 4px solid #e0e0e0;
+    }
+    
+    .profile-info h2 {
+        margin: 0;
+        font-size: 24px;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .profile-info .role {
+        color: #7f8c8d;
+        font-size: 16px;
+        margin-top: 5px;
+    }
+    
+    .btn-edit-profile {
+        background-color: #3498db;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 14px;
+        transition: background-color 0.2s;
+        margin-left: auto;
+    }
+    
+    .btn-edit-profile:hover {
+        background-color: #2980b9;
+    }
+    
+    .detail-section {
+        margin-bottom: 25px;
+    }
+    
+    .detail-row {
+        display: flex;
+        margin-bottom: 15px;
+        align-items: flex-start;
+    }
+    
+    .detail-label {
+        width: 150px;
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 16px;
+    }
+    
+    .detail-value {
+        flex: 1;
+        color: #34495e;
+        font-size: 16px;
+    }
+    
+    .detail-input {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+        color: #34495e;
+    }
+    
+    .detail-textarea {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        min-height: 120px;
+        font-size: 16px;
+        color: #34495e;
+        resize: vertical;
+    }
+    
+    .form-actions {
+        text-align: right;
+        margin-top: 30px;
+    }
+    
+    .btn-save {
+        background-color: #27ae60;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.2s;
+    }
+    
+    .btn-save:hover {
+        background-color: #219653;
+    }
+    
+    @media (max-width: 768px) {
+        .profile-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .profile-image-container {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .btn-edit-profile {
+            margin-left: 0;
+            margin-top: 15px;
+            align-self: flex-end;
+        }
+        
+        .detail-row {
+            flex-direction: column;
+        }
+        
+        .detail-label {
+            width: 100%;
+            margin-bottom: 5px;
+        }
     }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const editToggle = document.getElementById('edit-toggle');
+        const saveButton = document.getElementById('save-button');
+        const formInputs = document.querySelectorAll('.detail-input, .detail-textarea');
+        
+        // Initialize all inputs as disabled (read-only mode)
+        formInputs.forEach(input => {
+            input.disabled = true;
+        });
+        
+        if (editToggle) {
+            editToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Check current state
+                const isCurrentlyReadOnly = editToggle.textContent === 'Edit Profile';
+                
+                // Toggle disabled state of inputs
+                formInputs.forEach(input => {
+                    input.disabled = !isCurrentlyReadOnly;
+                });
+                
+                // Toggle button states
+                if (isCurrentlyReadOnly) {
+                    editToggle.textContent = 'Cancel';
+                    if (saveButton) saveButton.style.display = 'inline-block';
+                } else {
+                    editToggle.textContent = 'Edit Profile';
+                    if (saveButton) saveButton.style.display = 'none';
+                }
+            });
+        }
+        
+        // Handle form submission
+        const form = document.querySelector('.professor-form');
+        if (form) {
+            form.addEventListener('submit', function() {
+                // Re-enable all inputs before submission
+                formInputs.forEach(input => {
+                    input.disabled = false;
+                });
+            });
+        }
+    });
+</script>
 {% endblock %}

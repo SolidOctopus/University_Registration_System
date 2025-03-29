@@ -32,6 +32,8 @@ class Course(models.Model):
     professor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name='courses', null=True, blank=True)
     semester = models.CharField(max_length=10, choices=SEMESTER_CHOICES, default='fall')
     majors = models.ManyToManyField(Major, related_name='courses')
+    office_hours = models.CharField(max_length=100, blank=True, null=True)
+
 
     def __str__(self):
         return self.name
