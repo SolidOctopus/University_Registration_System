@@ -1,83 +1,212 @@
 {% extends 'topbar.html' %}
-{% block content %}
-<div class="page-container">
+{% block hanging_nav %}
     {% include 'course_sidebar.html' %}
-    <div class="main-content">
-        <div class="container">
-            <h1>{{ course.name }} - Your Grades</h1>
-            <div class="grades-list">
-                <h2>Your Grades</h2>
+{% endblock %}
+
+{% block content %}
+<div class="grades-container">
+    <div class="grades-header">
+        <h2>Grades</h2>
+    </div>
+
+    <div class="grades-table-container">
+        <table class="grades-table">
+            <thead>
+                <tr>
+                    <th>Assignment</th>
+                    <th>Type</th>
+                    <th>Due Date</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody>
                 {% if grades %}
-                    <ul>
-                        {% for grade in grades %}
-                        <li class="grade-item">
-                            <strong>Assignment:</strong> {{ grade.assignment.title }} - <strong>Grade:</strong> {{ grade.grade }}
-                        </li>
-                        {% endfor %}
-                    </ul>
+                    {% for grade in grades %}
+                    <tr>
+                        <td>{{ grade.assignment.title }}</td>
+                        <td>{{ grade.assignment.get_type_display }}</td>
+                        <td>{{ grade.assignment.due_date|date:"Y-m-d" }}</td>
+                        <td class="grade-{{ grade.grade.0|lower }}">{{ grade.grade }}</td>
+                    </tr>
+                    {% endfor %}
                 {% else %}
-                    <p>No grades available yet. Keep up the good work!</p>
+                    <tr>
+                        <td colspan="4" class="no-grades">No grades available yet</td>
+                    </tr>
                 {% endif %}
-            </div>
-            <div class="student-message">
-                <h3>Tips for Success:</h3>
-                <ul>
-                    <li>Review your assignments regularly.</li>
-                    <li>Ask questions if you're unsure about anything.</li>
-                    <li>Stay consistent with your studies.</li>
-                </ul>
-            </div>
-        </div>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="filter-container">
+        <button class="filter-tab active" data-filter="all">
+            <i class="fas fa-folder-open"></i> Show All
+        </button>
+        <button class="filter-tab" data-filter="assignment">
+            <i class="fas fa-file-alt"></i> Assignments
+        </button>
+        <button class="filter-tab" data-filter="homework">
+            <i class="fas fa-book"></i> Homework
+        </button>
+        <button class="filter-tab" data-filter="project">
+            <i class="fas fa-project-diagram"></i> Projects
+        </button>
+        <button class="filter-tab" data-filter="exam">
+            <i class="fas fa-file-signature"></i> Exams
+        </button>
     </div>
 </div>
 
-<!-- Embedded Styles for Student Page -->
 <style>
-    .page-container {
-        display: flex;
-        flex-direction: row;
-    }
-    .main-content {
-        width: calc(100% - 240px);
-        margin-left: 240px;
-        padding: 30px;
-        background-color: #ecf0f1;
+    /* Main container */
+    .grades-container {
+        padding: 25px;
+        margin-top: 10px; /* Reduced since hanging-nav-container already adds space */
+        background: white;
         border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
-    .container {
-        margin: 20px auto;
-        padding: 20px;
-        max-width: 900px;
-        background-color: #f5f5f5;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    h1 {
-        text-align: center;
-        font-size: 2.5em;
-        color: #2980b9;
+
+    /* Header */
+    .grades-header {
         margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
     }
-    .grades-list ul {
-        list-style-type: none;
-        padding: 0;
+
+    .grades-header h2 {
+        margin: 0;
+        color: #2c3e50;
     }
-    .grade-item {
-        padding: 10px;
-        border-bottom: 1px solid #ddd;
-        background-color: #fff;
-        margin-bottom: 10px;
-        border-radius: 5px;
+
+    /* Table styles */
+    .grades-table-container {
+        overflow-x: auto;
+        margin-bottom: 25px;
     }
-    .student-message {
-        margin-top: 20px;
-        padding: 15px;
-        background-color: #e8f5e9;
-        border-radius: 5px;
+
+    .grades-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 600px;
     }
-    .student-message ul {
-        list-style-type: disc;
-        padding-left: 20px;
+
+    .grades-table th {
+        background-color: #2980b9;
+        color: white;
+        padding: 12px 15px;
+        text-align: left;
+        font-weight: 500;
+    }
+
+    .grades-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #f5f5f5;
+    }
+
+    .grades-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .grades-table tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* Grade colors */
+    .grade-a { color: #2ecc71; font-weight: bold; }
+    .grade-b { color: #f39c12; font-weight: bold; }
+    .grade-c { color: #e67e22; font-weight: bold; }
+    .grade-d { color: #e74c3c; font-weight: bold; }
+    .grade-f { color: #c0392b; font-weight: bold; }
+
+    .no-grades {
+        text-align: center;
+        color: #7f8c8d;
+        padding: 20px;
+    }
+
+    /* Filter tabs */
+    .filter-container {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .filter-tab {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 20px;
+        background: #ecf0f1;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .filter-tab.active {
+        background: #3498db;
+        color: white;
+    }
+
+    .filter-tab:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .grades-container {
+            padding: 15px;
+        }
+
+        .grades-table th,
+        .grades-table td {
+            padding: 10px 12px;
+        }
+
+        .filter-tab {
+            padding: 8px 15px;
+            font-size: 14px;
+        }
     }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Remove active class from all tabs
+                filterTabs.forEach(t => t.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                this.classList.add('active');
+                
+                // Get filter type
+                const filter = this.getAttribute('data-filter');
+                
+                // Filter the table rows
+                const rows = document.querySelectorAll('.grades-table tbody tr');
+                
+                rows.forEach(row => {
+                    if (filter === 'all') {
+                        row.style.display = '';
+                    } else {
+                        const typeCell = row.querySelector('td:nth-child(2)');
+                        if (typeCell && typeCell.textContent.toLowerCase().includes(filter)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        });
+    });
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}

@@ -1,6 +1,11 @@
 {% extends 'topbar.html' %}
+{% block hanging_nav %}
+    {% include 'course_sidebar.html' %}
+{% endblock %}
 {% load static %}
 {% block content %}
+
+
 <div class="page-container">
     {% include 'course_sidebar.html' %}
 
