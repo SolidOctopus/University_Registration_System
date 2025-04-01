@@ -26,21 +26,21 @@
 
 Grades for students
 
+-----Professor (Home)------
+
+Add messages
 
 -----Manage classes (Professor) ------
 Grades
     Porfessors can grade assignments from any class (needs to be only their classes)
     Get rid of major when grading
-Modules
-    Fix Modles
-assignments
-    Assignments should have a default date of today for start date.
-Fix up the Manage classes list
 
+Fix up the Manage classes list
+    Should be A list of students   
+    
 
 ----Messages-----
 Improve how it looks based on what we have on chatgbt
-
 
 -----Academic Records-----
 
@@ -49,3 +49,4 @@ Give a list of all classes a student has already completed.
 ----Finantials----
 Add price to every class
 Make sure they show up for each student taking classes in their "finacials" page in the form of a list.
+
