@@ -3,8 +3,8 @@ from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import PasswordResetForm
 from django.http import JsonResponse
-from .models import Course, Student, Professor, Admin, Profile, Enrollment, Assignment, Announcement, Cart, Message
-from .forms import CourseForm, MajorChangeForm, StudentForm, ProfessorForm, AdminForm, GradeForm, ProfileForm, UserRegistrationForm, StudentRegistrationForm, ProfessorRegistrationForm, AssignmentForm, AnnouncementForm, MessageForm 
+from .models import Course, Student, Professor, Admin, Profile, Enrollment, Assignment, Announcement, Cart, Message, Submission, UserAssignmentCompletion, Grade, Module
+from .forms import CourseForm, MajorChangeForm, StudentForm, ProfessorForm, AdminForm, GradeForm, ProfileForm, UserRegistrationForm, StudentRegistrationForm, ProfessorRegistrationForm, AssignmentForm, AnnouncementForm, ModuleForm
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db import transaction, IntegrityError
@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta, date, time
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 
 def register_view(request):
     if request.method == 'POST':
@@ -127,7 +128,6 @@ def view_enrollments(request):
     enrollments = Enrollment.objects.filter(student=student)
     return render(request, 'registration/view_enrollments.html', {'enrollments': enrollments})
 
-# views.py
 def available_courses(request):
     search_query = request.GET.get('search', '')
     courses = None  # Initialize as None to indicate no search results initially
@@ -301,21 +301,23 @@ def course_students(request, course_id):
     enrollments = Enrollment.objects.filter(course=course)
     return render(request, 'registration/course_students.html', {'course': course, 'enrollments': enrollments})
 
-def assign_grade(request, enrollment_id):
-
-    enrollment = get_object_or_404(Enrollment, id=enrollment_id)
-    student_name = f"{enrollment.student.user.first_name} {enrollment.student.user.last_name}"  
-
+def assign_grade(request, course_id, assignment_id, student_id):
+    enrollment = get_object_or_404(Enrollment, course_id=course_id, student_id=student_id)
     if request.method == 'POST':
         form = GradeForm(request.POST, instance=enrollment)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Grade assigned successfully.')
-            return redirect('view_students', course_id=enrollment.course.id)
+            return redirect('professor_assignment_details', course_id=course_id, assignment_id=assignment_id)
     else:
         form = GradeForm(instance=enrollment)
-
-    return render(request, 'registration/assign_grade.html', {'form': form, 'student_name': student_name})
+    
+    context = {
+        'form': form,
+        'course_id': course_id,
+        'assignment_id': assignment_id,
+        'student': enrollment.student,
+    }
+    return render(request, 'assign_grade.html', context)
 
 def view_students(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
@@ -842,8 +844,9 @@ def create_assignment(request, course_id):
             assignment.start_time = assignment.start_time or time(0, 0)  # 12:00 AM
             assignment.due_time = assignment.due_time or time(23, 59)  # 11:59 PM
             assignment.save()
-            return redirect('create_assignment', course_id=course.id)  # Prevent duplicate submissions on refresh
-
+            # Check and close the assignment if the late period is exceeded
+            assignment.check_and_close_assignment()
+            return redirect('course_assignments', course_id=course.id)  # Prevent duplicate submissions on refresh
     else:
         assignment_form = AssignmentForm(initial={'start_time': time(0, 0), 'due_time': time(23, 59)})
 
@@ -854,27 +857,34 @@ def create_assignment(request, course_id):
     }
     return render(request, 'create_assignment.html', context)
 
+@login_required
 def create_announcement(request, course_id):
+    # Fetch the course object
     course = get_object_or_404(Course, id=course_id)
-    announcements = Announcement.objects.filter(course=course)
 
-    if request.method == 'POST' and 'add_announcement' in request.POST:
+    if request.method == 'POST':
+        # If the form is submitted, process the data
         announcement_form = AnnouncementForm(request.POST)
         if announcement_form.is_valid():
+            # Save the announcement and associate it with the course
             announcement = announcement_form.save(commit=False)
             announcement.course = course
             announcement.save()
 
+            # Redirect to the course_announcements page after successful creation
+            return redirect('course_announcements', course_id=course.id)
     else:
+        # If it's a GET request, initialize an empty form
         announcement_form = AnnouncementForm()
 
+    # Render the create_announcement template with the form
     context = {
         'course': course,
-        'announcements': announcements,
         'announcement_form': announcement_form,
     }
     return render(request, 'create_announcement.html', context)
 
+@login_required
 def get_assignments(request):
     student = request.user.student
     enrollments = Enrollment.objects.filter(student=student).select_related('course')
@@ -916,8 +926,30 @@ def get_assignments(request):
 
 def professor_info(request, course_id):
     course = get_object_or_404(Course, id=course_id)
-    professor = course.professor
-    return render(request, 'professor_info.html', {'course': course, 'professor': professor})
+    professor = course.professor.professor
+    can_edit = (request.user == professor.user)
+    
+    if request.method == 'POST' and can_edit:
+        # Update office hours (course-specific)
+        office_hours = request.POST.get('office_hours', '').strip()
+        course.office_hours = office_hours if office_hours else 'Not specified'
+        course.save()
+        
+        # Update biography (profile-specific)
+        bio = request.POST.get('bio', '').strip()
+        profile = professor.user.profile
+        profile.bio = bio if bio else 'No biography available'
+        profile.save()
+        
+        messages.success(request, 'Profile updated successfully!')
+        return redirect('professor_info', course_id=course_id)
+
+    context = {
+        'course': course,
+        'professor': professor,
+        'can_edit': can_edit,
+    }
+    return render(request, 'professor_info.html', context)
 
 def course_syllabus(request, course_id):
     course = get_object_or_404(Course, id=course_id)
@@ -928,18 +960,79 @@ def course_modules(request, course_id):
     return render(request, 'course_modules.html', {'course': course})
 
 def course_assignments(request, course_id):
+    # Fetch the course object using the course_id
     course = get_object_or_404(Course, id=course_id)
-    assignments = course.assignment_set.all()
-    return render(request, 'course_assignments.html', {'course': course, 'assignments': assignments})
+    
+    # Fetch all assignments for the course
+    assignments = Assignment.objects.filter(course=course)
+    current_date = timezone.now().date()
+
+    # Precompute completion status for the current user
+    for assignment in assignments:
+        assignment.is_completed_for_user = UserAssignmentCompletion.objects.filter(
+            user=request.user,
+            assignment=assignment,
+            is_completed=True
+        ).exists()
+
+    context = {
+        'course': course,  # Pass the course object to the template
+        'assignments': assignments,
+        'current_date': current_date,
+    }
+    return render(request, 'course_assignments.html', context)
 
 def course_announcements(request, course_id):
     course = get_object_or_404(Course, id=course_id)
     announcements = course.announcement_set.all()
     return render(request, 'course_announcements.html', {'course': course, 'announcements': announcements})
 
-def course_grades(request, course_id):
+
+def course_grades_students(request, course_id):
+    # Fetch the course
     course = get_object_or_404(Course, id=course_id)
-    return render(request, 'course_grades.html', {'course': course})
+
+    # Fetch grades for the logged-in student
+    grades = Grade.objects.filter(course=course, student=request.user)
+
+    # Render the student-specific grades template
+    return render(request, 'course_grades_students.html', {
+        'course': course,
+        'grades': grades
+    })
+
+def course_grades_professors(request, course_id):
+    # Fetch the course
+    course = get_object_or_404(Course, id=course_id)
+
+    # Fetch all grades for the course
+    all_grades = Grade.objects.filter(course=course)
+
+    # Handle form submission for adding/editing grades
+    if request.method == 'POST':
+        form = GradeForm(request.POST)
+        if form.is_valid():
+            student = form.cleaned_data['student']
+            assignment = form.cleaned_data['assignment']
+
+            # Check if a grade already exists for this student and assignment
+            if Grade.objects.filter(student=student, assignment=assignment).exists():
+                messages.error(request, "This student already has a grade for this assignment.")
+            else:
+                grade = form.save(commit=False)
+                grade.course = course
+                grade.save()
+                messages.success(request, "Grade saved successfully!")
+                return redirect('course_grades_professors', course_id=course.id)
+    else:
+        form = GradeForm()
+
+    # Render the professor-specific grades template
+    return render(request, 'course_grades_professors.html', {
+        'course': course,
+        'all_grades': all_grades,
+        'form': form,
+    })
 
 def shopping_cart_view(request):
     # Get the current student's cart items
@@ -992,8 +1085,6 @@ def remove_from_cart(request, cart_id):
     # If method is not POST, return an error response
     return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
-
-
 def enroll_all_courses(request):
     if request.method == 'POST':
         student = get_object_or_404(Student, user=request.user)
@@ -1005,17 +1096,12 @@ def enroll_all_courses(request):
         
         for cart_item in cart_items:
             course = cart_item.course
-            if course.available_seats > 0 and student.major_id != course.major_id:
-                if course.major_id == 1:
-                    maj = "Computer Science"
-                elif course.major_id == 2:
-                    maj = "Mathematics"
-                else:
-                    maj = "English"
-                messages.error(request, f'Sorry - only students with the {maj} major can enroll in this course.')
-                message_list.append({'level': 'error', 'message': f'Sorry - only students with the {maj} major can enroll in this course.'})
+            if course.available_seats > 0 and student.major not in course.majors.all():  # Updated this line
+                major_names = ", ".join([major.name for major in course.majors.all()])
+                messages.error(request, f'Sorry - only students with the {major_names} major(s) can enroll in this course.')
+                message_list.append({'level': 'error', 'message': f'Sorry - only students with the {major_names} major(s) can enroll in this course.'})
                 success = False
-            elif course.available_seats > 0 and student.major_id == course.major_id:
+            elif course.available_seats > 0 and student.major in course.majors.all():  # Updated this line
                 Enrollment.objects.create(student=student, course=course)
                 course.available_seats -= 1
                 course.save()
@@ -1136,3 +1222,256 @@ def delete_conversation(request, user_id):
     ).delete()
     return redirect('message_list')
 
+@login_required
+def assignment_details(request, course_id, assignment_id):
+    # Fetch the assignment object
+    assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
+    
+    # Check if the assignment is completed for the current user
+    is_completed_for_user = UserAssignmentCompletion.objects.filter(
+        user=request.user,
+        assignment=assignment,
+        is_completed=True
+    ).exists()
+
+    context = {
+        'assignment': assignment,
+        'is_completed_for_user': is_completed_for_user,  # Pass the completion status to the template
+    }
+    return render(request, 'assignment_details.html', context)
+
+@login_required
+def edit_assignment(request, course_id, assignment_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
+
+    if request.method == 'POST':
+        form = AssignmentForm(request.POST, instance=assignment)
+        if form.is_valid():
+            form.save()
+            # Check and close the assignment if the late period is exceeded
+            assignment.check_and_close_assignment()
+            return redirect('course_assignments', course_id=course_id)
+    else:
+        form = AssignmentForm(instance=assignment)
+
+    # Debugging: Print context variables
+    print(f"Course ID: {course_id}, Assignment ID: {assignment.id}")
+
+    return render(request, 'edit_assignment.html', {
+        'form': form,
+        'course_id': course_id,  # Pass course_id to the template
+        'assignment': assignment,  # Pass assignment to the template
+    })
+
+@login_required
+def close_assignment(request, course_id, assignment_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
+    assignment.is_closed = not assignment.is_closed  # Toggle the is_closed status
+    assignment.save()
+    return redirect('edit_assignment', course_id=course_id, assignment_id=assignment_id)
+
+@login_required
+def complete_assignment(request, course_id, assignment_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
+    assignment.is_completed = True
+    assignment.save()
+    return redirect('course_assignments', course_id=course_id)
+
+@login_required
+def submit_assignment(request, course_id, assignment_id):
+    if request.method == 'POST':
+        # Fetch the assignment object
+        assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
+        user = request.user
+
+        # Ensure the user is a student
+        if user.profile.role != 'student':
+            messages.error(request, "Only students can submit assignments.")
+            return redirect('course_assignments', course_id=course_id)
+
+        # Create or update the UserAssignmentCompletion record
+        completion, created = UserAssignmentCompletion.objects.get_or_create(
+            user=user,
+            assignment=assignment,
+            defaults={'is_completed': True}  # Mark as completed by default
+        )
+        if not created:
+            completion.is_completed = True
+            completion.save()
+
+        # Create the submission record
+        Submission.objects.create(
+            assignment=assignment,
+            student=user.student,
+            content=request.POST.get('content')  # Assuming content is submitted via a form
+        )
+
+        # Notify the user of successful submission
+        messages.success(request, "Assignment submitted successfully!")
+        return redirect('course_assignments', course_id=course_id)
+
+    # If the request method is not POST, redirect to the assignment details page
+    return redirect('course_assignments', course_id=course_id)
+
+@login_required
+def delete_assignment(request, course_id, assignment_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
+    assignment.delete()
+    return redirect('course_assignments', course_id=course_id)
+
+@login_required
+def reopen_assignment(request, course_id, assignment_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
+    
+    # Set the due date to 1 day from now
+    assignment.due_date = timezone.now().date() + timezone.timedelta(days=1)
+    assignment.extra_time_period = 1  # Set extra time to 1 day
+    assignment.is_closed = False
+    assignment.save()
+    
+    return redirect('assignment_details', course_id=course_id, assignment_id=assignment_id)
+
+def professor_assignment_details(request, course_id, assignment_id):
+    # Fetch the assignment and course
+    assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
+    course = assignment.course
+
+    # Fetch all students enrolled in the course
+    enrollments = Enrollment.objects.filter(course=course).select_related('student')
+
+    # Fetch submissions for the assignment
+    submissions = Submission.objects.filter(assignment=assignment).select_related('student')
+
+    # Create a list of students with their submission status and grade
+    students = []
+    for enrollment in enrollments:
+        student = enrollment.student
+        submission = submissions.filter(student=student).first()
+        students.append({
+            'student': student,
+            'submission': submission,
+            'grade': enrollment.grade,  # Grade from the Enrollment model
+        })
+
+    context = {
+        'course': course,
+        'assignment': assignment,
+        'students': students,
+    }
+    return render(request, 'professor_assignment_details.html', context)
+
+def edit_announcement(request, course_id, announcement_id):
+    announcement = get_object_or_404(Announcement, id=announcement_id, course_id=course_id)
+    if request.method == 'POST':
+        form = AnnouncementForm(request.POST, instance=announcement)
+        if form.is_valid():
+            form.save()
+            return redirect('course_announcements', course_id=course_id)
+    else:
+        form = AnnouncementForm(instance=announcement)
+    return render(request, 'edit_announcement.html', {'form': form, 'course_id': course_id, 'announcement': announcement})
+
+def delete_announcement(request, course_id, announcement_id):
+    announcement = get_object_or_404(Announcement, id=announcement_id, course_id=course_id)
+    announcement.delete()
+    return redirect('course_announcements', course_id=course_id)
+
+def announcement_detail(request, course_id, announcement_id):
+    # Fetch the announcement object
+    announcement = get_object_or_404(Announcement, id=announcement_id, course_id=course_id)
+    
+    # Render the announcement detail template
+    return render(request, 'announcement_detail.html', {'announcement': announcement})
+
+def course_modules(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    modules = course.modules.all()
+    return render(request, 'course_modules.html', {'course': course, 'modules': modules})
+
+@login_required
+def create_module(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    
+    if request.method == 'POST':
+        form = ModuleForm(request.POST)
+        if form.is_valid():
+            module = form.save(commit=False)
+            module.course = course
+            module.save()
+            
+            # Handle selected assignments
+            assignment_ids = request.POST.getlist('assignments')
+            assignments = Assignment.objects.filter(id__in=assignment_ids)
+            module.assignment_modules.set(assignments)
+            
+            # Handle selected announcements
+            announcement_ids = request.POST.getlist('announcements')
+            announcements = Announcement.objects.filter(id__in=announcement_ids)
+            module.announcement_modules.set(announcements)
+            
+            messages.success(request, 'Module created successfully!')
+            return redirect('course_modules', course_id=course.id)
+    else:
+        form = ModuleForm()
+    
+    # Get all assignments and announcements for this course
+    course_assignments = Assignment.objects.filter(course=course)
+    course_announcements = Announcement.objects.filter(course=course)
+    
+    context = {
+        'form': form,
+        'course': course,
+        'course_assignments': course_assignments,
+        'course_announcements': course_announcements,
+    }
+    return render(request, 'create_module.html', context)
+
+def edit_module(request, course_id, module_id):
+    module = get_object_or_404(Module, id=module_id)
+    course = get_object_or_404(Course, id=course_id)
+    
+    if request.method == 'POST':
+        form = ModuleForm(request.POST, instance=module)
+        if form.is_valid():
+            module = form.save()
+            
+            # Get the actual Assignment objects from the IDs
+            assignment_ids = request.POST.getlist('assignments')
+            assignments = Assignment.objects.filter(id__in=assignment_ids)
+            module.assignment_modules.set(assignments)
+            
+            # Get the actual Announcement objects from the IDs
+            announcement_ids = request.POST.getlist('announcements')
+            announcements = Announcement.objects.filter(id__in=announcement_ids)
+            module.announcement_modules.set(announcements)
+            
+            return redirect('course_modules', course_id=course_id)
+    
+    form = ModuleForm(instance=module)
+    course_assignments = Assignment.objects.filter(course=course)
+    course_announcements = Announcement.objects.filter(course=course)
+    
+    return render(request, 'edit_module.html', {
+        'form': form,
+        'module': module,
+        'course_assignments': course_assignments,
+        'course_announcements': course_announcements,
+        'course': course
+    })
+
+def delete_module(request, course_id, module_id):
+    module = get_object_or_404(Module, id=module_id)
+    module.delete()
+    return redirect('course_modules', course_id=course_id)
+
+def module_detail(request, course_id, module_id):
+    course = get_object_or_404(Course, id=course_id)
+    module = get_object_or_404(Module, id=module_id, course=course)
+    current_date = timezone.now().date()
+    
+    context = {
+        'course': course,
+        'module': module,
+        'current_date': current_date,
+    }
+    return render(request, 'module_detail.html', context)

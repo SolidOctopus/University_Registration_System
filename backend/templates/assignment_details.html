@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="main-content">
+    <div class="container">
+        <div class="form-section {% if is_completed_for_user %}completed{% endif %}">
+            <h2>{{ assignment.title }}</h2>
+            <p><strong>Description:</strong> {{ assignment.description }}</p>
+            <p><strong>Start Date:</strong> {{ assignment.start_date|date:"F j, Y" }}</p>
+            <p><strong>Due Date:</strong> {{ assignment.due_date|date:"F j, Y" }}</p>
+            
+            <!-- Submit Button (Only for Students) -->
+            <div class="form-actions">
+                {% if not assignment.is_closed and user.profile.role == 'student' %}
+                    <form method="POST" action="{% url 'submit_assignment' course_id=assignment.course.id assignment_id=assignment.id %}">
+                        {% csrf_token %}  <!-- Add CSRF token for security -->
+                        <button type="submit" class="btn-submit">Submit</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-section {
+        max-width: 800px;
+        margin: auto;
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 3px solid transparent;
+        transition: border-color 0.3s ease-in-out;
+    }
+
+    /* Green border for completed assignments */
+    .form-section.completed {
+        border-color: #4CAF50; /* Green border */
+    }
+
+    /* Submit Button Styling */
+    .btn-submit {
+        background-color: #4CAF50; /* Green background */
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1em;
+        text-decoration: none; /* Remove underline */
+        display: inline-block; /* Make it look like a button */
+        transition: background-color 0.3s ease-in-out;
+    }
+
+    .btn-submit:hover {
+        background-color: #45a049; /* Darker green on hover */
+    }
+
+    /* Center the submit button */
+    .form-actions {
+        text-align: center; /* Center the button */
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}

@@ -4,9 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upgraded Top Bar</title>
+    <title>{% block title %}University Registration System{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/topbar.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        /* Add space for hanging signs below topbar */
+        body.has-hanging-nav {
+            padding-top: 120px;
+        }
+        body.has-hanging-nav .container-main {
+            padding-top: 0;
+        }
+    </style>
 </head>
 <body>
     <div class="topbar-container">
@@ -34,20 +43,31 @@
                     <i class="fas fa-user-circle"></i>
                 {% endif %}
             </a>
-            <div class="icon settings-icon" title="Settings">
-                <i class="fas fa-cog"></i>
-            </div>
         </div>
     </div>
 
-    <!-- Script for Scroll Effect -->
+    <!-- Space for hanging signs to be inserted by course_sidebar.html -->
+    {% block hanging_nav %}{% endblock %}
+
+    <!-- Main content -->
+    <div class="container-main" id="main-content">
+        {% block content %}
+        {% endblock %}
+    </div>
+
     <script>
         window.addEventListener('scroll', function() {
-            const header = document.querySelector('header');
             if (window.scrollY > 50) {
                 document.body.classList.add('scrolled');
             } else {
                 document.body.classList.remove('scrolled');
+            }
+        });
+        
+        // Check if hanging nav exists
+        document.addEventListener('DOMContentLoaded', function() {
+            if (document.querySelector('.hanging-nav')) {
+                document.body.classList.add('has-hanging-nav');
             }
         });
     </script>

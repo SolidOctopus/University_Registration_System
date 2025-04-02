@@ -1,0 +1,127 @@
+{% load static %}
+{% block hanging_nav %}
+<div class="hanging-nav-container">
+    <div class="signs-container">
+        {% block hanging_signs %}
+        <a href="{% url 'course_overview' course.id %}" class="sign">Overview</a>
+        <a href="{% url 'professor_info' course.id %}" class="sign">Professor</a>
+        <a href="{% url 'course_syllabus' course.id %}" class="sign">Syllabus</a>
+        <a href="{% url 'course_modules' course.id %}" class="sign">Modules</a>
+        <a href="{% url 'course_assignments' course.id %}" class="sign">Assignments</a>
+        <a href="{% url 'course_announcements' course.id %}" class="sign">Announcements</a>
+        {% if request.user.profile.role == 'student' %}
+            <a href="{% url 'course_grades_students' course.id %}" class="sign active">Grades</a>
+        {% elif request.user.profile.role == 'professor' or request.user.profile.role == 'admin' %}
+            <a href="{% url 'course_grades_professors' course.id %}" class="sign active">Grades</a>
+        {% endif %}
+        {% endblock %}
+    </div>
+</div>
+
+<style>
+    /* Hanging signs container */
+    .hanging-nav-container {
+        position: relative;
+        height: 90px; /* Increased space */
+        margin-bottom: 25px;
+        background: transparent;
+    }
+
+    /* Signs container */
+    .signs-container {
+        display: flex;
+        justify-content: center;
+        gap: 25px; /* Increased spacing */
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 0 25px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .signs-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Individual signs with swinging animation */
+    .sign {
+        position: relative;
+        padding: 12px 22px;
+        background: #2980b9;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: 500;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform-origin: top center;
+        animation: swing 5s infinite ease-in-out;
+        margin-top: 20px; /* Hang lower */
+        transition: all 0.3s ease;
+    }
+
+    /* Different animation delays for each sign */
+    .sign:nth-child(1) { animation-delay: 0.1s; }
+    .sign:nth-child(2) { animation-delay: 0.3s; }
+    .sign:nth-child(3) { animation-delay: 0.5s; }
+    .sign:nth-child(4) { animation-delay: 0.2s; }
+    .sign:nth-child(5) { animation-delay: 0.4s; }
+    .sign:nth-child(6) { animation-delay: 0.6s; }
+    .sign:nth-child(7) { animation-delay: 0.3s; }
+
+    /* Rope connection - more natural */
+    .sign::before {
+        content: '';
+        position: absolute;
+        top: -18px;
+        left: 50%;
+        width: 1.5px;
+        height: 18px;
+        background: linear-gradient(to bottom, #7f8c8d, transparent);
+        transform: translateX(-50%);
+    }
+
+    /* Swinging animation */
+    @keyframes swing {
+        0%, 100% { transform: rotate(-3deg); }
+        50% { transform: rotate(3deg); }
+    }
+
+    /* Hover effects */
+    .sign:hover {
+        background: #1abc9c;
+        transform: rotate(0deg) scale(1.08);
+        animation: none; /* Stop swinging on hover */
+        z-index: 1;
+    }
+
+    /* Active sign */
+    .sign.active {
+        background: #1abc9c;
+        transform: rotate(0deg);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+        animation: none;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .hanging-nav-container {
+            height: 80px;
+        }
+        
+        .signs-container {
+            justify-content: flex-start;
+            padding: 0 20px;
+            gap: 18px;
+        }
+        
+        .sign {
+            padding: 10px 18px;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,9 +1,6 @@
 -----Majors-----
--Add Majors to Students
-
--Add classes to each major
-
 -Make sure students can see the classes they need in "my requirements" page in the form of a list.
+-Students cant enroll into classes that arent in their major, they should be able to after the first warning. 
 
 ----SideBar-----
 -Include optimization and and shortcuts to the Shopping cart sidebar.
@@ -13,8 +10,10 @@
  
 -Add Profiles (on the top) and settings (on the bottom next to log out) to sidebar.
 
+----Topbar-----
 
-----Topbat-----
+-Replace all topbars with the same one
+
 -Fix the flashing
 
 -Remove seetings and profile
@@ -23,122 +22,31 @@
 
 -add to every page
 
-
-----Finantials----
-Add price to every class
-Make sure they show up for each student taking classes in their "finacials" page in the form of a list.
-
-
 ----Dashboard----
-Courses needs to be finished
+
+Grades for students
+
+-----Professor (Home)------
+
+Add messages
+
+-----Manage classes (Professor) ------
+Grades
+    Porfessors can grade assignments from any class (needs to be only their classes)
+    Get rid of major when grading
+
+Fix up the Manage classes list
+    Should be A list of students   
+    
 
 ----Messages-----
-Improve the box that shows up when you start a new chat.
-
+Improve how it looks based on what we have on chatgbt
 
 -----Academic Records-----
 
 Give a list of all classes a student has already completed.
 
+----Finantials----
+Add price to every class
+Make sure they show up for each student taking classes in their "finacials" page in the form of a list.
 
-
------Manage classes (Professor) ------
-
-Needs to look better
-
-
-
-
-
-
-
-
-
-
-Commands
-
-
------Create classes------
-
-from datetime import date
-from registration.models import Course
-
-# Create 10 sample courses with start_date and end_date fields
-Course.objects.bulk_create([
-    Course(course_code='CEN4010', name='Software Engineering I', description='Introduction to Software Engineering', credits=3, capacity=30, available_seats=30, semester='fall', start_date=date(2024, 8, 20), end_date=date(2024, 12, 20)),
-    Course(course_code='CEN4021', name='Software Engineering II', description='Advanced Software Engineering topics', credits=3, capacity=25, available_seats=25, semester='spring', start_date=date(2025, 1, 10), end_date=date(2025, 5, 10)),
-    Course(course_code='COP3530', name='Data Structures and Algorithms', description='Study of data structures and algorithms', credits=4, capacity=40, available_seats=40, semester='fall', start_date=date(2024, 8, 20), end_date=date(2024, 12, 20)),
-    Course(course_code='COP4600', name='Operating Systems', description='Introduction to operating systems concepts', credits=4, capacity=35, available_seats=35, semester='summer', start_date=date(2025, 5, 15), end_date=date(2025, 8, 15)),
-    Course(course_code='CDA3103', name='Computer Architecture', description='Study of computer organization and architecture', credits=3, capacity=50, available_seats=50, semester='fall', start_date=date(2024, 8, 20), end_date=date(2024, 12, 20)),
-    Course(course_code='CIS4910', name='Capstone Project', description='Capstone project for computer science students', credits=3, capacity=20, available_seats=20, semester='spring', start_date=date(2025, 1, 10), end_date=date(2025, 5, 10)),
-    Course(course_code='COP4331', name='Object-Oriented Programming', description='Introduction to object-oriented programming concepts', credits=3, capacity=30, available_seats=30, semester='fall', start_date=date(2024, 8, 20), end_date=date(2024, 12, 20)),
-    Course(course_code='COP4710', name='Database Management', description='Study of database design and management systems', credits=4, capacity=40, available_seats=40, semester='summer', start_date=date(2025, 5, 15), end_date=date(2025, 8, 15)),
-    Course(course_code='CNT4713', name='Computer Networks', description='Introduction to computer networks and communication', credits=3, capacity=35, available_seats=35, semester='spring', start_date=date(2025, 1, 10), end_date=date(2025, 5, 10)),
-    Course(course_code='CIS4930', name='Special Topics in Computing', description='Various topics in computing', credits=3, capacity=30, available_seats=30, semester='fall', start_date=date(2024, 8, 20), end_date=date(2024, 12, 20)),
-])
-
-print("10 sample courses created successfully!")
-
-
----------Create users---------
-
-from django.contrib.auth.models import User
-from registration.models import Student, Professor, Admin
-from django.db import transaction
-
-# Common password for all users
-password = 'defaultpassword123'
-
-# Wrap everything in a transaction
-with transaction.atomic():
-    for i in range(1, 11):  # Creating 10 users for each type
-        if i == 9:  # Skip number 9
-            continue
-
-        # For Students
-        student_username = f'student{i}'
-        student_first_name = 'Student'
-        student_last_name = str(i)
-        student_email = f'student{i}@university.edu'
-        student_id_number = f'STUD00{i}'
-
-        student_user = User.objects.create_user(
-            username=student_username,
-            password=password,
-            first_name=student_first_name,
-            last_name=student_last_name,
-            email=student_email
-        )
-        Student.objects.create(user=student_user, id_number=student_id_number)
-
-        # For Professors
-        professor_username = f'professor{i}'
-        professor_first_name = 'Professor'
-        professor_last_name = str(i)
-        professor_email = f'professor{i}@university.edu'
-
-        professor_user = User.objects.create_user(
-            username=professor_username,
-            password=password,
-            first_name=professor_first_name,
-            last_name=professor_last_name,
-            email=professor_email
-        )
-        Professor.objects.create(user=professor_user)
-
-        # For Admins
-        admin_username = f'admin{i}'
-        admin_first_name = 'Admin'
-        admin_last_name = str(i)
-        admin_email = f'admin{i}@university.edu'
-
-        admin_user = User.objects.create_user(
-            username=admin_username,
-            password=password,
-            first_name=admin_first_name,
-            last_name=admin_last_name,
-            email=admin_email
-        )
-        Admin.objects.create(user=admin_user)
-
-print("Users created successfully, except for number 9.")

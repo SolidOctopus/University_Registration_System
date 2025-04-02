@@ -13,10 +13,9 @@ from .views import (
     edit_course, manage_classes, course_students, view_students, view_profile, edit_profile,
     drop_class, assign_professor, course_detail, view_user_profile, student_register, professor_register,
     forgot_password_view, settings_view, dashboard_view, course_overview, create_assignment, create_announcement, get_assignments, professor_info,
-    course_syllabus, course_modules, course_assignments, course_announcements, course_grades,
-    shopping_cart_view, my_requirements_view, financials_view, add_to_cart, remove_from_cart,
-    enroll_all_courses, get_cart_count, message_list, send_message, message_detail,
-    start_new_conversation, delete_conversation, change_major
+    course_syllabus, course_modules, course_assignments, course_announcements, shopping_cart_view, my_requirements_view, financials_view, add_to_cart, remove_from_cart,
+    enroll_all_courses, get_cart_count, message_list, send_message, message_detail, start_new_conversation, delete_conversation, assignment_details, edit_assignment, close_assignment, complete_assignment, submit_assignment, delete_assignment, reopen_assignment,
+    course_grades_professors, course_grades_students,change_major,edit_announcement,delete_announcement, announcement_detail,create_module, edit_module, delete_module, module_detail
 )
 
 urlpatterns = [
@@ -57,7 +56,6 @@ urlpatterns = [
     path('courses/<int:course_id>/students/', view_students, name='view_students'),
     path('profile/', view_profile, name='view_profile'),
     path('profile/edit/', edit_profile, name='edit_profile'),
-    path('profile/change-major/', change_major, name='change_major'),
     path('drop-class/<int:enrollment_id>/', drop_class, name='drop_class'),
     path('courses/<int:course_id>/assign_professor/', assign_professor, name='assign_professor'),
     path('courses/<int:pk>/', course_detail, name='course_detail'),
@@ -75,7 +73,6 @@ urlpatterns = [
     path('course/<int:course_id>/modules/', course_modules, name='course_modules'),
     path('course/<int:course_id>/assignments/', course_assignments, name='course_assignments'),
     path('course/<int:course_id>/announcements/', course_announcements, name='course_announcements'),
-    path('course/<int:course_id>/grades/', course_grades, name='course_grades'),
     path('shopping-cart/', shopping_cart_view, name='shopping_cart'),
     path('my-requirements/', my_requirements_view, name='my_requirements'),
     path('financials/', financials_view, name='financials'),
@@ -92,11 +89,27 @@ urlpatterns = [
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-    path('reset/done/', RedirectView.as_view(url='/login/'), name='password_reset_complete')
+    path('reset/done/', RedirectView.as_view(url='/login/'), name='password_reset_complete'),
+    path('course/<int:course_id>/assignments/<int:assignment_id>/', assignment_details, name='assignment_details'),
+    path('course/<int:course_id>/assignments/<int:assignment_id>/edit/', edit_assignment, name='edit_assignment'),
+    path('course/<int:course_id>/assignments/<int:assignment_id>/close/', close_assignment, name='close_assignment'),
+    path('course/<int:course_id>/assignments/<int:assignment_id>/complete/', complete_assignment, name='complete_assignment'),
+    path('course/<int:course_id>/assignments/<int:assignment_id>/submit/', submit_assignment, name='submit_assignment'),
+    path('course/<int:course_id>/assignment/<int:assignment_id>/delete/', delete_assignment, name='delete_assignment'),
+    path('course/<int:course_id>/assignments/<int:assignment_id>/reopen/', reopen_assignment, name='reopen_assignment'),
+    path('course/<int:course_id>/grades/students/', course_grades_students, name='course_grades_students'),
+    path('course/<int:course_id>/grades/professors/', course_grades_professors, name='course_grades_professors'),
+    path('change-major/', change_major, name='change_major'),
+    path('course/<int:course_id>/announcements/<int:announcement_id>/edit/', edit_announcement, name='edit_announcement'),
+    path('course/<int:course_id>/announcements/<int:announcement_id>/delete/', delete_announcement, name='delete_announcement'),
+    path('course/<int:course_id>/announcements/<int:announcement_id>/', announcement_detail, name='announcement_detail'),
+    path('course/<int:course_id>/modules/create/', create_module, name='create_module'),
+    path('course/<int:course_id>/modules/<int:module_id>/edit/', edit_module, name='edit_module'),
+    path('course/<int:course_id>/modules/<int:module_id>/delete/', delete_module, name='delete_module'),
+    path('course/<int:course_id>/modules/<int:module_id>/', module_detail, name='module_detail'),
+
 ]
 
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-

@@ -1,10 +1,15 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Profile, Student, Professor, Admin, Enrollment, Course, Assignment, Announcement, Message, Major
+from .models import Profile, Student, Professor, Admin, Enrollment, Course, Assignment, Announcement, Message, Major, Grade, Module
 from django.contrib.auth.forms import UserCreationForm
 import re
+from datetime import datetime, time
 
 class CourseForm(forms.ModelForm):
+    majors = forms.ModelMultipleChoiceField(
+        queryset=Major.objects.all(),
+        widget=forms.CheckboxSelectMultiple,  # Use checkboxes instead of a dropdown
+    )
     class Meta:
         model = Course
         fields = [
@@ -22,20 +27,13 @@ class CourseForm(forms.ModelForm):
             'capacity',
             'credits',
             'semester',
+            'majors'
         ]
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'end_date': forms.DateInput(attrs={'type': 'date'}),
             'start_time': forms.TimeInput(attrs={'type': 'time'}),
             'end_time': forms.TimeInput(attrs={'type': 'time'}),
-        }
-
-class GradeForm(forms.ModelForm):
-    class Meta:
-        model = Enrollment
-        fields = ['grade']
-        widgets = {
-            'grade': forms.TextInput(attrs={'max_length': 4}),
         }
 
 
@@ -277,9 +275,25 @@ class ProfessorRegistrationForm(UserCreationForm):
         return user
     
 class AssignmentForm(forms.ModelForm):
+    EXTRA_TIME_CHOICES = [
+        (2, "2 days"),
+        (3, "3 days"),
+        (5, "5 days"),
+        (7, "7 days"),
+        (-1, "Unlimited time"),
+        (0, "None"),
+    ]
+
+    extra_time_period = forms.ChoiceField(
+        choices=EXTRA_TIME_CHOICES,
+        initial=2,  # Default to 2 days
+        widget=forms.Select(attrs={"class": "form-control"}),
+        help_text="Set an extra time period for late submissions."
+    )
+
     class Meta:
         model = Assignment
-        fields = ['title', 'description', 'start_date', 'start_time', 'due_date', 'due_time']
+        fields = ['title', 'description', 'start_date', 'start_time', 'due_date', 'due_time', 'extra_time_period', 'module']
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'start_time': forms.TimeInput(attrs={'type': 'time'}),
@@ -290,13 +304,7 @@ class AssignmentForm(forms.ModelForm):
 class AnnouncementForm(forms.ModelForm):
     class Meta:
         model = Announcement
-        fields = ['title', 'details', 'start_date', 'start_time', 'due_date', 'due_time']
-        widgets = {
-            'start_date': forms.DateInput(attrs={'type': 'date'}),
-            'start_time': forms.TimeInput(attrs={'type': 'time'}),
-            'due_date': forms.DateInput(attrs={'type': 'date'}),
-            'due_time': forms.TimeInput(attrs={'type': 'time'}),
-        }
+        fields = ['title', 'details', 'module']
 
 class MessageForm(forms.ModelForm):
     class Meta:
@@ -320,4 +328,15 @@ class MajorChangeForm(forms.ModelForm):
     major = forms.ModelChoiceField(queryset=Major.objects.all(), empty_label="Select a Major")
 
 
+class GradeForm(forms.ModelForm):
+    major = forms.ModelChoiceField(queryset=Major.objects.all(), empty_label="Select a Major")
+    grade = forms.ChoiceField(choices=[('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D'), ('F', 'F')])
 
+    class Meta:
+        model = Grade
+        fields = ['student', 'assignment', 'grade', 'major']
+
+class ModuleForm(forms.ModelForm):
+    class Meta:
+        model = Module
+        fields = ['title', 'description']

@@ -62,21 +62,4 @@
         </form>
     </div>
 
-    <!-- Display Existing Assignments -->
-    <div class="section">
-        <h2>Assignments</h2>
-        <ul class="assignment-list">
-            {% for assignment in assignments %}
-            <li class="assignment-item">
-                <h3>{{ assignment.title }}</h3>
-                <p><strong>Description:</strong> {{ assignment.description }}</p>
-                <p><strong>Start Date:</strong> {{ assignment.start_date|date:"F j, Y" }} at {{ assignment.start_time|date:"h:i a" }}</p>
-                <p><strong>Due Date:</strong> {{ assignment.due_date|date:"F j, Y" }} at {{ assignment.due_time|date:"h:i a" }}</p>
-            </li>
-            {% empty %}
-            <p>No assignments available for this class.</p>
-            {% endfor %}
-        </ul>
-    </div>
-</div>
 {% endblock %}

@@ -1,7 +1,15 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.utils import timezone
 
+class Major(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+    
 class Course(models.Model):
     SEMESTER_CHOICES = [
         ('fall', 'Fall'),
@@ -23,14 +31,9 @@ class Course(models.Model):
     credits = models.IntegerField(default=3)
     professor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name='courses', null=True, blank=True)
     semester = models.CharField(max_length=10, choices=SEMESTER_CHOICES, default='fall')
-    major_id = models.IntegerField()
+    majors = models.ManyToManyField(Major, related_name='courses')
+    office_hours = models.CharField(max_length=100, blank=True, null=True)
 
-    def __str__(self):
-        return self.name
-    
-class Major(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    description = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -109,9 +112,9 @@ class Profile(models.Model):
         ('admin', 'Admin'),
     )
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)  # Fixed: 'User' instead of 'user', and 'on_delete'
     id_number = models.CharField(max_length=20)
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')  # Fixed: '=' instead of '-'
     first_name = models.CharField(max_length=30, blank=True)
     last_name = models.CharField(max_length=30, blank=True)
     email = models.EmailField()
@@ -120,13 +123,24 @@ class Profile(models.Model):
     dark_mode = models.BooleanField(default=False)
     font_size = models.CharField(max_length=10, default='medium')
     ui_preset = models.CharField(max_length=20, default='classic')
-    
+
     def __str__(self):
         return self.user.username
         
     @property
     def student(self):
         return getattr(self.user, 'student', None)
+
+
+class Module(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='modules')
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
 
 class Assignment(models.Model):
     title = models.CharField(max_length=200)
@@ -135,10 +149,54 @@ class Assignment(models.Model):
     start_time = models.TimeField(null=True, blank=True)
     due_date = models.DateField()
     due_time = models.TimeField(null=True, blank=True)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    course = models.ForeignKey('Course', on_delete=models.CASCADE)  # Use string reference
+    is_closed = models.BooleanField(default=False)
+    is_completed = models.BooleanField(default=False)
+    extra_time_period = models.IntegerField(
+        default=2,  # Default to 2 days
+        help_text="Extra time (in days) for late submissions. Set to 0 for no extra time."
+    )
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name='assignment_modules', null=True, blank=True)
 
     def __str__(self):
         return self.title
+
+    def days_left(self):
+        now = timezone.now().date()  # Get today's date
+
+        if self.extra_time_period > 0:  # Extra time allowed
+            late_due_date = self.due_date + timezone.timedelta(days=self.extra_time_period)
+            days_left = (late_due_date - now).days
+
+            # Only show days left if the assignment is late or reopened
+            if now > self.due_date:  # Assignment is late
+                if days_left == 0:
+                    return "1 DAY LEFT"
+                elif days_left > 0:
+                    return f"{days_left} DAY(S) LEFT"
+                else:
+                    return "CLOSED"
+            else:
+                return None  # Don't show days left if not late
+        else:  # No extra time
+            if now > self.due_date:
+                return "CLOSED"
+            else:
+                return None  # Don't show days left if not late
+
+    def check_and_close_assignment(self):
+        """
+        Automatically close the assignment if the late submission period has passed.
+        """
+        if self.extra_time_period > 0:  # Extra time allowed
+            late_due_date = self.due_date + timezone.timedelta(days=self.extra_time_period)
+            if timezone.now().date() > late_due_date:
+                self.is_closed = True
+                self.save()
+        else:  # No extra time
+            if timezone.now().date() > self.due_date:
+                self.is_closed = True
+                self.save()
 
 class Submission(models.Model):
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name='submissions')
@@ -158,6 +216,7 @@ class Announcement(models.Model):
     due_time = models.TimeField(null=True, blank=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     posted_at = models.DateTimeField(auto_now_add=True)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name='announcement_modules', null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -186,3 +245,26 @@ class Message(models.Model):
         self.save()
 
 
+class UserAssignmentCompletion(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='completed_assignments')
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name='user_completions')
+    is_completed = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('user', 'assignment')  # Ensure each user can only have one completion record per assignment
+
+    def __str__(self):
+        return f"{self.user.username} - {self.assignment.title} (Completed: {self.is_completed})"
+    
+class Grade(models.Model):
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
+    assignment = models.ForeignKey('Assignment', on_delete=models.CASCADE, null=True, blank=True)
+    grade = models.CharField(max_length=2, choices=[('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D'), ('F', 'F')])
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('student', 'assignment')
+
+    def __str__(self):
+        return f"{self.student.username} - {self.assignment.title} - {self.grade}"
+    

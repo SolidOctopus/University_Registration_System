@@ -1,80 +1,86 @@
-{% extends 'base.html' %}
+{% extends 'topbar.html' %}
+{% block hanging_nav %}
+    {% include 'course_sidebar.html' %}
+{% endblock %}
+
 {% block content %}
 <div class="page-container">
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <h1 class="class-name">{{ course.name }}</h1>
-        <h2>{{ course.professor.user.first_name }} {{ course.professor.user.last_name }}</h2>
-        <ul class="sidebar-menu">
-            <li><a href="{% url 'course_overview' course.id %}">Overview</a></li>
-            <li><a href="{% url 'professor_info' course.id %}">Professor Info</a></li>
-            <li><a href="{% url 'course_syllabus' course.id %}">Syllabus</a></li>
-            <li><a href="{% url 'course_modules' course.id %}">Modules</a></li>
-            <li><a href="{% url 'course_assignments' course.id %}">Assignments</a></li>
-            <li><a href="{% url 'course_announcements' course.id %}">Announcements</a></li>
-            <li><a href="{% url 'course_grades' course.id %}">Grades</a></li>
-        </ul>
-    </div>
+    <!-- Include the sidebar -->
+    {% include 'course_sidebar.html' %}
 
     <!-- Main Content -->
     <div class="main-content">
         <div class="container">
             <h1>{{ course.name }} - Assignments</h1>
+
+            <!-- Add New Assignment Button (Only for Professors/Admins) -->
+            {% if user.profile.role != 'student' %}
+                <div class="add-assignment-container">
+                    <a href="{% url 'create_assignment' course.id %}" class="btn-add">Add New Assignment</a>
+                </div>
+            {% endif %}
+
+            <!-- Filter Buttons -->
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All Assignments</button>
+                <button class="filter-btn" data-filter="upcoming">Upcoming Assignments</button>
+                <button class="filter-btn" data-filter="this-week">This Week</button>
+                <button class="filter-btn" data-filter="past">Past Assignments</button>
+            </div>
+
+            <!-- Assignments List -->
             <div class="assignments-list">
                 <h2>Assignments</h2>
-                <ul>
+                <div class="assignment-grid">
                     {% for assignment in assignments %}
-                    <li class="assignment-item">{{ assignment.title }} - Due: {{ assignment.due_date|date:"F j, Y" }}</li>
+                        <div class="assignment-card 
+                            {% if assignment.is_completed_for_user %}completed
+                            {% elif assignment.is_closed %}past-due-closed
+                            {% elif assignment.due_date < current_date %}past-due-accessible
+                            {% endif %}"
+                            data-due-date="{{ assignment.due_date|date:'Y-m-d' }}">
+                            <a href="{% url 'assignment_details' course.id assignment.id %}" class="assignment-link">
+                                <div class="assignment-header">
+                                    <span class="due-date-bold">{{ assignment.due_date|date:"F j, Y" }}</span>
+                                    <span class="due-time">{{ assignment.due_time|default:"11:59 PM"|time:"g:i A" }}</span>
+                                    <!-- Status Text -->
+                                    <span class="status-text 
+                                        {% if assignment.is_closed %}status-closed
+                                        {% elif assignment.is_completed_for_user and assignment.due_date < current_date %}status-late
+                                        {% elif assignment.is_completed_for_user %}status-completed
+                                        {% elif assignment.days_left %}status-days-left
+                                        {% endif %}">
+                                        {% if assignment.is_closed %}CLOSED
+                                        {% elif assignment.is_completed_for_user and assignment.due_date < current_date %}LATE
+                                        {% elif assignment.is_completed_for_user %}COMPLETED
+                                        {% elif assignment.days_left %}{{ assignment.days_left|upper }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="assignment-body">
+                                    <h3 class="assignment-title">{{ assignment.title }}</h3>
+                                    <p class="assignment-description">{{ assignment.description|truncatechars:100 }}</p>
+                                </div>
+                            </a>
+                            <!-- Edit Assignment Button (Only for Professors/Admins) -->
+                            {% if user.profile.role != 'student' %}
+                                <div class="assignment-footer">
+                                    <a href="{% url 'edit_assignment' course.id assignment.id %}" class="btn-edit">Edit Assignment</a>
+                                </div>
+                            {% endif %}
+                        </div>
                     {% endfor %}
-                </ul>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Sidebar Styling -->
+<!-- Main Content Styling -->
 <style>
     .page-container {
         display: flex;
         flex-direction: row;
-    }
-    .sidebar {
-        width: 200px; /* Adjust sidebar width */
-        background-color: #34495e;
-        color: white;
-        padding: 20px;
-        height: 100vh;
-        position: fixed; /* Keep it fixed to the left */
-        top: 0;
-        left: 0;
-        border-radius: 0 10px 10px 0;
-    }
-    .sidebar h2 {
-        font-size: 1.5em;
-        margin-bottom: 25px;
-        text-align: center;
-        border-bottom: 1px solid #7f8c8d;
-        padding-bottom: 10px;
-    }
-    .sidebar-menu {
-        list-style: none;
-        padding: 0;
-    }
-    .sidebar-menu li {
-        margin: 20px 0;
-    }
-    .sidebar-menu li a {
-        color: white;
-        text-decoration: none;
-        font-size: 1.1em;
-        display: block;
-        padding: 12px 15px;
-        border-radius: 5px;
-        transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
-    }
-    .sidebar-menu li a:hover {
-        background-color: #1abc9c;
-        color: #2c3e50;
     }
     .main-content {
         width: calc(100% - 240px);
@@ -97,24 +103,213 @@
         color: #2980b9;
         margin-bottom: 20px;
     }
-    .professor-details {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: left;
-        font-size: 1.2em;
-        line-height: 1.6;
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    .professor-image {
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
+    .add-assignment-container {
+        text-align: right;
         margin-bottom: 20px;
     }
-</style>
-{% endblock %}
+    .btn-add {
+        background-color: #2980b9;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        transition: background-color 0.3s ease-in-out;
+    }
+    .btn-add:hover {
+        background-color: #1abc9c;
+    }
+    .filter-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .filter-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        background-color: #2980b9;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.3s ease-in-out;
+    }
+    .filter-btn.active {
+        background-color: #1abc9c;
+    }
+    .filter-btn:hover {
+        background-color: #1abc9c;
+    }
+    .assignments-list {
+        margin-top: 20px;
+    }
+    .assignment-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    .assignment-card {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 15px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        padding: 25px;
+        margin-bottom: 25px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+    }
+    .assignment-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1);
+    }
+    .assignment-header {
+        text-align: left;
+        margin-bottom: 15px;
+    }
+    .due-date-bold {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+    .due-time {
+        font-size: 0.9em;
+        color: #7f8c8d;
+        display: block;
+    }
+    .assignment-body {
+        text-align: center;
+        margin-top: 15px;
+    }
+    .assignment-title {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        text-decoration: none;
+    }
+    .assignment-description {
+        font-size: 1em;
+        color: #34495e;
+        word-wrap: break-word;
+    }
+    .assignment-footer {
+        display: flex;
+        justify-content: flex-start;
+        margin-top: 20px;
+    }
+    .btn-edit {
+        background-color: #3498db;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    .btn-edit:hover {
+        background-color: #2980b9;
+        transform: translateY(-3px);
+    }
 
+    /* Green border for completed assignments */
+    .assignment-card.completed {
+        border: 2px solid #4CAF50;
+        background-color: rgba(76, 175, 80, 0.1);
+    }
+
+    /* Yellow border for past-due but accessible assignments */
+    .assignment-card.past-due-accessible {
+        border: 2px solid #FFA500;
+        background-color: rgba(255, 165, 0, 0.1);
+    }
+
+    /* Red border for closed assignments */
+    .assignment-card.past-due-closed {
+        border: 2px solid #e74c3c;
+        background-color: rgba(231, 76, 60, 0.1);
+    }
+
+    /* Remove underline from assignment links */
+    .assignment-link {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    /* Status Text Styling */
+    .status-text {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-weight: bold;
+        color: white;
+        text-transform: uppercase;
+    }
+
+    .status-closed {
+        background-color: #e74c3c; /* Bright red for closed assignments */
+    }
+
+    .status-late {
+        background-color: #FFA500;
+    }
+
+    .status-completed {
+        background-color: #4CAF50;
+    }
+
+    .status-days-left {
+        background-color: #FFA500;
+        color: white;
+    }
+</style>
+
+<!-- JavaScript for Filtering -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const assignmentCards = document.querySelectorAll('.assignment-card');
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                // Remove active class from all buttons
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                // Add active class to the clicked button
+                this.classList.add('active');
+
+                const filter = this.getAttribute('data-filter');
+                const currentDate = new Date();
+                const startOfWeek = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay()));
+                const endOfWeek = new Date(currentDate.setDate(currentDate.getDate() + 6));
+
+                assignmentCards.forEach(card => {
+                    const dueDate = card.getAttribute('data-due-date');
+                    const dueDateObj = new Date(dueDate);
+
+                    if (filter === 'all') {
+                        card.style.display = 'block';
+                    } else if (filter === 'upcoming') {
+                        if (dueDateObj > currentDate) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    } else if (filter === 'this-week') {
+                        if (dueDateObj >= startOfWeek && dueDateObj <= endOfWeek) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    } else if (filter === 'past') {
+                        if (dueDateObj < currentDate) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}
