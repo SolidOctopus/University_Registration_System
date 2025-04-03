@@ -50,6 +50,22 @@
             margin-bottom: 10px;
             border-radius: 5px;
         }
+        /* Style for form fields */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        /* Style for module selection */
+        select#id_module {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: white;
+        }
     </style>
 
     <!-- Announcement Form -->
@@ -64,6 +80,11 @@
             <div class="form-group">
                 <label for="id_details">Details:</label>
                 {{ announcement_form.details }}
+            </div>
+            <div class="form-group">
+                <label for="id_module">Module (optional):</label>
+                {{ announcement_form.module }}
+                <small class="text-muted">Select which module this announcement belongs to</small>
             </div>
             <button type="submit" name="add_announcement" class="btn">Add Announcement</button>
         </form>

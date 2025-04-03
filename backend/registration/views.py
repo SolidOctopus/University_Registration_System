@@ -926,8 +926,30 @@ def get_assignments(request):
 
 def professor_info(request, course_id):
     course = get_object_or_404(Course, id=course_id)
-    professor = course.professor
-    return render(request, 'professor_info.html', {'course': course, 'professor': professor})
+    professor = course.professor.professor
+    can_edit = (request.user == professor.user)
+    
+    if request.method == 'POST' and can_edit:
+        # Update office hours (course-specific)
+        office_hours = request.POST.get('office_hours', '').strip()
+        course.office_hours = office_hours if office_hours else 'Not specified'
+        course.save()
+        
+        # Update biography (profile-specific)
+        bio = request.POST.get('bio', '').strip()
+        profile = professor.user.profile
+        profile.bio = bio if bio else 'No biography available'
+        profile.save()
+        
+        messages.success(request, 'Profile updated successfully!')
+        return redirect('professor_info', course_id=course_id)
+
+    context = {
+        'course': course,
+        'professor': professor,
+        'can_edit': can_edit,
+    }
+    return render(request, 'professor_info.html', context)
 
 def course_syllabus(request, course_id):
     course = get_object_or_404(Course, id=course_id)

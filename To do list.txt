@@ -1,5 +1,6 @@
 -----Majors-----
 -Make sure students can see the classes they need in "my requirements" page in the form of a list.
+-Students cant enroll into classes that arent in their major, they should be able to after the first warning. 
 
 ----SideBar-----
 -Include optimization and and shortcuts to the Shopping cart sidebar.
