@@ -340,3 +340,33 @@ class ModuleForm(forms.ModelForm):
     class Meta:
         model = Module
         fields = ['title', 'description']
+
+class MajorForm(forms.ModelForm):
+    class Meta:
+        model = Major
+        fields = ['name', 'description']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter major name'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter description',
+                'rows': 3
+            })
+        }
+        labels = {
+            'name': 'Major Name',
+            'description': 'Description'
+        }
+        help_texts = {
+            'name': 'Enter the official name of the major',
+            'description': 'Provide a brief description of the major'
+        }
+        error_messages = {
+            'name': {
+                'required': 'Major name is required',
+                'unique': 'A major with this name already exists'
+            }
+        }

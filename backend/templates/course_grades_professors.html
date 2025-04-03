@@ -8,50 +8,81 @@
     {% include 'course_sidebar.html' %}
     <div class="main-content">
         <div class="container">
-            <h1>{{ course.name }} - All Students' Grades</h1>
-            <div class="grades-list">
-                <h2>All Students' Grades</h2>
-                {% if all_grades %}
-                    <table class="grades-table">
-                        <thead>
-                            <tr>
-                                <th><a href="?sort=student">Student</a></th>
-                                <th><a href="?sort=assignment">Assignment</a></th>
-                                <th><a href="?sort=grade">Grade</a></th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for grade in all_grades %}
-                            <tr>
-                                <td>{{ grade.student.username }}</td>
-                                <td>{{ grade.assignment.title }}</td>
-                                <td>{{ grade.grade }}</td>
-                                <td>
-                                    <a href="#" class="btn-edit">Edit</a>
-                                    <a href="#" class="btn-delete">Delete</a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                {% else %}
-                    <p>No grades have been recorded yet.</p>
-                {% endif %}
-            </div>
-            <div class="professor-message">
-                <h3>Manage Grades:</h3>
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <button type="submit" class="btn-save">Save Grade</button>
+            <h1>{{ course.name }} - Gradebook</h1>
+            
+            <!-- Assignment Selection -->
+            <div class="assignment-selector">
+                <h2>Select Assignment</h2>
+                <form method="get">
+                    <select name="assignment" class="form-control" onchange="this.form.submit()">
+                        <option value="">-- Select an Assignment --</option>
+                        {% for assignment in assignments %}
+                            <option value="{{ assignment.id }}" {% if selected_assignment.id == assignment.id %}selected{% endif %}>
+                                {{ assignment.title }}
+                            </option>
+                        {% endfor %}
+                    </select>
                 </form>
+            </div>
+
+            <!-- Student Grades Table -->
+            <div class="grades-container">
+                {% if selected_assignment %}
+                    <h2>Student Submissions for {{ selected_assignment.title }}</h2>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="assignment_id" value="{{ selected_assignment.id }}">
+                        <table class="grades-table">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Submission Status</th>
+                                    <th>Current Grade</th>
+                                    <th>Enter Grade (0-100)</th>
+                                    <th>Letter Grade</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for enrollment in enrollments %}
+                                <tr>
+                                    <td>{{ enrollment.student.user.get_full_name }}</td>
+                                    <td>
+                                        <span class="submission-status {% if enrollment.student.has_submitted %}submitted{% else %}not-submitted{% endif %}">
+                                            {% if enrollment.student.has_submitted %}Submitted{% else %}Not Submitted{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if enrollment.student.grades %}
+                                            {{ enrollment.student.grades.numerical_grade }}
+                                        {% else %}
+                                            --
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <input type="number" name="grade_{{ enrollment.student.user.id }}" 
+                                               min="0" max="100" step="0.1"
+                                               value="{{ enrollment.student.grades.numerical_grade|default_if_none:'' }}"
+                                               class="grade-input">
+                                    </td>
+                                    <td class="letter-grade">
+                                        {{ enrollment.student.grades.letter_grade|default_if_none:'--' }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <button type="submit" class="btn-save">Save All Grades</button>
+                    </form>
+                {% else %}
+                    <div class="empty-state">
+                        <p>Please select an assignment to view and grade submissions</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
-<!-- Embedded Styles for Professor/Admin Page -->
 <style>
     .page-container {
         display: flex;
@@ -78,55 +109,109 @@
         color: #2980b9;
         margin-bottom: 20px;
     }
+    .assignment-selector {
+        margin-bottom: 30px;
+        padding: 15px;
+        background-color: white;
+        border-radius: 5px;
+    }
+    .form-control {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
     .grades-table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 20px;
+        background-color: white;
     }
     .grades-table th, .grades-table td {
-        padding: 10px;
+        padding: 12px;
         border: 1px solid #ddd;
         text-align: left;
     }
     .grades-table th {
         background-color: #f5f5f5;
+        font-weight: bold;
     }
-    .grades-table th a {
-        text-decoration: none;
-        color: #2980b9;
-    }
-    .grades-table th a:hover {
-        text-decoration: underline;
-    }
-    .btn-edit, .btn-delete, .btn-save {
-        padding: 5px 10px;
-        margin-right: 5px;
-        text-decoration: none;
+    .grade-input {
+        width: 80px;
+        padding: 5px;
+        border: 1px solid #ddd;
         border-radius: 3px;
     }
-    .btn-edit {
+    .btn-save {
         background-color: #4CAF50;
         color: white;
-    }
-    .btn-delete {
-        background-color: #f44336;
-        color: white;
-    }
-    .btn-save {
-        background-color: #2980b9;
-        color: white;
+        padding: 10px 20px;
         border: none;
+        border-radius: 3px;
         cursor: pointer;
-    }
-    .professor-message {
         margin-top: 20px;
-        padding: 15px;
-        background-color: #fff3e0;
-        border-radius: 5px;
+        font-size: 1em;
     }
-    .professor-message ul {
-        list-style-type: disc;
-        padding-left: 20px;
+    .btn-save:hover {
+        background-color: #45a049;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 30px;
+        color: #666;
+    }
+    .submission-status {
+        padding: 3px 8px;
+        border-radius: 3px;
+        font-size: 0.9em;
+    }
+    .submitted {
+        background-color: #dff0d8;
+        color: #3c763d;
+    }
+    .not-submitted {
+        background-color: #f2dede;
+        color: #a94442;
+    }
+    .letter-grade {
+        font-weight: bold;
+        text-align: center;
     }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const gradeInputs = document.querySelectorAll('.grade-input');
+    
+    gradeInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            const row = this.closest('tr');
+            const letterGradeCell = row.querySelector('.letter-grade');
+            const numericalGrade = parseFloat(this.value);
+            
+            if (!isNaN(numericalGrade) && numericalGrade >= 0 && numericalGrade <= 100) {
+                letterGradeCell.textContent = getLetterGrade(numericalGrade);
+            } else {
+                letterGradeCell.textContent = '--';
+            }
+        });
+    });
+    
+    function getLetterGrade(score) {
+        if (score >= 97) return 'A+';
+        if (score >= 93) return 'A';
+        if (score >= 90) return 'A-';
+        if (score >= 87) return 'B+';
+        if (score >= 83) return 'B';
+        if (score >= 80) return 'B-';
+        if (score >= 77) return 'C+';
+        if (score >= 73) return 'C';
+        if (score >= 70) return 'C-';
+        if (score >= 67) return 'D+';
+        if (score >= 63) return 'D';
+        if (score >= 60) return 'D-';
+        return 'F';
+    }
+});
+</script>
 {% endblock %}

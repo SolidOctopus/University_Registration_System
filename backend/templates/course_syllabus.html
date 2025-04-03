@@ -5,55 +5,157 @@
 
 {% block content %}
 <div class="page-container">
-    <!-- Include the sidebar -->
     {% include 'course_sidebar.html' %}
-
-    <!-- Main Content -->
     <div class="main-content">
         <div class="container">
             <h1>{{ course.name }} - Syllabus</h1>
-            <div class="syllabus-content">
-                <h2>Syllabus</h2>
-                <p>{{ course.syllabus }}</p>
-            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="syllabus-section">
+                    <h2>Course Description</h2>
+                    <textarea name="description" class="syllabus-textarea" 
+                        {% if not can_edit %}disabled{% endif %}
+                        >{{ syllabus_data.description|default:"Enter course description here..." }}</textarea>
+                </div>
+                
+                <div class="syllabus-section">
+                    <h2>Learning Objectives</h2>
+                    <textarea name="objectives" class="syllabus-textarea" 
+                        {% if not can_edit %}disabled{% endif %}
+                        >{{ syllabus_data.objectives|default:"Enter learning objectives here..." }}</textarea>
+                </div>
+                
+                <div class="syllabus-section">
+                    <h2>Grading Policy</h2>
+                    <textarea name="grading_policy" class="syllabus-textarea" 
+                        {% if not can_edit %}disabled{% endif %}
+                        >{{ syllabus_data.grading_policy|default:"Enter grading policy here..." }}</textarea>
+                </div>
+                
+                {% if can_edit %}
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">Save Syllabus</button>
+                </div>
+                {% endif %}
+            </form>
         </div>
     </div>
 </div>
 
-<!-- Main Content Styling -->
 <style>
     .page-container {
         display: flex;
-        flex-direction: row;
+        min-height: 100vh;
     }
+    
     .main-content {
-        width: calc(100% - 240px);
-        margin-left: 240px;
+        flex: 1;
         padding: 30px;
-        background-color: #ecf0f1;
-        border-radius: 10px;
+        background-color: #f8f9fa;
     }
+    
     .container {
-        margin: 20px auto;
-        padding: 20px;
         max-width: 900px;
-        background-color: #f5f5f5;
+        margin: 0 auto;
+        background: white;
         border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        padding: 30px;
     }
+    
     h1 {
         text-align: center;
-        font-size: 2.5em;
-        color: #2980b9;
-        margin-bottom: 20px;
+        color: #2c3e50;
+        font-size: 28px;
+        margin-bottom: 30px;
     }
-    .syllabus-content {
-        font-size: 1.2em;
-        line-height: 1.6;
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    .syllabus-section {
+        margin-bottom: 30px;
+    }
+    
+    .syllabus-section h2 {
+        margin-bottom: 10px;
+        color: #2c3e50;
+        font-size: 20px;
+        text-align: left;
+    }
+    
+    .syllabus-textarea {
+        width: 100%;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        min-height: 150px;
+        font-size: 16px;
+        resize: vertical;
+        text-align: left !important;
+        text-indent: 0 !important;
+        white-space: pre-wrap;
+        direction: ltr !important;
+        unicode-bidi: plaintext !important;
+        font-family: inherit;
+        line-height: 1.5;
+    }
+    
+    .form-actions {
+        text-align: right;
+        margin-top: 20px;
+    }
+    
+    .btn-save {
+        background-color: #27ae60;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.2s;
+    }
+    
+    .btn-save:hover {
+        background-color: #219653;
     }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const textareas = document.querySelectorAll('.syllabus-textarea');
+    
+    textareas.forEach(textarea => {
+        // Force left alignment
+        textarea.style.textAlign = 'left';
+        textarea.style.direction = 'ltr';
+        
+        // Handle all click types
+        const forceTopLeft = function() {
+            setTimeout(() => {
+                textarea.selectionStart = 0;
+                textarea.selectionEnd = 0;
+                textarea.scrollTop = 0;
+            }, 10);
+        };
+        
+        // Set up event listeners
+        textarea.addEventListener('click', forceTopLeft);
+        textarea.addEventListener('touchstart', forceTopLeft);
+        textarea.addEventListener('focus', forceTopLeft);
+        
+        // Prevent middle-click positioning
+        textarea.addEventListener('mousedown', function(e) {
+            if (e.button === 1) { // Middle mouse button
+                e.preventDefault();
+                forceTopLeft();
+            }
+        });
+        
+        // Handle existing content on load
+        if (textarea.value) {
+            textarea.value = textarea.value.trim();
+        }
+    });
+});
+</script>
 {% endblock %}

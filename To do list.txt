@@ -1,51 +1,24 @@
------Majors-----
--Make sure students can see the classes they need in "my requirements" page in the form of a list.
--Students cant enroll into classes that arent in their major, they should be able to after the first warning. 
-
-----SideBar-----
--Include optimization and and shortcuts to the Shopping cart sidebar.
-	Also remove the tittle and logo.
-
--Replace all sidebars with the new updated sidebar.
- 
--Add Profiles (on the top) and settings (on the bottom next to log out) to sidebar.
-
-----Topbar-----
-
--Replace all topbars with the same one
-
--Fix the flashing
-
--Remove seetings and profile
-
--Fix the overlap when you scroll down
-
--add to every page
-
-----Dashboard----
-
-Grades for students
-
-
------Manage classes (Professor) ------
-Grades
-    Porfessors can grade assignments from any class (needs to be only their classes)
-    Get rid of major when grading
-Modules
-    Fix Modles
-assignments
-    Assignments should have a default date of today for start date.
-Fix up the Manage classes list
-
-
-----Messages-----
-Improve how it looks based on what we have on chatgbt
-
-
 -----Academic Records-----
-
 Give a list of all classes a student has already completed.
 
+-----Majors-----
+-Make sure students can see the classes they need in "my requirements" page in the form of a list.
+
+-----Professor (Home)------
+
 ----Finantials----
-Add price to every class
-Make sure they show up for each student taking classes in their "finacials" page in the form of a list.
+(In Models.py, admin course creation and edit will need to be modified) Add price to every class
+(Login as Student, in home pahe) Make sure they show up for each student taking classes in their "finacials" page in the form of a list.
+
+----Messages-----
+(Login as a user, Home page, enter in messages) Make it look better 
+(Login as Professor, in home page) Add messages button like students have it.
+(Login as Admin, in home page) Add messages button like students have it.
+
+----Topbar-----
+-Replace all topbars with the same one
+-Fix the overlap when you scroll down
+-add to every page
+
+-----Bugs-----
+(Login as Student, try to enroll into a class that they are not majoring in) Students can't enroll into classes if they are not majoring in them, they should only get a warning and then be able to enroll.

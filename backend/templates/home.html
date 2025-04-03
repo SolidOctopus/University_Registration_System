@@ -1,4 +1,3 @@
-
 {% include 'topbar.html' %}
 {% load static %}
 {% block content %}
@@ -148,6 +147,12 @@
                 <div class="icon"><i class="fas fa-user-cog"></i></div>
                 <div class="box-content">
                     <span>Admin List</span>
+                </div>
+            </a>
+            <a href="{% url 'major_list' %}" class="box">
+                <div class="icon"><i class="fas fa-graduation-cap"></i></div>
+                <div class="box-content">
+                    <span>Manage Majors</span>
                 </div>
             </a>
         {% elif user.profile.role == 'student' %}
