@@ -3,16 +3,56 @@
 <div class="hanging-nav-container">
     <div class="signs-container">
         {% block hanging_signs %}
-        <a href="{% url 'course_overview' course.id %}" class="sign">Overview</a>
-        <a href="{% url 'professor_info' course.id %}" class="sign">Professor</a>
-        <a href="{% url 'course_syllabus' course.id %}" class="sign">Syllabus</a>
-        <a href="{% url 'course_modules' course.id %}" class="sign">Modules</a>
-        <a href="{% url 'course_assignments' course.id %}" class="sign">Assignments</a>
-        <a href="{% url 'course_announcements' course.id %}" class="sign">Announcements</a>
+        <a href="{% url 'course_overview' course.id %}" class="sign {% if request.resolver_match.url_name == 'course_overview' %}active{% endif %}" data-url-name="course_overview">
+            <span class="sign-content">
+                <i class="fas fa-home sign-icon"></i>
+                <span class="sign-text">Overview</span>
+            </span>
+        </a>
+        <a href="{% url 'professor_info' course.id %}" class="sign {% if request.resolver_match.url_name == 'professor_info' %}active{% endif %}" data-url-name="professor_info">
+            <span class="sign-content">
+                <i class="fas fa-chalkboard-teacher sign-icon"></i>
+                <span class="sign-text">Professor</span>
+            </span>
+        </a>
+        <a href="{% url 'course_syllabus' course.id %}" class="sign {% if request.resolver_match.url_name == 'course_syllabus' %}active{% endif %}" data-url-name="course_syllabus">
+            <span class="sign-content">
+                <i class="fas fa-book-open sign-icon"></i>
+                <span class="sign-text">Syllabus</span>
+            </span>
+        </a>
+        <a href="{% url 'course_modules' course.id %}" class="sign {% if request.resolver_match.url_name == 'course_modules' %}active{% endif %}" data-url-name="course_modules">
+            <span class="sign-content">
+                <i class="fas fa-layer-group sign-icon"></i>
+                <span class="sign-text">Modules</span>
+            </span>
+        </a>
+        <a href="{% url 'course_assignments' course.id %}" class="sign {% if request.resolver_match.url_name == 'course_assignments' %}active{% endif %}" data-url-name="course_assignments">
+            <span class="sign-content">
+                <i class="fas fa-tasks sign-icon"></i>
+                <span class="sign-text">Assignments</span>
+            </span>
+        </a>
+        <a href="{% url 'course_announcements' course.id %}" class="sign {% if request.resolver_match.url_name == 'course_announcements' %}active{% endif %}" data-url-name="course_announcements">
+            <span class="sign-content">
+                <i class="fas fa-bullhorn sign-icon"></i>
+                <span class="sign-text">Announcements</span>
+            </span>
+        </a>
         {% if request.user.profile.role == 'student' %}
-            <a href="{% url 'course_grades_students' course.id %}" class="sign active">Grades</a>
+            <a href="{% url 'course_grades_students' course.id %}" class="sign {% if request.resolver_match.url_name == 'course_grades_students' %}active{% endif %}" data-url-name="course_grades_students">
+                <span class="sign-content">
+                    <i class="fas fa-graduation-cap sign-icon"></i>
+                    <span class="sign-text">Grades</span>
+                </span>
+            </a>
         {% elif request.user.profile.role == 'professor' or request.user.profile.role == 'admin' %}
-            <a href="{% url 'course_grades_professors' course.id %}" class="sign active">Grades</a>
+            <a href="{% url 'course_grades_professors' course.id %}" class="sign {% if request.resolver_match.url_name == 'course_grades_professors' %}active{% endif %}" data-url-name="course_grades_professors">
+                <span class="sign-content">
+                    <i class="fas fa-graduation-cap sign-icon"></i>
+                    <span class="sign-text">Grades</span>
+                </span>
+            </a>
         {% endif %}
         {% endblock %}
     </div>
@@ -22,106 +62,229 @@
     /* Hanging signs container */
     .hanging-nav-container {
         position: relative;
-        height: 90px; /* Increased space */
-        margin-bottom: 25px;
+        height: 150px;
+        margin-bottom: 30px;
         background: transparent;
+        overflow: hidden;
+        z-index: 100;
     }
 
-    /* Signs container */
+    /* Signs container - fixed layout */
     .signs-container {
         display: flex;
         justify-content: center;
-        gap: 25px; /* Increased spacing */
+        gap: 0px;
         position: absolute;
         top: 0;
-        left: 0;
-        right: 0;
-        padding: 0 25px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 0 40px;
         overflow-x: auto;
         scrollbar-width: none;
+        width: fit-content;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .signs-container::-webkit-scrollbar {
         display: none;
     }
 
-    /* Individual signs with swinging animation */
+    /* Larger Weathered Blue Wooden Sign Design */
     .sign {
         position: relative;
-        padding: 12px 22px;
-        background: #2980b9;
-        color: white;
+        padding: 0;
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="190" height="180" viewBox="0 0 190 180"><path d="M15,20 L175,20 C178,20 180,25 180,30 L180,70 C180,75 178,80 175,80 L15,80 C12,80 10,75 10,70 L10,30 C10,25 12,20 15,20 Z" fill="%232a4b6b" stroke="%231a2b3b" stroke-width="1.5"/><path d="M15,20 L175,20 L180,30 L175,40 L15,40 L10,30 Z" fill="%233a5a7a" opacity="0.6"/><path d="M15,60 L175,60 L180,70 L175,80 L15,80 L10,70 Z" fill="%231a2b3b" opacity="0.3"/></svg>') center/100% 100% no-repeat;
+        color: #e6f2ff;
         text-decoration: none;
-        border-radius: 5px;
-        font-weight: 500;
+        font-weight: 600;
         white-space: nowrap;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        margin-top: 0;
+        width: 190px;
+        height: 90px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        filter: drop-shadow(0 8px 12px rgba(0,0,0,0.3));
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        flex-shrink: 0;
         transform-origin: top center;
-        animation: swing 5s infinite ease-in-out;
-        margin-top: 20px; /* Hang lower */
-        transition: all 0.3s ease;
     }
 
-    /* Different animation delays for each sign */
-    .sign:nth-child(1) { animation-delay: 0.1s; }
-    .sign:nth-child(2) { animation-delay: 0.3s; }
-    .sign:nth-child(3) { animation-delay: 0.5s; }
-    .sign:nth-child(4) { animation-delay: 0.2s; }
-    .sign:nth-child(5) { animation-delay: 0.4s; }
-    .sign:nth-child(6) { animation-delay: 0.6s; }
-    .sign:nth-child(7) { animation-delay: 0.3s; }
-
-    /* Rope connection - more natural */
+    /* Rope connection */
     .sign::before {
         content: '';
         position: absolute;
-        top: -18px;
+        top: -20px;
         left: 50%;
-        width: 1.5px;
-        height: 18px;
-        background: linear-gradient(to bottom, #7f8c8d, transparent);
+        width: 4px;
+        height: 20px;
+        background: linear-gradient(to bottom, #6d8fb0, #3a5a78);
         transform: translateX(-50%);
+        z-index: -1;
+        border-radius: 3px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
-    /* Swinging animation */
-    @keyframes swing {
-        0%, 100% { transform: rotate(-3deg); }
-        50% { transform: rotate(3deg); }
+    .sign-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 0px;
+        transform: translateY(-5px);
+        width: 100%;
     }
 
-    /* Hover effects */
+    .sign-icon {
+        font-size: 22px;
+        margin-bottom: 12px;
+        color: #cce0ff;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        transition: all 0.3s ease;
+    }
+
+    .sign-text {
+        font-size: 19px;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        letter-spacing: 0.5px;
+    }
+
+    /* Hover effects with gentle swing */
     .sign:hover {
-        background: #1abc9c;
-        transform: rotate(0deg) scale(1.08);
-        animation: none; /* Stop swinging on hover */
-        z-index: 1;
+        filter: drop-shadow(0 10px 18px rgba(0,0,0,0.4));
+        color: #ffffff;
+        transform: translateY(-5px) rotate(2deg);
+    }
+
+    .sign:hover .sign-icon {
+        color: #ffffff;
+        text-shadow: 0 0 10px rgba(255,255,255,0.6);
+        transform: scale(1.1);
     }
 
     /* Active sign */
     .sign.active {
-        background: #1abc9c;
-        transform: rotate(0deg);
-        box-shadow: 0 6px 15px rgba(0,0,0,0.25);
-        animation: none;
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="190" height="180" viewBox="0 0 190 180"><path d="M15,20 L175,20 C178,20 180,25 180,30 L180,70 C180,75 178,80 175,80 L15,80 C12,80 10,75 10,70 L10,30 C10,25 12,20 15,20 Z" fill="%231a3a5a" stroke="%230a1a2a" stroke-width="1.5"/><path d="M15,20 L175,20 L180,30 L175,40 L15,40 L10,30 Z" fill="%232a4a6a" opacity="0.6"/><path d="M15,60 L175,60 L180,70 L175,80 L15,80 L10,70 Z" fill="%230a1a2a" opacity="0.3"/></svg>') center/100% 100% no-repeat;
+        color: #ffffff;
+        filter: drop-shadow(0 10px 18px rgba(0,0,0,0.5));
+        transform: translateY(-5px);
+    }
+
+    .sign.active .sign-icon {
+        color: #ffffff;
+        text-shadow: 0 0 12px rgba(255,255,255,0.8);
+        transform: scale(1.1);
     }
 
     /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .hanging-nav-container {
+    @media (max-width: 1400px) {
+        .signs-container {
+            gap: 12px;
+        }
+        .sign {
+            width: 180px;
+            height: 85px;
+        }
+    }
+
+    @media (max-width: 1200px) {
+        .signs-container {
+            gap: 10px;
+        }
+        .sign {
+            width: 160px;
             height: 80px;
         }
-        
-        .signs-container {
-            justify-content: flex-start;
-            padding: 0 20px;
-            gap: 18px;
+        .sign-icon {
+            font-size: 20px;
         }
-        
+        .sign-text {
+            font-size: 17px;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .hanging-nav-container {
+            height: 140px;
+        }
         .sign {
-            padding: 10px 18px;
-            font-size: 14px;
-            margin-top: 15px;
+            width: 140px;
+            height: 70px;
+        }
+        .sign-icon {
+            font-size: 18px;
+        }
+        .sign-text {
+            font-size: 16px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .hanging-nav-container {
+            height: 130px;
+        }
+        .signs-container {
+            gap: 8px;
+            padding: 0 30px;
+        }
+        .sign {
+            width: 120px;
+            height: 65px;
+        }
+        .sign-icon {
+            font-size: 17px;
+        }
+        .sign-text {
+            font-size: 15px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .hanging-nav-container {
+            height: 120px;
+        }
+        .signs-container {
+            gap: 6px;
+            padding: 0 20px;
+            justify-content: flex-start;
+        }
+        .sign {
+            width: 110px;
+            height: 55px;
+        }
+        .sign-icon {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        .sign-text {
+            font-size: 13px;
         }
     }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set initial active state based on current URL
+    const currentUrlName = "{{ request.resolver_match.url_name }}";
+    const signs = document.querySelectorAll('.sign');
+    
+    signs.forEach(sign => {
+        // Update active state on page load
+        if (sign.dataset.urlName === currentUrlName) {
+            sign.classList.add('active');
+        }
+        
+        // Click handler - let the link work normally
+        sign.addEventListener('click', function() {
+            signs.forEach(s => s.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Prevent container width changes
+    const signsContainer = document.querySelector('.signs-container');
+    const initialWidth = signsContainer.scrollWidth;
+    signsContainer.style.minWidth = `${initialWidth}px`;
+});
+</script>
 {% endblock %}
