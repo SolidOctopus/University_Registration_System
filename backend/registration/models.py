@@ -259,12 +259,37 @@ class UserAssignmentCompletion(models.Model):
 class Grade(models.Model):
     student = models.ForeignKey(User, on_delete=models.CASCADE)
     assignment = models.ForeignKey('Assignment', on_delete=models.CASCADE, null=True, blank=True)
-    grade = models.CharField(max_length=2, choices=[('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D'), ('F', 'F')])
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    numerical_grade = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    letter_grade = models.CharField(max_length=2, blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now)  # Default but not auto_now_add
+    updated_at = models.DateTimeField(auto_now=True)         # Still auto_now
 
-    class Meta:
-        unique_together = ('student', 'assignment')
 
-    def __str__(self):
-        return f"{self.student.username} - {self.assignment.title} - {self.grade}"
-    
+    def save(self, *args, **kwargs):
+        if self.numerical_grade is not None:
+            self.letter_grade = self.numerical_to_letter_grade(self.numerical_grade)
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def numerical_to_letter_grade(score):
+        if score is None:
+            return None
+        try:
+            score = float(score)
+        except (ValueError, TypeError):
+            return None
+            
+        if score >= 97: return 'A+'
+        elif score >= 93: return 'A'
+        elif score >= 90: return 'A-'
+        elif score >= 87: return 'B+'
+        elif score >= 83: return 'B'
+        elif score >= 80: return 'B-'
+        elif score >= 77: return 'C+'
+        elif score >= 73: return 'C'
+        elif score >= 70: return 'C-'
+        elif score >= 67: return 'D+'
+        elif score >= 63: return 'D'
+        elif score >= 60: return 'D-'
+        else: return 'F'

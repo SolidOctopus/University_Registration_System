@@ -3,8 +3,8 @@ from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import PasswordResetForm
 from django.http import JsonResponse
-from .models import Course, Student, Professor, Admin, Profile, Enrollment, Assignment, Announcement, Cart, Message, Submission, UserAssignmentCompletion, Grade, Module
-from .forms import CourseForm, MajorChangeForm, StudentForm, ProfessorForm, AdminForm, GradeForm, ProfileForm, UserRegistrationForm, StudentRegistrationForm, ProfessorRegistrationForm, AssignmentForm, AnnouncementForm, ModuleForm
+from .models import Course, Student, Professor, Admin, Profile, Enrollment, Assignment, Announcement, Cart, Message, Submission, UserAssignmentCompletion, Grade, Module, Major
+from .forms import CourseForm, MajorChangeForm, StudentForm, ProfessorForm, AdminForm, GradeForm, ProfileForm, UserRegistrationForm, StudentRegistrationForm, ProfessorRegistrationForm, AssignmentForm, AnnouncementForm, ModuleForm, MajorForm
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db import transaction, IntegrityError
@@ -14,6 +14,7 @@ from datetime import datetime, timedelta, date, time
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
+import json
 
 def register_view(request):
     if request.method == 'POST':
@@ -953,7 +954,30 @@ def professor_info(request, course_id):
 
 def course_syllabus(request, course_id):
     course = get_object_or_404(Course, id=course_id)
-    return render(request, 'course_syllabus.html', {'course': course})
+    can_edit = request.user == course.professor
+    
+    # Load syllabus data from course.description (stored as JSON)
+    try:
+        syllabus_data = json.loads(course.description) if course.description else {}
+    except:
+        syllabus_data = {}
+    
+    if request.method == 'POST' and can_edit:
+        syllabus_data = {
+            'description': request.POST.get('description', ''),
+            'objectives': request.POST.get('objectives', ''),
+            'grading_policy': request.POST.get('grading_policy', '')
+        }
+        course.description = json.dumps(syllabus_data)
+        course.save()
+        return redirect('course_syllabus', course_id=course.id)
+    
+    context = {
+        'course': course,
+        'syllabus_data': syllabus_data,
+        'can_edit': can_edit
+    }
+    return render(request, 'course_syllabus.html', context)
 
 def course_modules(request, course_id):
     course = get_object_or_404(Course, id=course_id)
@@ -1002,37 +1026,72 @@ def course_grades_students(request, course_id):
     })
 
 def course_grades_professors(request, course_id):
-    # Fetch the course
     course = get_object_or_404(Course, id=course_id)
-
-    # Fetch all grades for the course
-    all_grades = Grade.objects.filter(course=course)
-
-    # Handle form submission for adding/editing grades
-    if request.method == 'POST':
-        form = GradeForm(request.POST)
-        if form.is_valid():
-            student = form.cleaned_data['student']
-            assignment = form.cleaned_data['assignment']
-
-            # Check if a grade already exists for this student and assignment
-            if Grade.objects.filter(student=student, assignment=assignment).exists():
-                messages.error(request, "This student already has a grade for this assignment.")
-            else:
-                grade = form.save(commit=False)
-                grade.course = course
-                grade.save()
-                messages.success(request, "Grade saved successfully!")
+    assignments = Assignment.objects.filter(course=course)
+    
+    # Get selected assignment
+    selected_assignment = None
+    assignment_id = request.GET.get('assignment')
+    if assignment_id:
+        selected_assignment = get_object_or_404(Assignment, id=assignment_id)
+    
+    # Handle grade submission
+    if request.method == 'POST' and selected_assignment:
+        try:
+            with transaction.atomic():
+                for enrollment in Enrollment.objects.filter(course=course):
+                    student = enrollment.student
+                    grade_key = f'grade_{student.user.id}'
+                    numerical_grade = request.POST.get(grade_key)
+                    
+                    if numerical_grade and numerical_grade.strip():
+                        try:
+                            numerical_grade = float(numerical_grade)
+                            if 0 <= numerical_grade <= 100:
+                                Grade.objects.update_or_create(
+                                    student=student.user,
+                                    assignment=selected_assignment,
+                                    course=course,
+                                    defaults={
+                                        'numerical_grade': numerical_grade,
+                                        # letter_grade will be auto-set in save()
+                                    }
+                                )
+                        except ValueError:
+                            pass  # Ignore invalid grade entries
+                
+                messages.success(request, 'Grades saved successfully!')
                 return redirect('course_grades_professors', course_id=course.id)
-    else:
-        form = GradeForm()
-
-    # Render the professor-specific grades template
-    return render(request, 'course_grades_professors.html', {
+        except Exception as e:
+            messages.error(request, f'Error saving grades: {str(e)}')
+    
+    # Prepare enrollment data with submission status
+    enrollments = []
+    for enrollment in Enrollment.objects.filter(course=course).select_related('student'):
+        student_data = {
+            'user': enrollment.student.user,
+            'has_submitted': Submission.objects.filter(
+                assignment=selected_assignment,
+                student=enrollment.student
+            ).exists() if selected_assignment else False,
+            'grades': Grade.objects.filter(
+                student=enrollment.student.user,
+                course=course,
+                assignment=selected_assignment
+            ).first() if selected_assignment else None
+        }
+        enrollments.append({
+            'student': student_data,
+            'enrollment': enrollment
+        })
+    
+    context = {
         'course': course,
-        'all_grades': all_grades,
-        'form': form,
-    })
+        'assignments': assignments,
+        'selected_assignment': selected_assignment,
+        'enrollments': enrollments,
+    }
+    return render(request, 'course_grades_professors.html', context)
 
 def shopping_cart_view(request):
     # Get the current student's cart items
@@ -1475,3 +1534,38 @@ def module_detail(request, course_id, module_id):
         'current_date': current_date,
     }
     return render(request, 'module_detail.html', context)
+def major_list(request):
+    majors = Major.objects.all()
+    return render(request, 'major_list.html', {'majors': majors})
+
+def major_create(request):
+    if request.method == 'POST':
+        form = MajorForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('major_list')
+    else:
+        form = MajorForm()
+    return render(request, 'major_form.html', {'form': form})
+
+def major_edit(request, pk):
+    major = get_object_or_404(Major, pk=pk)
+    if request.method == 'POST':
+        form = MajorForm(request.POST, instance=major)
+        if form.is_valid():
+            form.save()
+            return redirect('major_list')
+    else:
+        form = MajorForm(instance=major)
+    return render(request, 'major_form.html', {'form': form})
+
+def major_delete(request, pk):
+    major = get_object_or_404(Major, pk=pk)
+    if request.method == 'POST':
+        major.delete()
+        return redirect('major_list')
+    return render(request, 'major_confirm_delete.html', {'major': major})
+
+def major_detail(request, pk):
+    major = get_object_or_404(Major, pk=pk)
+    return render(request, 'major_detail.html', {'major': major})
