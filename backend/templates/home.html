@@ -131,28 +131,28 @@
                     <span>Student List</span>
                 </div>
             </a>
-            <a href="{% url 'course_list' %}" class="box">
-                <div class="icon"><i class="fas fa-book"></i></div>
-                <div class="box-content">
-                    <span>Course List</span>
-                </div>
-            </a>
             <a href="{% url 'professor_list' %}" class="box">
                 <div class="icon"><i class="fas fa-chalkboard-teacher"></i></div>
                 <div class="box-content">
                     <span>Professor List</span>
                 </div>
             </a>
-            <a href="{% url 'admin_list' %}" class="box">
-                <div class="icon"><i class="fas fa-user-cog"></i></div>
+            <a href="{% url 'course_list' %}" class="box">
+                <div class="icon"><i class="fas fa-book"></i></div>
                 <div class="box-content">
-                    <span>Admin List</span>
+                    <span>Course List</span>
                 </div>
             </a>
             <a href="{% url 'major_list' %}" class="box">
                 <div class="icon"><i class="fas fa-graduation-cap"></i></div>
                 <div class="box-content">
                     <span>Manage Majors</span>
+                </div>
+            </a>
+            <a href="{% url 'admin_list' %}" class="box">
+                <div class="icon"><i class="fas fa-user-cog"></i></div>
+                <div class="box-content">
+                    <span>Admin List</span>
                 </div>
             </a>
         {% elif user.profile.role == 'student' %}

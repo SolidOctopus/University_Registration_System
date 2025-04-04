@@ -1,10 +1,210 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>{% if form.instance.pk %}Edit{% else %}Create{% endif %} Major</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Save</button>
-    <a href="{% url 'major_list' %}">Cancel</a>
-</form>
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    h2 {
+        color: #08063f;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #08063f;
+    }
+    .form-group input[type="text"],
+    .form-group textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    .form-group textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+    .form-actions {
+        margin-top: 20px;
+        display: flex;
+        justify-content: space-between;
+    }
+    .btn {
+        padding: 8px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        text-decoration: none;
+        display: inline-block;
+    }
+    .btn-save {
+        background-color: #08063f;
+        color: #e8cd7d;
+    }
+    .btn-save:hover {
+        background-color: #0a0750;
+    }
+    .btn-cancel {
+        background-color: #e8cd7d;
+        color: #08063f;
+        border: 1px solid #08063f;
+    }
+    .btn-cancel:hover {
+        background-color: #f0d78c;
+    }
+    .errorlist {
+        color: #dc3545;
+        margin-top: 5px;
+        padding-left: 0;
+        list-style: none;
+    }
+    .helptext {
+        font-size: 0.8em;
+        color: #6c757d;
+        display: block;
+        margin-top: 5px;
+    }
+    /* Course selection styles */
+    .course-selection {
+        margin-top: 30px;
+        border-top: 1px solid #ddd;
+        padding-top: 20px;
+    }
+    .course-search {
+        display: flex;
+        margin-bottom: 15px;
+        gap: 10px;
+    }
+    .course-search input {
+        flex-grow: 1;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    .course-list-container {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        background-color: #f9f9f9;
+    }
+    .course-list {
+        padding: 10px;
+    }
+    .course-item {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+        border-bottom: 1px solid #eee;
+    }
+    .course-item:last-child {
+        border-bottom: none;
+    }
+    .course-checkbox {
+        margin-right: 10px;
+    }
+    .course-info {
+        flex-grow: 1;
+    }
+    .no-courses {
+        padding: 15px;
+        text-align: center;
+        color: #666;
+        font-style: italic;
+    }
+</style>
+
+<div class="form-container">
+    <h2>{% if form.instance.pk %}Edit{% else %}Create{% endif %} Major</h2>
+    <form method="post" id="major-form">
+        {% csrf_token %}
+        
+        {% for field in form %}
+        <div class="form-group">
+            {{ field.label_tag }}
+            {% if field.help_text %}
+                <span class="helptext">{{ field.help_text }}</span>
+            {% endif %}
+            {{ field }}
+            {% if field.errors %}
+                <ul class="errorlist">
+                    {% for error in field.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        <!-- Course Selection Section -->
+        <div class="course-selection">
+            <h3>Associated Courses</h3>
+            <div class="course-search">
+                <input type="text" id="course-search" placeholder="Search courses..." 
+                       onkeydown="if(event.key === 'Enter') { event.preventDefault(); filterCourses(); }">
+                <button type="button" class="btn btn-save" onclick="filterCourses()">Search</button>
+            </div>
+            <div class="course-list-container">
+                <div class="course-list" id="course-list">
+                    {% for course in all_courses %}
+                    <div class="course-item">
+                        <input type="checkbox" 
+                               form="major-form"
+                               name="courses" 
+                               value="{{ course.id }}"
+                               id="course-{{ course.id }}"
+                               class="course-checkbox"
+                               {% if course in form.instance.courses.all %}checked{% endif %}>
+                        <label for="course-{{ course.id }}" class="course-info">
+                            {{ course.name }} ({{ course.course_code }}) - 
+                            {% if course.professor %}
+                                {{ course.professor.last_name }}
+                            {% else %}
+                                No professor assigned
+                            {% endif %}
+                        </label>
+                    </div>
+                    {% empty %}
+                    <div class="no-courses">No courses available</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-save">Save</button>
+            <a href="{% url 'major_list' %}" class="btn btn-cancel">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    function filterCourses() {
+        const searchTerm = document.getElementById('course-search').value.toLowerCase();
+        const courseItems = document.querySelectorAll('.course-item');
+        
+        courseItems.forEach(item => {
+            const courseText = item.textContent.toLowerCase();
+            item.style.display = courseText.includes(searchTerm) ? 'flex' : 'none';
+        });
+    }
+
+    // Initialize with all courses visible
+    document.addEventListener('DOMContentLoaded', function() {
+        filterCourses();
+    });
+</script>
 {% endblock %}

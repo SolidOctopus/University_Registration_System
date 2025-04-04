@@ -93,8 +93,23 @@ def home_view(request):
     return render(request, 'home.html', {'user_role': user_role})
 
 def course_list(request):
-    courses = Course.objects.all()
-    return render(request, 'registration/course_list.html', {'courses': courses})
+    query = request.GET.get('q', '')
+    
+    if query:
+        courses = Course.objects.filter(
+            Q(name__icontains=query) |
+            Q(course_code__icontains=query) |
+            Q(description__icontains=query) |
+            Q(location__icontains=query) |
+            Q(days__icontains=query) |
+            Q(professor__first_name__icontains=query) |
+            Q(professor__last_name__icontains=query) |
+            Q(majors__name__icontains=query)
+        ).distinct()
+    else:
+        courses = Course.objects.all()
+    
+    return render(request, 'registration/course_list.html', {'courses': courses, 'query': query})
 
 def course_create(request):
     if request.method == 'POST':
@@ -1534,30 +1549,54 @@ def module_detail(request, course_id, module_id):
         'current_date': current_date,
     }
     return render(request, 'module_detail.html', context)
+
 def major_list(request):
-    majors = Major.objects.all()
+    query = request.GET.get('q', '')
+    if query:
+        majors = Major.objects.filter(
+            Q(name__icontains=query) | 
+            Q(description__icontains=query))
+    else:
+        majors = Major.objects.all()
+    
     return render(request, 'major_list.html', {'majors': majors})
 
 def major_create(request):
     if request.method == 'POST':
         form = MajorForm(request.POST)
         if form.is_valid():
-            form.save()
+            major = form.save()
+            # Handle course associations
+            course_ids = request.POST.getlist('courses')
+            major.courses.set(course_ids)
             return redirect('major_list')
     else:
         form = MajorForm()
-    return render(request, 'major_form.html', {'form': form})
+    
+    all_courses = Course.objects.all()
+    return render(request, 'major_form.html', {
+        'form': form,
+        'all_courses': all_courses
+    })
 
 def major_edit(request, pk):
     major = get_object_or_404(Major, pk=pk)
     if request.method == 'POST':
         form = MajorForm(request.POST, instance=major)
         if form.is_valid():
-            form.save()
-            return redirect('major_list')
+            major = form.save()
+            # Handle course associations
+            course_ids = request.POST.getlist('courses')
+            major.courses.set(course_ids)
+            return redirect('major_detail', pk=major.pk)
     else:
         form = MajorForm(instance=major)
-    return render(request, 'major_form.html', {'form': form})
+    
+    all_courses = Course.objects.all()
+    return render(request, 'major_form.html', {
+        'form': form,
+        'all_courses': all_courses
+    })
 
 def major_delete(request, pk):
     major = get_object_or_404(Major, pk=pk)
@@ -1568,4 +1607,34 @@ def major_delete(request, pk):
 
 def major_detail(request, pk):
     major = get_object_or_404(Major, pk=pk)
-    return render(request, 'major_detail.html', {'major': major})
+    query = request.GET.get('q', '')
+    active_tab = request.GET.get('active_tab', 'major-info')
+
+    # Initialize querysets
+    students = major.students.all()
+    courses = major.courses.all()
+
+    # Apply filters based on active tab and query
+    if active_tab == 'students' and query:
+        students = students.filter(
+            Q(user__first_name__icontains=query) |
+            Q(user__last_name__icontains=query) |
+            Q(email__icontains=query) |
+            Q(user__profile__id_number__icontains=query)
+        )
+    elif active_tab == 'courses' and query:
+        courses = courses.filter(
+            Q(name__icontains=query) |
+            Q(course_code__icontains=query) |
+            Q(professor__first_name__icontains=query) |
+            Q(professor__last_name__icontains=query)
+        )
+
+    context = {
+        'major': major,
+        'students': students,
+        'courses': courses,
+        'query': query,
+        'active_tab': active_tab,
+    }
+    return render(request, 'major_detail.html', context)

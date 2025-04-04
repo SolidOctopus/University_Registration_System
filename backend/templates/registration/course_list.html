@@ -1,26 +1,59 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="header">
-    <h2>Course List</h2>
-    <a href="{% url 'course_create' %}" class="add-course-link">Add New Course</a>
-</div>
-
 <style>
     .header {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
     }
-    .schedule-table {
+    .search-container {
+        display: flex;
+        gap: 10px;
+    }
+    .search-container input[type="text"] {
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        min-width: 250px;
+    }
+    .search-container button {
+        padding: 8px 15px;
+        background-color: #08063f;
+        color: #e8cd7d;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .search-container button:hover {
+        background-color: #0a0750;
+    }
+    .add-course-link {
+        background-color: #e8cd7d;
+        padding: 8px 15px;
+        border-radius: 4px;
+        text-decoration: none;
+        color: #08063f;
+        font-weight: bold;
+        border: 1px solid #08063f;
+        white-space: nowrap;
+    }
+    .add-course-link:hover {
+        background-color: #f0d78c;
+    }
+    .course-table {
         width: 100%;
         border-collapse: collapse;
-        margin-bottom: 40px; 
+        margin-bottom: 30px; /* Slightly reduced */
     }
-    .schedule-table, .schedule-table th, .schedule-table td {
+    .course-table, .course-table th, .course-table td {
         border: 1px solid #000;
     }
-    .schedule-table th, .schedule-table td {
-        padding: 8px;
+    .course-table th, .course-table td {
+        padding: 10px; /* Slightly reduced */
         text-align: left;
     }
     .course-header {
@@ -32,57 +65,98 @@
     }
     .course-title {
         background-color: #08063f;
-        color: #e8cd7d; 
+        color: #e8cd7d;
         font-weight: bold;
+        padding: 8px 12px; /* More compact */
     }
     .course-title a {
         color: #08063f;
         text-decoration: none;
-        background-color: #e8cd7d; 
-        padding: 2px 4px;
-        border-radius: 3px; 
-    }
-    .add-course-link {
         background-color: #e8cd7d;
-        padding: 2px 4px;
-        border-radius: 3px; 
+        padding: 4px 8px; /* More compact */
+        border-radius: 3px;
+        display: inline-block;
+        margin-bottom: 5px; /* Reduced spacing */
+        font-size: 0.95em; /* Slightly smaller */
+    }
+    .course-title small {
+        display: block;
+        margin-top: 5px; /* Reduced spacing */
+        font-size: 0.85em; /* Slightly smaller */
+        line-height: 1.3;
+    }
+    .action-links a {
+        color: #08063f;
         text-decoration: none;
-        color: black;
-        font-weight: bold;
-        border: 2px solid black; 
+        margin-right: 8px; /* Slightly tighter */
+    }
+    .action-links a:hover {
+        text-decoration: underline;
+    }
+    .no-results {
+        text-align: center;
+        padding: 20px;
+        font-style: italic;
+        color: #666;
     }
 </style>
 
-{% for course in courses %}
-<table class="schedule-table">
-    <thead>
-        <tr class="course-title">
-            <td colspan="6">
-                <a href="{% url 'course_detail' course.pk %}">{{ course.name }}</a> - Units: {{ course.credits }}
-                <br>
-                <small>Majors: {{ course.majors.all|join:", " }}</small>
-            </td>
-        </tr>
-        <tr>
-            <th style="width: 40%;">Schedule</th>
-            <th style="width: 20%;">Location</th>
-            <th style="width: 20%;">Instructor(s)</th>
-            <th style="width: 20%;">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr class="course-details">
-            <td>{{ course.days }} | {{ course.start_time|date:"g:i a" }} - {{ course.end_time|date:"g:i a" }}</td>
-            <td>{{ course.location }}</td>
-            <td>{{ course.professor.first_name }} {{ course.professor.last_name }}</td>
-            <td>
-                <a href="{% url 'course_edit' course.pk %}">Edit</a> |
-                <a href="{% url 'course_delete' course.pk %}">Delete</a> |
-                <a href="{% url 'assign_professor' course.pk %}">Assign Professor</a>
-            </td>
-        </tr>
-    </tbody>
-</table>
-{% endfor %}
+<div class="header">
+    <h2>Course List</h2>
+    <div class="search-container">
+        <form method="GET" action="{% url 'course_list' %}">
+            <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search courses...">
+            <button type="submit">Search</button>
+        </form>
+        <a href="{% url 'course_create' %}" class="add-course-link">Add New Course</a>
+    </div>
+</div>
+
+{% if courses %}
+    {% for course in courses %}
+    <table class="course-table">
+        <thead>
+            <tr class="course-title">
+                <td colspan="4">
+                    <a href="{% url 'course_detail' course.pk %}">{{ course.name }}</a> - Units: {{ course.credits }}
+                    <small>Majors: {{ course.majors.all|join:", " }}</small>
+                </td>
+            </tr>
+            <tr>
+                <th style="width: 40%;">Schedule</th>
+                <th style="width: 20%;">Location</th>
+                <th style="width: 20%;">Instructor(s)</th>
+                <th style="width: 20%;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="course-details">
+                <td>{{ course.days }} | {{ course.start_time|date:"g:i a" }} - {{ course.end_time|date:"g:i a" }}</td>
+                <td>{{ course.location }}</td>
+                <td>
+                    {% if course.professor %}
+                        {{ course.professor.first_name }} {{ course.professor.last_name }}
+                    {% else %}
+                        Not assigned
+                    {% endif %}
+                </td>
+                <td class="action-links">
+                    <a href="{% url 'course_edit' course.pk %}">Edit</a> |
+                    <a href="{% url 'course_delete' course.pk %}">Delete</a> |
+                    <a href="{% url 'assign_professor' course.pk %}">Assign Professor</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    {% endfor %}
+{% else %}
+    <div class="no-results">
+        {% if request.GET.q %}
+            No courses found matching "{{ request.GET.q }}"
+        {% else %}
+            No courses available
+        {% endif %}
+    </div>
+{% endif %}
 
 {% endblock %}
