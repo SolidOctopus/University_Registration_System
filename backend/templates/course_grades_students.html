@@ -7,14 +7,16 @@
 <div class="grades-container">
     <div class="grades-header">
         <div class="header-content">
-            <h2>Grades Overview</h2>
+            <h2>Grades Overview - {{ course.name }}</h2>
             <div class="stats-summary">
                 <div class="stat-card">
-                    <span class="stat-value">{% if overall_grade %}{{ overall_grade }}{% else %}--{% endif %}</span>
+                    <span class="stat-value">
+                        {% if overall_grade %}{{ overall_grade }}{% else %}--{% endif %}
+                    </span>
                     <span class="stat-label">Current Grade</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-value">{{ assignments_completed }}/{{ total_assignments }}</span>
+                    <span class="stat-value">{{ completed_assignments }}/{{ total_assignments }}</span>
                     <span class="stat-label">Completed</span>
                 </div>
                 <div class="stat-card">
@@ -63,20 +65,28 @@
                                         </div>
                                         <div>
                                             <strong>{{ grade.assignment.title }}</strong>
-                                            <small>{{ grade.assignment.course.name }}</small>
+                                            <small>{{ course.name }}</small>
                                         </div>
                                     </div>
                                 </td>
-                                <td><span class="type-badge type-{{ grade.assignment.get_type_display|lower }}">{{ grade.assignment.get_type_display }}</span></td>
+                                <td>
+                                    <span class="type-badge type-{{ grade.assignment.get_type_display|lower }}">
+                                        {{ grade.assignment.get_type_display }}
+                                    </span>
+                                </td>
                                 <td>
                                     <div class="date-cell">
                                         <span>{{ grade.assignment.due_date|date:"M d, Y" }}</span>
-                                        <small>{{ grade.assignment.due_date|time }}</small>
+                                        <small>{{ grade.assignment.due_time|time:"H:i" }}</small>
                                     </div>
                                 </td>
                                 <td class="grade-value">
-                                    <div class="grade-display grade-{{ grade.grade.0|lower }}">
-                                        {{ grade.grade }}
+                                    <div class="grade-display grade-{{ grade.letter_grade.0|lower }}">
+                                        {% if grade.numerical_grade %}
+                                            {{ grade.numerical_grade }}% ({{ grade.letter_grade }})
+                                        {% else %}
+                                            --
+                                        {% endif %}
                                         {% if grade.feedback %}
                                         <div class="feedback-tooltip">
                                             <i class="fas fa-comment-alt"></i>
@@ -110,25 +120,6 @@
                     </tbody>
                 </table>
             </div>
-            
-            {% if grades %}
-            <div class="table-footer">
-                <div class="pagination">
-                    <button class="page-btn" disabled><i class="fas fa-chevron-left"></i></button>
-                    <span class="page-info">Page 1 of 1</span>
-                    <button class="page-btn" disabled><i class="fas fa-chevron-right"></i></button>
-                </div>
-                <div class="items-per-page">
-                    <span>Items per page:</span>
-                    <select>
-                        <option>10</option>
-                        <option selected>25</option>
-                        <option>50</option>
-                        <option>100</option>
-                    </select>
-                </div>
-            </div>
-            {% endif %}
         </div>
 
         <div class="grades-sidebar">
@@ -399,7 +390,6 @@
         border-radius: 12px;
         font-size: 0.75rem;
         font-weight: 500;
-        text-transform: uppercase;
     }
     
     .type-assignment {
@@ -529,65 +519,6 @@
         color: #6c757d;
         margin: 0;
         font-size: 0.9rem;
-    }
-
-    /* Table footer */
-    .table-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 20px;
-    }
-    
-    .pagination {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .page-btn {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-        background: white;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
-    }
-    
-    .page-btn:hover {
-        background: var(--light-color);
-    }
-    
-    .page-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-    
-    .page-info {
-        font-size: 0.9rem;
-        color: var(--text-color);
-    }
-    
-    .items-per-page {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .items-per-page span {
-        font-size: 0.9rem;
-        color: var(--text-color);
-    }
-    
-    .items-per-page select {
-        padding: 6px 10px;
-        border-radius: 6px;
-        border: 1px solid var(--border-color);
-        background: white;
     }
 
     /* Sidebar styles */
@@ -885,7 +816,7 @@
         }
         
         function parseGrade(gradeText) {
-            if (!gradeText || gradeText === '-') return -1;
+            if (!gradeText || gradeText === '--') return -1;
             const match = gradeText.match(/(\d+)/);
             return match ? parseInt(match[1]) : -1;
         }
@@ -897,7 +828,7 @@
             data: {
                 labels: ['A', 'B', 'C', 'D', 'F', 'Ungraded'],
                 datasets: [{
-                    data: [12, 8, 5, 2, 1, 3],
+                    data: [{% if grade_distribution %}{{ grade_distribution|join:',' }}{% else %}0,0,0,0,0,0{% endif %}],
                     backgroundColor: [
                         '#2ecc71',
                         '#f39c12',
@@ -912,7 +843,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '70%',
+                cutout: '78%',
                 plugins: {
                     legend: {
                         position: 'bottom',

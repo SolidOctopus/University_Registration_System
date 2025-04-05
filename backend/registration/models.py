@@ -143,6 +143,14 @@ class Module(models.Model):
         return self.title
 
 class Assignment(models.Model):
+
+    ASSIGNMENT_TYPES = [
+        ('assignment', 'Assignment'),
+        ('homework', 'Homework'),
+        ('project', 'Project'), 
+        ('exam', 'Exam'),
+    ]
+
     title = models.CharField(max_length=200)
     description = models.TextField()
     start_date = models.DateField(null=True, blank=True)
@@ -157,6 +165,15 @@ class Assignment(models.Model):
         help_text="Extra time (in days) for late submissions. Set to 0 for no extra time."
     )
     module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name='assignment_modules', null=True, blank=True)
+    assignment_type = models.CharField(
+        max_length=20,
+        choices=ASSIGNMENT_TYPES,
+        default='assignment'
+    )
+
+    def get_type_display(self):
+        """Returns the human-readable type name"""
+        return dict(self.ASSIGNMENT_TYPES).get(self.assignment_type, self.assignment_type)
 
     def __str__(self):
         return self.title

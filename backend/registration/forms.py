@@ -13,7 +13,7 @@ class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
         fields = [
-            'course_code',  # Make sure this matches the model
+            'course_code',  
             'name',
             'description',
             'start_date',
@@ -293,7 +293,7 @@ class AssignmentForm(forms.ModelForm):
 
     class Meta:
         model = Assignment
-        fields = ['title', 'description', 'start_date', 'start_time', 'due_date', 'due_time', 'extra_time_period', 'module']
+        fields = ['title', 'description', 'assignment_type', 'start_date', 'start_time', 'due_date', 'due_time', 'extra_time_period', 'module']
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'start_time': forms.TimeInput(attrs={'type': 'time'}),
