@@ -1080,15 +1080,61 @@ def course_announcements(request, course_id):
 def course_grades_students(request, course_id):
     # Fetch the course
     course = get_object_or_404(Course, id=course_id)
-
+    student = request.user
+    
     # Fetch grades for the logged-in student
-    grades = Grade.objects.filter(course=course, student=request.user)
-
-    # Render the student-specific grades template
-    return render(request, 'course_grades_students.html', {
+    grades = Grade.objects.filter(course=course, student=student).select_related('assignment')
+    
+    # Calculate statistics
+    total_assignments = Assignment.objects.filter(course=course).count()
+    completed_assignments = grades.exclude(numerical_grade__isnull=True).count()
+    
+    # Calculate overall grade (average of all graded assignments)
+    graded_assignments = grades.exclude(numerical_grade__isnull=True)
+    overall_grade = None
+    if graded_assignments.exists():
+        # Changed from g.grade to g.numerical_grade
+        overall_grade = sum(g.numerical_grade for g in graded_assignments) / graded_assignments.count()
+    
+    # Calculate days remaining in the course
+    days_remaining = (course.end_date - timezone.now().date()).days
+    days_remaining = max(0, days_remaining)  # Don't show negative days
+    
+    # Get upcoming assignments (due in the future)
+    upcoming_assignments = Assignment.objects.filter(
+        course=course,
+        due_date__gte=timezone.now().date()
+    ).order_by('due_date')[:5]
+    
+    # Calculate grade distribution for the chart
+    grade_distribution = [0, 0, 0, 0, 0, 0]  # A, B, C, D, F, Ungraded
+    for grade in grades:
+        if grade.letter_grade:
+            if grade.letter_grade.startswith('A'):
+                grade_distribution[0] += 1
+            elif grade.letter_grade.startswith('B'):
+                grade_distribution[1] += 1
+            elif grade.letter_grade.startswith('C'):
+                grade_distribution[2] += 1
+            elif grade.letter_grade.startswith('D'):
+                grade_distribution[3] += 1
+            elif grade.letter_grade == 'F':
+                grade_distribution[4] += 1
+        else:
+            grade_distribution[5] += 1
+    
+    context = {
         'course': course,
-        'grades': grades
-    })
+        'grades': grades,
+        'overall_grade': overall_grade,
+        'completed_assignments': completed_assignments,
+        'total_assignments': total_assignments,
+        'days_remaining': days_remaining,
+        'upcoming_assignments': upcoming_assignments,
+        'grade_distribution': grade_distribution,
+    }
+    
+    return render(request, 'course_grades_students.html', context)
 
 def course_grades_professors(request, course_id):
     course = get_object_or_404(Course, id=course_id)

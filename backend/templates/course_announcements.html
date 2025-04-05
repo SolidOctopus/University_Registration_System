@@ -4,309 +4,552 @@
 {% endblock %}
 
 {% block content %}
-<div class="page-container">
+<div class="announcements-page">
     <!-- Include the sidebar -->
     {% include 'course_sidebar.html' %}
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="container">
-            <h1>{{ course.name }} - Announcements</h1>
-
-            <!-- Add New Announcement Button (Only for Professors/Admins) -->
-            {% if request.user.profile.role == 'professor' or request.user.profile.role == 'admin' %}
-                <div class="add-announcement-container">
-                    <a href="{% url 'create_announcement' course.id %}" class="btn-add">
-                        <i class="fas fa-plus"></i> Add New Announcement
+    <!-- Main Content Area -->
+    <div class="announcements-main">
+        <!-- Header Section -->
+        <div class="announcements-header">
+            <div class="header-text">
+                <h1 class="course-name">{{ course.name }}</h1>
+                <h2 class="page-title">Announcements</h2>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="header-actions">
+                {% if request.user.profile.role == 'professor' or request.user.profile.role == 'admin' %}
+                    <a href="{% url 'create_announcement' course.id %}" class="action-btn primary">
+                        <i class="fas fa-plus"></i> New Announcement
                     </a>
-                </div>
-            {% endif %}
+                {% endif %}
+                <button class="action-btn secondary">
+                    <i class="fas fa-check-double"></i> Mark All Read
+                </button>
+            </div>
+        </div>
 
-            <!-- Announcements List -->
-            <div class="announcements-list">
-                <div class="announcement-header">
-                    <h2>All Announcements</h2>
-                    <div class="announcement-actions">
-                        <button class="btn-mark-read">Mark All as Read</button>
-                        <input type="text" class="search-bar" placeholder="Search announcements...">
-                    </div>
-                </div>
+        <!-- Search and Tools Bar -->
+        <div class="tools-bar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search announcements...">
+            </div>
+            <div class="view-options">
+                <span class="filter-label">View:</span>
+                <select class="filter-select">
+                    <option>All Announcements</option>
+                    <option>Unread Only</option>
+                    <option>Recent First</option>
+                    <option>Oldest First</option>
+                </select>
+            </div>
+        </div>
 
-                <div class="announcement-grid">
+        <!-- Announcements Container -->
+        <div class="announcements-content">
+            <div class="announcements-list-container">
+                <div class="announcements-list-header">
+                    <h3>Course Announcements</h3>
+                    <span class="announcements-count">{{ announcements|length }} items</span>
+                </div>
+                
+                {% if announcements %}
+                <div class="announcements-list">
                     {% for announcement in announcements|dictsortreversed:"posted_at" %}
-                        <div class="announcement-wrapper">
-                            <div class="announcement-card">
-                                <a href="{% url 'announcement_detail' course.id announcement.id %}" class="announcement-link">
-                                    <div class="announcement-content">
-                                        <h3 class="announcement-title">{{ announcement.title }}</h3>
-                                        <p class="announcement-details">{{ announcement.details|truncatechars:200 }}</p>
-                                        <div class="announcement-meta">
-                                            <span class="posted-date">{{ announcement.posted_at|date:"F j, Y, g:i A" }}</span>
-                                        </div>
-                                    </div>
-                                </a>
+                    <div class="announcement-card {% if forloop.first %}highlighted{% endif %}">
+                        <div class="announcement-body">
+                            <div class="announcement-header">
+                                <h4 class="title">{{ announcement.title }}</h4>
+                                <span class="date">
+                                    <i class="far fa-clock"></i> {{ announcement.posted_at|date:"M j, Y · g:i A" }}
+                                </span>
                             </div>
-                            
+                            <p class="preview">{{ announcement.details|truncatechars:200 }}</p>
+                        </div>
+                        <div class="announcement-footer">
+                            <a href="{% url 'announcement_detail' course.id announcement.id %}" class="read-more">
+                                View Details <i class="fas fa-arrow-right"></i>
+                            </a>
                             {% if request.user.profile.role == 'professor' or request.user.profile.role == 'admin' %}
-                            <div class="announcement-actions">
-                                <a href="{% url 'edit_announcement' course.id announcement.id %}" class="btn-edit">
-                                    <i class="fas fa-edit"></i> Edit
+                            <div class="admin-actions">
+                                <a href="{% url 'edit_announcement' course.id announcement.id %}" class="action-icon edit">
+                                    <i class="fas fa-pencil-alt"></i>
                                 </a>
                                 <a href="{% url 'delete_announcement' course.id announcement.id %}" 
-                                   class="btn-delete" 
+                                   class="action-icon delete" 
                                    onclick="return confirm('Are you sure you want to delete this announcement?');">
-                                    <i class="fas fa-trash"></i> Delete
+                                    <i class="fas fa-trash"></i>
                                 </a>
                             </div>
                             {% endif %}
                         </div>
-                    {% empty %}
-                        <div class="empty-state">
-                            <i class="fas fa-bullhorn"></i>
-                            <p>No announcements available for this course.</p>
-                            {% if request.user.profile.role == 'professor' or request.user.profile.role == 'admin' %}
-                            <a href="{% url 'create_announcement' course.id %}" class="btn-add">
-                                Create Your First Announcement
-                            </a>
-                            {% endif %}
-                        </div>
+                    </div>
                     {% endfor %}
                 </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <h4>No Announcements Yet</h4>
+                    <p>There are currently no announcements for this course.</p>
+                    {% if request.user.profile.role == 'professor' or request.user.profile.role == 'admin' %}
+                    <a href="{% url 'create_announcement' course.id %}" class="action-btn primary">
+                        <i class="fas fa-plus"></i> Create First Announcement
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    .page-container {
+    :root {
+        --primary: #3f51b5;
+        --primary-dark: #303f9f;
+        --primary-light: #c5cae9;
+        --accent: #ff4081;
+        --text-primary: #212121;
+        --text-secondary: #757575;
+        --divider: #e0e0e0;
+        --background: #f5f5f5;
+        --card-bg: #ffffff;
+        --success: #4caf50;
+        --warning: #ff9800;
+        --danger: #f44336;
+        --radius: 8px;
+        --shadow: 0 2px 4px rgba(0,0,0,0.1);
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    /* Base Layout */
+    .announcements-page {
         display: flex;
-        flex-direction: row;
+        height: 100vh;
+        overflow: hidden;
+        background-color: var(--background);
     }
-    .main-content {
-        width: calc(100% - 240px);
+
+    .announcements-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
         margin-left: 240px;
-        padding: 30px;
-        background-color: #ecf0f1;
-        border-radius: 10px;
+        height: 100vh;
+        overflow: hidden;
     }
-    .container {
-        margin: 20px auto;
-        padding: 20px;
-        max-width: 900px;
-        background-color: #f5f5f5;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    /* Header Section */
+    .announcements-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 24px 32px;
+        background-color: var(--card-bg);
+        border-bottom: 1px solid var(--divider);
     }
-    h1 {
-        text-align: center;
-        font-size: 2.5em;
-        color: #2980b9;
-        margin-bottom: 20px;
+
+    .header-text {
+        flex: 1;
     }
-    .add-announcement-container {
-        text-align: right;
-        margin-bottom: 20px;
+
+    .course-name {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+        line-height: 1.2;
     }
-    .btn-add {
-        background-color: #2980b9;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 5px;
-        text-decoration: none;
-        transition: all 0.3s;
-        display: inline-flex;
+
+    .page-title {
+        font-size: 18px;
+        font-weight: 400;
+        color: var(--text-secondary);
+        margin: 8px 0 0 0;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    /* Tools Bar */
+    .tools-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 32px;
+        background-color: var(--card-bg);
+        border-bottom: 1px solid var(--divider);
+    }
+
+    .search-box {
+        position: relative;
+        flex: 1;
+        max-width: 500px;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-secondary);
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 10px 16px 10px 40px;
+        border-radius: var(--radius);
+        border: 1px solid var(--divider);
+        font-size: 14px;
+        transition: var(--transition);
+    }
+
+    .search-box input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.2);
+    }
+
+    .view-options {
+        display: flex;
         align-items: center;
         gap: 8px;
     }
-    .btn-add:hover {
-        background-color: #1abc9c;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+    .filter-label {
+        font-size: 14px;
+        color: var(--text-secondary);
     }
+
+    .filter-select {
+        padding: 8px 12px;
+        border-radius: var(--radius);
+        border: 1px solid var(--divider);
+        font-size: 14px;
+        background-color: white;
+    }
+
+    /* Announcements Content */
+    .announcements-content {
+        flex: 1;
+        padding: 0 32px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .announcements-list-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--card-bg);
+        border-radius: var(--radius);
+        margin: 24px 0;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    .announcements-list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--divider);
+    }
+
+    .announcements-list-header h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .announcements-count {
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
     .announcements-list {
-        margin-top: 20px;
+        flex: 1;
+        overflow-y: auto;
+        padding: 0;
     }
+
+    /* Announcement Cards */
+    .announcement-card {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--divider);
+        transition: var(--transition);
+    }
+
+    .announcement-card:last-child {
+        border-bottom: none;
+    }
+
+    .announcement-card.highlighted {
+        background-color: rgba(63, 81, 181, 0.05);
+        border-left: 3px solid var(--primary);
+    }
+
+    .announcement-card:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+
     .announcement-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
+        align-items: flex-start;
+        margin-bottom: 12px;
     }
-    .announcement-header h2 {
-        font-size: 1.8em;
-        color: #2c3e50;
+
+    .announcement-header .title {
+        font-size: 18px;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin: 0;
+        flex: 1;
     }
-    .header-actions {
-        display: flex;
-        gap: 10px;
+
+    .announcement-header .date {
+        font-size: 13px;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        margin-left: 16px;
     }
-    .btn-mark-read {
-        background-color: #3498db;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s ease-in-out;
+
+    .announcement-header .date i {
+        margin-right: 4px;
     }
-    .btn-mark-read:hover {
-        background-color: #2980b9;
+
+    .preview {
+        font-size: 15px;
+        color: var(--text-primary);
+        line-height: 1.5;
+        margin: 0 0 16px 0;
     }
-    .search-bar {
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        font-size: 16px;
-        min-width: 200px;
-    }
-    .announcement-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-    .announcement-wrapper {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        transition: all 0.3s ease;
-    }
-    .announcement-card {
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 15px;
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
-        padding: 25px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        position: relative;
-    }
-    .announcement-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1);
-    }
-    .announcement-link {
-        display: block;
-        text-decoration: none;
-        color: inherit;
-    }
-    .announcement-content {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    .announcement-title {
-        font-size: 1.5em;
-        font-weight: bold;
-        color: #2c3e50;
-    }
-    .announcement-details {
-        font-size: 1em;
-        color: #34495e;
-        word-wrap: break-word;
-    }
-    .announcement-meta {
+
+    .announcement-footer {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-top: 15px;
     }
-    .posted-date {
-        font-size: 0.9em;
-        color: #7f8c8d;
-    }
-    .announcement-actions {
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-        padding: 0 5px;
-    }
-    .btn-edit, .btn-delete {
-        color: white;
-        padding: 8px 16px;
-        border-radius: 5px;
+
+    .read-more {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--primary);
         text-decoration: none;
-        transition: all 0.3s;
-        font-size: 0.9em;
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: 6px;
+        transition: var(--transition);
     }
-    .btn-edit {
-        background-color: #3498db;
+
+    .read-more:hover {
+        color: var(--primary-dark);
     }
-    .btn-delete {
-        background-color: #e74c3c;
+
+    .read-more i {
+        font-size: 12px;
+        transition: var(--transition);
     }
-    .btn-edit:hover {
-        background-color: #2980b9;
-        transform: translateY(-2px);
+
+    .read-more:hover i {
+        transform: translateX(2px);
     }
-    .btn-delete:hover {
-        background-color: #c0392b;
-        transform: translateY(-2px);
+
+    .admin-actions {
+        display: flex;
+        gap: 8px;
     }
+
+    .action-icon {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: white;
+        transition: var(--transition);
+    }
+
+    .action-icon.edit {
+        background-color: var(--warning);
+    }
+
+    .action-icon.edit:hover {
+        background-color: #e68a00;
+    }
+
+    .action-icon.delete {
+        background-color: var(--danger);
+    }
+
+    .action-icon.delete:hover {
+        background-color: #d32f2f;
+    }
+
+    /* Buttons */
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        border-radius: var(--radius);
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+        border: none;
+        gap: 8px;
+    }
+
+    .action-btn.primary {
+        background-color: var(--primary);
+        color: white;
+    }
+
+    .action-btn.primary:hover {
+        background-color: var(--primary-dark);
+        box-shadow: var(--shadow);
+        transform: translateY(-1px);
+    }
+
+    .action-btn.secondary {
+        background-color: white;
+        color: var(--primary);
+        border: 1px solid var(--divider);
+    }
+
+    .action-btn.secondary:hover {
+        background-color: #f5f5f5;
+    }
+
+    /* Empty State */
     .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 24px;
         text-align: center;
-        padding: 40px 20px;
-        color: #7f8c8d;
-        grid-column: 1 / -1;
     }
-    .empty-state i {
-        font-size: 3rem;
-        color: #bdc3c7;
-        margin-bottom: 20px;
+
+    .empty-icon {
+        font-size: 48px;
+        color: var(--divider);
+        margin-bottom: 24px;
     }
+
+    .empty-state h4 {
+        font-size: 20px;
+        color: var(--text-primary);
+        margin: 0 0 8px 0;
+    }
+
     .empty-state p {
-        font-size: 1.1rem;
-        margin-bottom: 20px;
+        font-size: 15px;
+        color: var(--text-secondary);
+        margin: 0 0 24px 0;
+        max-width: 400px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .announcements-main {
+            margin-left: 0;
+        }
     }
 
     @media (max-width: 768px) {
-        .main-content {
-            width: 100%;
-            margin-left: 0;
-            padding: 20px;
-        }
-        .announcement-header {
+        .announcements-header {
             flex-direction: column;
-            gap: 15px;
             align-items: flex-start;
+            gap: 16px;
+            padding: 16px;
         }
-        .announcement-actions {
-            justify-content: center;
+
+        .header-actions {
+            width: 100%;
+            justify-content: flex-start;
+        }
+
+        .tools-bar {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+        }
+
+        .search-box {
+            max-width: 100%;
+            width: 100%;
+        }
+
+        .announcements-content {
+            padding: 0 16px;
         }
     }
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Mark All as Read Button
-        const markReadButton = document.querySelector('.btn-mark-read');
-        if (markReadButton) {
-            markReadButton.addEventListener('click', function () {
-                alert('All announcements marked as read.');
-                // Add logic to mark all announcements as read
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mark all as read functionality
+        const markReadBtn = document.querySelector('.action-btn.secondary');
+        if (markReadBtn) {
+            markReadBtn.addEventListener('click', function() {
+                // Show toast notification
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.textContent = 'All announcements marked as read';
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 10);
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => {
+                        document.body.removeChild(toast);
+                    }, 300);
+                }, 3000);
             });
         }
 
-        // Search Functionality - Updated version
-        const searchBar = document.querySelector('.search-bar');
-        const announcementWrappers = document.querySelectorAll('.announcement-wrapper');
-
-        if (searchBar) {
-            searchBar.addEventListener('input', function () {
-                const searchQuery = this.value.toLowerCase();
+        // Search functionality
+        const searchInput = document.querySelector('.search-box input');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const cards = document.querySelectorAll('.announcement-card');
                 
-                announcementWrappers.forEach(wrapper => {
-                    const card = wrapper.querySelector('.announcement-card');
-                    const title = card.querySelector('.announcement-title').textContent.toLowerCase();
-                    const details = card.querySelector('.announcement-details').textContent.toLowerCase();
+                cards.forEach(card => {
+                    const title = card.querySelector('.title').textContent.toLowerCase();
+                    const content = card.querySelector('.preview').textContent.toLowerCase();
                     
-                    if (title.includes(searchQuery) || details.includes(searchQuery)) {
-                        wrapper.style.display = 'flex';
+                    if (title.includes(searchTerm) || content.includes(searchTerm)) {
+                        card.style.display = 'block';
                     } else {
-                        wrapper.style.display = 'none';
+                        card.style.display = 'none';
                     }
                 });
+            });
+        }
+
+        // Filter functionality
+        const filterSelect = document.querySelector('.filter-select');
+        if (filterSelect) {
+            filterSelect.addEventListener('change', function() {
+                // In a real implementation, this would filter the announcements
+                console.log('Filter changed to:', this.value);
             });
         }
     });

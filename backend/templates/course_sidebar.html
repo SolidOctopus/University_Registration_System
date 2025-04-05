@@ -2,7 +2,7 @@
 {% block hanging_nav %}
 <div class="hanging-nav-container">
     <div class="signs-container">
-        {% block hanging_signs %}
+        <!-- Navigation Items -->
         <a href="{% url 'course_overview' course.id %}" class="sign {% if request.resolver_match.url_name == 'course_overview' %}active{% endif %}" data-url-name="course_overview">
             <span class="sign-content">
                 <i class="fas fa-home sign-icon"></i>
@@ -54,28 +54,25 @@
                 </span>
             </a>
         {% endif %}
-        {% endblock %}
     </div>
 </div>
 
 <style>
-    /* Hanging signs container */
     .hanging-nav-container {
         position: relative;
-        height: 150px;
-        margin-bottom: 30px;
+        height: 50px;
         background: transparent;
         overflow: hidden;
         z-index: 100;
+        margin-top: 20px; /* Added to move it down */
     }
 
-    /* Signs container - fixed layout */
     .signs-container {
         display: flex;
         justify-content: center;
         gap: 0px;
-        position: absolute;
-        top: 0;
+        position: fixed;
+        top: 120px; /* Increased from 100px to move it down */
         left: 50%;
         transform: translateX(-50%);
         padding: 0 40px;
@@ -84,13 +81,13 @@
         width: fit-content;
         max-width: 100%;
         box-sizing: border-box;
+        z-index: 1000; /* Increased to prevent overlap */
     }
 
     .signs-container::-webkit-scrollbar {
         display: none;
     }
 
-    /* Larger Weathered Blue Wooden Sign Design */
     .sign {
         position: relative;
         padding: 0;
@@ -111,20 +108,7 @@
         transform-origin: top center;
     }
 
-    /* Rope connection */
-    .sign::before {
-        content: '';
-        position: absolute;
-        top: -20px;
-        left: 50%;
-        width: 4px;
-        height: 20px;
-        background: linear-gradient(to bottom, #6d8fb0, #3a5a78);
-        transform: translateX(-50%);
-        z-index: -1;
-        border-radius: 3px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
+
 
     .sign-content {
         display: flex;
@@ -149,24 +133,11 @@
         letter-spacing: 0.5px;
     }
 
-    /* Hover effects with gentle swing */
-    .sign:hover {
-        filter: drop-shadow(0 10px 18px rgba(0,0,0,0.4));
-        color: #ffffff;
-        transform: translateY(-5px) rotate(2deg);
-    }
 
-    .sign:hover .sign-icon {
-        color: #ffffff;
-        text-shadow: 0 0 10px rgba(255,255,255,0.6);
-        transform: scale(1.1);
-    }
-
-    /* Active sign */
     .sign.active {
         background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="190" height="180" viewBox="0 0 190 180"><path d="M15,20 L175,20 C178,20 180,25 180,30 L180,70 C180,75 178,80 175,80 L15,80 C12,80 10,75 10,70 L10,30 C10,25 12,20 15,20 Z" fill="%231a3a5a" stroke="%230a1a2a" stroke-width="1.5"/><path d="M15,20 L175,20 L180,30 L175,40 L15,40 L10,30 Z" fill="%232a4a6a" opacity="0.6"/><path d="M15,60 L175,60 L180,70 L175,80 L15,80 L10,70 Z" fill="%230a1a2a" opacity="0.3"/></svg>') center/100% 100% no-repeat;
         color: #ffffff;
-        filter: drop-shadow(0 10px 18px rgba(0,0,0,0.5));
+        filter: drop-shadow(0 10px 18px rgba(0,0,0,0.5)) brightness(1.1);
         transform: translateY(-5px);
     }
 
@@ -176,112 +147,55 @@
         transform: scale(1.1);
     }
 
-    /* Responsive adjustments */
+    /* Responsive adjustments remain the same */
     @media (max-width: 1400px) {
-        .signs-container {
-            gap: 12px;
-        }
         .sign {
             width: 180px;
             height: 85px;
         }
     }
-
     @media (max-width: 1200px) {
-        .signs-container {
-            gap: 10px;
-        }
         .sign {
             width: 160px;
             height: 80px;
         }
-        .sign-icon {
-            font-size: 20px;
-        }
-        .sign-text {
-            font-size: 17px;
-        }
     }
-
     @media (max-width: 992px) {
-        .hanging-nav-container {
-            height: 140px;
-        }
         .sign {
             width: 140px;
             height: 70px;
         }
-        .sign-icon {
-            font-size: 18px;
-        }
-        .sign-text {
-            font-size: 16px;
-        }
     }
-
     @media (max-width: 768px) {
-        .hanging-nav-container {
-            height: 130px;
-        }
-        .signs-container {
-            gap: 8px;
-            padding: 0 30px;
-        }
         .sign {
             width: 120px;
             height: 65px;
         }
-        .sign-icon {
-            font-size: 17px;
-        }
-        .sign-text {
-            font-size: 15px;
-        }
     }
-
     @media (max-width: 576px) {
-        .hanging-nav-container {
-            height: 120px;
-        }
-        .signs-container {
-            gap: 6px;
-            padding: 0 20px;
-            justify-content: flex-start;
-        }
         .sign {
             width: 110px;
             height: 55px;
-        }
-        .sign-icon {
-            font-size: 16px;
-            margin-bottom: 5px;
-        }
-        .sign-text {
-            font-size: 13px;
         }
     }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Set initial active state based on current URL
     const currentUrlName = "{{ request.resolver_match.url_name }}";
     const signs = document.querySelectorAll('.sign');
     
     signs.forEach(sign => {
-        // Update active state on page load
         if (sign.dataset.urlName === currentUrlName) {
             sign.classList.add('active');
         }
         
-        // Click handler - let the link work normally
         sign.addEventListener('click', function() {
             signs.forEach(s => s.classList.remove('active'));
             this.classList.add('active');
         });
     });
 
-    // Prevent container width changes
     const signsContainer = document.querySelector('.signs-container');
     const initialWidth = signsContainer.scrollWidth;
     signsContainer.style.minWidth = `${initialWidth}px`;
