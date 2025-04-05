@@ -22,3 +22,10 @@ Give a list of all classes a student has already completed.
 
 -----Bugs-----
 (Login as Student, try to enroll into a class that they are not majoring in) Students can't enroll into classes if they are not majoring in them, they should only get a warning and then be able to enroll.
+
+
+
+
+For Jonathan
+Professor should not be able to grade  assignments unless they are closed or submitted. 
+Assingment boxes must say what kind of assignment they are.

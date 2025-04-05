@@ -1,161 +1,214 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h1 class="page-title">Edit Course</h1>
-
-<!-- Course Edit Form -->
-{% if course.id %}
-<form method="post" action="{% url 'edit_course' course.id %}" class="course-form">
-{% else %}
-<form method="post" action="#" class="course-form">
-{% endif %}
-    {% csrf_token %}
-    
-    <div class="form-group">
-        {{ form.course_code.label_tag }}
-        {{ form.course_code }}
-    </div>
-
-    <div class="form-group">
-        {{ form.name.label_tag }}
-        {{ form.name }}
-    </div>
-
-    <div class="form-group">
-        {{ form.description.label_tag }}
-        {{ form.description }}
-    </div>
-
-    <div class="form-group">
-        {{ form.semester.label_tag }}
-        {{ form.semester }}
-    </div>
-
-    <div class="form-group">
-        {{ form.start_date.label_tag }}
-        {{ form.start_date }}
-    </div>
-
-    <div class="form-group">
-        {{ form.end_date.label_tag }}
-        {{ form.end_date }}
-    </div>
-
-    <div class="form-group">
-        {{ form.days.label_tag }}
-        {{ form.days }}
-    </div>
-
-    <div class="form-group">
-        {{ form.start_time.label_tag }}
-        {{ form.start_time }}
-    </div>
-
-    <div class="form-group">
-        {{ form.end_time.label_tag }}
-        {{ form.end_time }}
-    </div>
-
-    <div class="form-group">
-        {{ form.session_type.label_tag }}
-        {{ form.session_type }}
-    </div>
-
-    <div class="form-group">
-        {{ form.location.label_tag }}
-        {{ form.location }}
-    </div>
-
-    <div class="form-group">
-        {{ form.available_seats.label_tag }}
-        {{ form.available_seats }}
-    </div>
-
-    <div class="form-group">
-        {{ form.capacity.label_tag }}
-        {{ form.capacity }}
-    </div>
-
-    <div class="form-group">
-        {{ form.credits.label_tag }}
-        {{ form.credits }}
-    </div>
-
-    <!-- Majors Field as Checkboxes with Scrollbar -->
-    <div class="form-group">
-        <label for="id_majors">Majors:</label><br>
-        <div class="scrollable-checkboxes">
-            {{ form.majors }}  <!-- Render the majors field directly -->
-        </div>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Save</button>
-</form>
-
 <style>
-    .page-title {
-        text-align: center;
-        margin-bottom: 20px;
-        color: #08063f;
-    }
-
-    .course-form {
-        width: 60%;
-        margin: auto;
-        background-color: whitesmoke;
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
         padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-
-    .course-form .form-group {
+    h1 {
+        color: #08063f;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .form-group {
         margin-bottom: 15px;
     }
-
-    .course-form label {
+    .form-group label {
         display: block;
+        margin-bottom: 5px;
         font-weight: bold;
         color: #08063f;
-        margin-bottom: 5px;
     }
-
-    .course-form input,
-    .course-form textarea,
-    .course-form select {
+    .form-group input[type="text"],
+    .form-group textarea,
+    .form-group input[type="date"],
+    .form-group input[type="time"],
+    .form-group select {
         width: 100%;
-        padding: 10px;
-        border: 1px solid #ccc;
+        padding: 8px;
+        border: 1px solid #ddd;
         border-radius: 4px;
+        box-sizing: border-box;
     }
-
-    .course-form button.btn {
-        background-color: #08063f;
-        color: #e8cd7d;
-        padding: 10px 15px;
+    .form-group textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+    .form-actions {
+        margin-top: 20px;
+        display: flex;
+        justify-content: space-between;
+    }
+    .btn {
+        padding: 8px 15px;
         border: none;
         border-radius: 4px;
         cursor: pointer;
-        font-size: 16px;
+        font-weight: bold;
+        text-decoration: none;
+        display: inline-block;
     }
-
-    .course-form button.btn:hover {
-        background-color: #333;
+    .btn-save {
+        background-color: #08063f;
+        color: #e8cd7d;
     }
-
-    /* Style for scrollable checkboxes */
-    .scrollable-checkboxes {
-        max-height: 200px;  /* Adjust height as needed */
-        overflow-y: auto;  /* Add vertical scrollbar */
-        border: 1px solid #ccc;
+    .btn-save:hover {
+        background-color: #0a0750;
+    }
+    .btn-cancel {
+        background-color: #e8cd7d;
+        color: #08063f;
+        border: 1px solid #08063f;
+    }
+    .btn-cancel:hover {
+        background-color: #f0d78c;
+    }
+    .errorlist {
+        color: #dc3545;
+        margin-top: 5px;
+        padding-left: 0;
+        list-style: none;
+    }
+    .helptext {
+        font-size: 0.8em;
+        color: #6c757d;
+        display: block;
+        margin-top: 5px;
+    }
+    /* Major selection styles */
+    .major-selection {
+        margin-top: 30px;
+        border-top: 1px solid #ddd;
+        padding-top: 20px;
+    }
+    .major-search {
+        display: flex;
+        margin-bottom: 15px;
+        gap: 10px;
+    }
+    .major-search input {
+        flex-grow: 1;
+        padding: 8px;
+        border: 1px solid #ddd;
         border-radius: 4px;
+    }
+    .major-list-container {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        background-color: #f9f9f9;
+    }
+    .major-list {
         padding: 10px;
     }
-    .scrollable-checkboxes .checkbox {
-        margin-bottom: 10px;
+    .major-item {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+        border-bottom: 1px solid #eee;
     }
-    .scrollable-checkboxes input[type="checkbox"] {
+    .major-item:last-child {
+        border-bottom: none;
+    }
+    .major-checkbox {
         margin-right: 10px;
+    }
+    .major-info {
+        flex-grow: 1;
+    }
+    .no-majors {
+        padding: 15px;
+        text-align: center;
+        color: #666;
+        font-style: italic;
     }
 </style>
 
+<div class="form-container">
+    <h1>Edit Course</h1>
+    <form method="post" class="course-form" id="course-form" action="{% url 'edit_course' course.id %}">
+        {% csrf_token %}
+        
+        <!-- Regular form fields -->
+        {% for field in form %}
+            {% if field.name != 'majors' %}
+            <div class="form-group">
+                {{ field.label_tag }}
+                {% if field.help_text %}
+                    <span class="helptext">{{ field.help_text }}</span>
+                {% endif %}
+                {{ field }}
+                {% if field.errors %}
+                    <ul class="errorlist">
+                        {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% endfor %}
+        
+        <!-- Major Selection Section -->
+        <div class="major-selection">
+            <h3>Associated Majors</h3>
+            <div class="major-search">
+                <input type="text" id="major-search" placeholder="Search majors..." 
+                       onkeydown="if(event.key === 'Enter') { event.preventDefault(); filterMajors(); }">
+                <button type="button" class="btn btn-save" onclick="filterMajors()">Search</button>
+            </div>
+            <div class="major-list-container">
+                <div class="major-list" id="major-list">
+                    {% for major in form.majors.field.queryset %}
+                    <div class="major-item">
+                        <input type="checkbox" 
+                               form="course-form"
+                               name="majors" 
+                               value="{{ major.id }}"
+                               id="major-{{ major.id }}"
+                               class="major-checkbox"
+                               {% if major in form.instance.majors.all %}checked{% endif %}>
+                        <label for="major-{{ major.id }}" class="major-info">
+                            {{ major.name }}
+                            {% if major.description %}
+                                - {{ major.description|truncatechars:50 }}
+                            {% endif %}
+                        </label>
+                    </div>
+                    {% empty %}
+                    <div class="no-majors">No majors available</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-save">Save Changes</button>
+            <a href="{% url 'course_detail' course.id %}" class="btn btn-cancel">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    function filterMajors() {
+        const searchTerm = document.getElementById('major-search').value.toLowerCase();
+        const majorItems = document.querySelectorAll('.major-item');
+        
+        majorItems.forEach(item => {
+            const majorText = item.textContent.toLowerCase();
+            item.style.display = majorText.includes(searchTerm) ? 'flex' : 'none';
+        });
+    }
+
+    // Initialize with all majors visible
+    document.addEventListener('DOMContentLoaded', function() {
+        filterMajors();
+    });
+</script>
 {% endblock %}

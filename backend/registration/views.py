@@ -214,14 +214,64 @@ def student_detail(request, pk):
 
 def student_update(request, pk):
     student = get_object_or_404(Student, pk=pk)
+    
     if request.method == 'POST':
         form = StudentForm(request.POST, request.FILES, instance=student)
         if form.is_valid():
-            form.save()
-            return redirect('student_detail', pk=pk)
+            try:
+                with transaction.atomic():
+                    # Save basic student info
+                    student = form.save(commit=False)
+                    user = student.user
+                    user.first_name = form.cleaned_data['first_name']
+                    user.last_name = form.cleaned_data['last_name']
+                    user.email = form.cleaned_data['email']
+                    
+                    if form.cleaned_data['password']:
+                        user.set_password(form.cleaned_data['password'])
+                    
+                    user.save()
+                    student.save()
+                    
+                    # Handle course enrollments
+                    selected_course_ids = request.POST.getlist('courses')
+                    current_courses = set(student.courses.all())
+                    new_courses = set(Course.objects.filter(id__in=selected_course_ids))
+                    
+                    # Add new enrollments
+                    for course in new_courses - current_courses:
+                        Enrollment.objects.get_or_create(student=student, course=course)
+                        course.available_seats -= 1
+                        course.save()
+                    
+                    # Remove dropped enrollments
+                    for course in current_courses - new_courses:
+                        Enrollment.objects.filter(student=student, course=course).delete()
+                        course.available_seats += 1
+                        course.save()
+                    
+                    messages.success(request, 'Student updated successfully!')
+                    return redirect('student_list', pk=student.pk)
+            except Exception as e:
+                messages.error(request, f'Error updating student: {str(e)}')
     else:
-        form = StudentForm(instance=student)
-    return render(request, 'registration/student_form.html', {'form': form})
+        # Initialize form with student data
+        initial = {
+            'first_name': student.user.first_name,
+            'last_name': student.user.last_name,
+            'email': student.user.email,
+            'major': student.major
+        }
+        form = StudentForm(instance=student, initial=initial)
+
+    context = {
+        'form': form,
+        'student': student,
+        'enrolled_courses': student.courses.all(),
+        'available_courses': Course.objects.exclude(id__in=student.courses.values_list('id', flat=True)),
+        'majors': Major.objects.all(),
+    }
+    return render(request, 'registration/student_form.html', context)
 
 def student_schedule(request):
     student_instance = get_object_or_404(Student, user=request.user)

@@ -38,16 +38,24 @@ class CourseForm(forms.ModelForm):
 
 
 class StudentForm(forms.ModelForm):
-    courses = forms.ModelMultipleChoiceField(queryset=Course.objects.none(), widget=forms.CheckboxSelectMultiple, required=False)
     first_name = forms.CharField(max_length=30)
     last_name = forms.CharField(max_length=30)
     email = forms.EmailField()
     password = forms.CharField(widget=forms.PasswordInput(), required=False)
     confirm_password = forms.CharField(widget=forms.PasswordInput(), required=False)
-
+    courses = forms.ModelMultipleChoiceField(
+        queryset=Course.objects.none(),  # Will be set in the view
+        widget=forms.CheckboxSelectMultiple,
+        required=False
+    )
+    major = forms.ModelChoiceField(
+        queryset=Major.objects.all(),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
     class Meta:
         model = Student
-        fields = ['first_name', 'last_name', 'email', 'password', 'confirm_password', 'courses', 'profile_picture']
+        fields = ['first_name', 'last_name', 'email', 'password', 'confirm_password', 'courses', 'profile_picture', 'major']
 
     def __init__(self, *args, **kwargs):
         super(StudentForm, self).__init__(*args, **kwargs)

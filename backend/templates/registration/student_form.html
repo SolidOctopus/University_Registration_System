@@ -1,133 +1,411 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="page-title">Edit Student</h1>
-<form method="post" class="student-form" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div class="form-group">
-        {{ form.first_name.label_tag }}<br>
-        {{ form.first_name }}
-    </div>
-    <div class="form-group">
-        {{ form.last_name.label_tag }}<br>
-        {{ form.last_name }}
-    </div>
-    <div class="form-group">
-        {{ form.email.label_tag }}<br>
-        {{ form.email }}
-    </div>
-    <div class="form-group">
-        {{ form.password.label_tag }}<br>
-        {{ form.password }}
-    </div>
-    <div class="form-group">
-        {{ form.confirm_password.label_tag }}<br>
-        {{ form.confirm_password }}
-    </div>
-    <div class="form-group">
-        {{ form.courses.label_tag }}<br>
-        {% for checkbox in form.courses %}
-            <div class="drop-course-option">
-                <button type="button" class="btn-drop" data-for="{{ checkbox.id_for_label }}">
-                    Drop
-                </button>
-                <span class="course-name">{{ checkbox.choice_label }}</span>
-                {{ checkbox }}
-            </div>
-        {% endfor %}
-    </div>
-    <div class="form-group">
-        {{ form.profile_picture.label_tag }}<br>
-        {{ form.profile_picture }}
-    </div>
-    <div class="form-group">
-        {{ form.major.label_tag }}<br>
-        {{ form.major }}
-    </div>
-    <button type="submit" class="btn btn-primary">Update</button>
-</form>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.btn-drop').forEach(button => {
-            button.addEventListener('click', function () {
-                const checkbox = document.getElementById(this.getAttribute('data-for'));
-                checkbox.checked = !checkbox.checked;
-                this.classList.toggle('dropped');
-            });
-        });
-    });
-</script>
-
 <style>
-    .page-title {
-        text-align: center;
-        margin-bottom: 20px;
-        color: #08063f;
-    }
-    .student-form {
-        width: 60%;
-        margin: auto;
-        background-color: whitesmoke;
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
         padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    .student-form .form-group {
+    h1 {
+        color: #08063f;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .form-group {
         margin-bottom: 15px;
     }
-    .student-form label {
+    .form-group label {
         display: block;
+        margin-bottom: 5px;
         font-weight: bold;
         color: #08063f;
-        margin-bottom: 5px;
     }
-    .student-form input,
-    .student-form textarea,
-    .student-form select {
+    .form-group input[type="text"],
+    .form-group input[type="email"],
+    .form-group input[type="password"],
+    .form-group input[type="file"],
+    .form-group select {
         width: 100%;
-        padding: 10px;
-        border: 1px solid #ccc;
+        padding: 8px;
+        border: 1px solid #ddd;
         border-radius: 4px;
+        box-sizing: border-box;
     }
-    .student-form button.btn {
-        background-color: #08063f;
-        color: #e8cd7d;
-        padding: 10px 15px;
+    .form-actions {
+        margin-top: 20px;
+        display: flex;
+        justify-content: space-between;
+    }
+    .btn {
+        padding: 8px 15px;
         border: none;
         border-radius: 4px;
         cursor: pointer;
-        font-size: 16px;
+        font-weight: bold;
+        text-decoration: none;
+        display: inline-block;
     }
-    .student-form button.btn:hover {
-        background-color: #333;
+    .btn-save {
+        background-color: #08063f;
+        color: #e8cd7d;
     }
-    .drop-course-option {
+    .btn-save:hover {
+        background-color: #0a0750;
+    }
+    .btn-cancel {
+        background-color: #e8cd7d;
+        color: #08063f;
+        border: 1px solid #08063f;
+    }
+    .btn-cancel:hover {
+        background-color: #f0d78c;
+    }
+    .errorlist {
+        color: #dc3545;
+        margin-top: 5px;
+        padding-left: 0;
+        list-style: none;
+    }
+    .helptext {
+        font-size: 0.8em;
+        color: #6c757d;
+        display: block;
+        margin-top: 5px;
+    }
+    .course-selection {
+        margin-top: 30px;
+        border-top: 1px solid #ddd;
+        padding-top: 20px;
+    }
+    .course-filters {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    .course-search {
+        flex-grow: 1;
+        display: flex;
+        gap: 10px;
+    }
+    .course-search input {
+        flex-grow: 1;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    .filter-options {
+        display: flex;
+        gap: 10px;
+    }
+    .filter-btn {
+        padding: 8px 12px;
+        background-color: #f0f0f0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .filter-btn.active {
+        background-color: #08063f;
+        color: white;
+    }
+    .course-list-container {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        background-color: #f9f9f9;
+    }
+    .course-list {
+        padding: 10px;
+    }
+    .course-item {
         display: flex;
         align-items: center;
-        margin-bottom: 10px;
+        justify-content: space-between;
+        padding: 12px;
+        border-bottom: 1px solid #eee;
     }
-    .drop-course-option .btn-drop {
-        margin-right: 10px; 
-        background-color: #08063f;
-        color: #e8cd7d;
-        padding: 5px 10px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
+    .course-item:last-child {
+        border-bottom: none;
     }
-    .drop-course-option .btn-drop.dropped {
-        background-color: #333;
+    .course-info {
+        flex-grow: 1;
     }
-    .drop-course-option .course-name {
-        flex: 1;
-        text-align: left; 
+    .course-major {
+        font-size: 0.8em;
+        color: #666;
+        margin-top: 3px;
     }
-    .drop-course-option input[type="checkbox"] {
-        display: none;
+    .no-courses {
+        padding: 15px;
+        text-align: center;
+        color: #666;
+        font-style: italic;
     }
-
-    .drop-course-option .course-name {
-        display: none;
+    .current-courses .course-item {
+        background-color: #e8f5e9;
+    }
+    .available-courses .course-item {
+        background-color: #f8f9fa;
+    }
+    .course-actions {
+        display: flex;
+        gap: 8px;
+    }
+    .btn-enroll {
+        background-color: #28a745;
+        color: white;
+    }
+    .btn-enroll:hover {
+        background-color: #218838;
+    }
+    .btn-drop {
+        background-color: #dc3545;
+        color: white;
+    }
+    .btn-drop:hover {
+        background-color: #c82333;
     }
 </style>
+
+<div class="form-container">
+    <h1>{% if student.pk %}Edit Student{% else %}Create Student{% endif %}</h1>
+    <form method="post" class="student-form" id="student-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Basic Info Section -->
+        <div class="form-group">
+            {{ form.first_name.label_tag }}
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+                <ul class="errorlist">
+                    {% for error in form.first_name.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.last_name.label_tag }}
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+                <ul class="errorlist">
+                    {% for error in form.last_name.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.email.label_tag }}
+            {{ form.email }}
+            {% if form.email.errors %}
+                <ul class="errorlist">
+                    {% for error in form.email.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.password.label_tag }}
+            {{ form.password }}
+            {% if form.password.help_text %}
+                <span class="helptext">{{ form.password.help_text }}</span>
+            {% endif %}
+            {% if form.password.errors %}
+                <ul class="errorlist">
+                    {% for error in form.password.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.confirm_password.label_tag }}
+            {{ form.confirm_password }}
+            {% if form.confirm_password.errors %}
+                <ul class="errorlist">
+                    {% for error in form.confirm_password.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.profile_picture.label_tag }}
+            {{ form.profile_picture }}
+            {% if form.profile_picture.errors %}
+                <ul class="errorlist">
+                    {% for error in form.profile_picture.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <!-- Major Selection -->
+        <div class="form-group">
+            {{ form.major.label_tag }}
+            {{ form.major }}
+            {% if form.major.errors %}
+                <ul class="errorlist">
+                    {% for error in form.major.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <!-- Course Selection Section -->
+        <div class="course-selection">
+            <h3>Course Enrollment</h3>
+            
+            <!-- Current Courses -->
+            <div class="current-courses">
+                <h4>Currently Enrolled Courses</h4>
+                <div class="course-list-container">
+                    <div class="course-list" id="current-courses-list">
+                        {% for course in enrolled_courses %}
+                        <div class="course-item" data-course-id="{{ course.id }}">
+                            <div class="course-info">
+                                {{ course.name }} ({{ course.course_code }})
+                                <div class="course-major">
+                                    Major: {{ course.majors.all|join:", "|default:"Any" }}
+                                </div>
+                            </div>
+                            <div class="course-actions">
+                                <button type="button" class="btn btn-drop" onclick="dropCourse(this)">Drop</button>
+                                <input type="hidden" name="courses" value="{{ course.id }}">
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="no-courses">No courses currently enrolled</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Available Courses -->
+            <div class="available-courses">
+                <h4>Available Courses</h4>
+                <div class="course-filters">
+                    <div class="course-search">
+                        <input type="text" id="course-search" placeholder="Search courses..." 
+                               onkeydown="if(event.key === 'Enter') { event.preventDefault(); filterCourses(); }">
+                        <button type="button" class="btn btn-save" onclick="filterCourses()">Search</button>
+                    </div>
+                    <div class="filter-options">
+                        <button type="button" class="filter-btn active" data-filter="all">All</button>
+                        <button type="button" class="filter-btn" data-filter="major">My Major Only</button>
+                    </div>
+                </div>
+                <div class="course-list-container">
+                    <div class="course-list" id="available-courses-list">
+                        {% for course in available_courses %}
+                        <div class="course-item" data-course-id="{{ course.id }}" data-majors="{% for major in course.majors.all %}{{ major.id }} {% endfor %}">
+                            <div class="course-info">
+                                {{ course.name }} ({{ course.course_code }})
+                                <div class="course-major">
+                                    Major: {{ course.majors.all|join:", "|default:"Any" }}
+                                </div>
+                            </div>
+                            <div class="course-actions">
+                                <button type="button" class="btn btn-enroll" onclick="enrollCourse(this)">Enroll</button>
+                                <input type="hidden" name="courses" value="" disabled>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="no-courses">No courses available</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-save">Save</button>
+            <a href="{% if student.pk %}{% url 'student_detail' student.pk %}{% else %}{% url 'student_list' %}{% endif %}" 
+               class="btn btn-cancel">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    function enrollCourse(button) {
+        const courseItem = button.closest('.course-item');
+        const courseId = courseItem.dataset.courseId;
+        const hiddenInput = courseItem.querySelector('input[type="hidden"]');
+        
+        // Move to enrolled list
+        document.getElementById('current-courses-list').appendChild(courseItem);
+        
+        // Update button and input
+        button.textContent = 'Drop';
+        button.classList.remove('btn-enroll');
+        button.classList.add('btn-drop');
+        button.onclick = function() { dropCourse(this); };
+        hiddenInput.disabled = false;
+        hiddenInput.value = courseId;
+    }
+
+    function dropCourse(button) {
+        const courseItem = button.closest('.course-item');
+        const courseId = courseItem.dataset.courseId;
+        const hiddenInput = courseItem.querySelector('input[type="hidden"]');
+        
+        // Move to available list
+        document.getElementById('available-courses-list').appendChild(courseItem);
+        
+        // Update button and input
+        button.textContent = 'Enroll';
+        button.classList.remove('btn-drop');
+        button.classList.add('btn-enroll');
+        button.onclick = function() { enrollCourse(this); };
+        hiddenInput.disabled = true;
+        hiddenInput.value = '';
+    }
+
+    function filterCourses() {
+        const searchTerm = document.getElementById('course-search').value.toLowerCase();
+        const currentMajor = document.getElementById('id_major').value;
+        const activeFilter = document.querySelector('.filter-options .filter-btn.active').dataset.filter;
+        const courseItems = document.querySelectorAll('#available-courses-list .course-item');
+        
+        courseItems.forEach(item => {
+            const courseText = item.textContent.toLowerCase();
+            const courseMajors = item.dataset.majors.split(' ').filter(Boolean);
+            const matchesSearch = courseText.includes(searchTerm);
+            const matchesMajor = activeFilter === 'all' || courseMajors.includes(currentMajor) || courseMajors.length === 0;
+            
+            item.style.display = (matchesSearch && matchesMajor) ? 'flex' : 'none';
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set up filter buttons
+        document.querySelectorAll('.filter-options .filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-options .filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                filterCourses();
+            });
+        });
+        
+        // Watch for major changes
+        document.getElementById('id_major').addEventListener('change', filterCourses);
+        
+        // Initial filter
+        filterCourses();
+    });
+</script>
 {% endblock %}
