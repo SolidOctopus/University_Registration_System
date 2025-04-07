@@ -1,31 +1,100 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Student Detail</h2>
-<table>
-    <tr>
-        <th>ID</th>
-        <td>{{ student.id }}</td>
-    </tr>
-    <tr>
-        <th>First Name</th>
-        <td>{{ student.first_name }}</td>
-    </tr>
-    <tr>
-        <th>Last Name</th>
-        <td>{{ student.last_name }}</td>
-    </tr>
-    <tr>
-        <th>Email</th>
-        <td>{{ student.email }}</td>
-    </tr>
-    <tr>
-        <th>Role</th>
-        <td>{{ student.role }}</td>
-    </tr>
-    <tr>
-        <th>Major</th>
-        <td>{{ student.major.name if student.major else "Not Assigned" }}</td>
-    </tr>
-</table>
-<a href="{% url 'student_list' %}">Back to Student List</a>
+<style>
+    .student-detail-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    h1 {
+        color: #08063f;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .profile-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .profile-picture {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 30px;
+    }
+    .profile-info {
+        flex-grow: 1;
+    }
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .info-table th, .info-table td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+        text-align: left;
+    }
+    .info-table th {
+        width: 30%;
+        color: #08063f;
+    }
+    .back-link {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 8px 15px;
+        background-color: #e8cd7d;
+        color: #08063f;
+        text-decoration: none;
+        border-radius: 4px;
+        border: 1px solid #08063f;
+    }
+    .back-link:hover {
+        background-color: #f0d78c;
+    }
+</style>
+
+<div class="student-detail-container">
+    <h1>Student Details</h1>
+    
+    <div class="profile-header">
+        {% if student.user.profile.profile_picture %}
+        <img src="{{ student.user.profile.profile_picture.url }}" alt="Profile Picture" class="profile-picture">
+        {% endif %}
+        <div class="profile-info">
+            <h2>{{ student.first_name }} {{ student.last_name }}</h2>
+            <p>ID: {{ student.user.profile.id_number }}</p>
+        </div>
+    </div>
+    
+    <table class="info-table">
+        <tr>
+            <th>Email</th>
+            <td>{{ student.email }}</td>
+        </tr>
+        <tr>
+            <th>Role</th>
+            <td>{{ student.user.profile.role }}</td>
+        </tr>
+        <tr>
+            <th>Major</th>
+            <td>{{ student.major.name|default:"Not Assigned" }}</td>
+        </tr>
+        <tr>
+            <th>Enrolled Courses</th>
+            <td>
+                {% for course in student.courses.all %}
+                <div>{{ course.name }} ({{ course.course_code }})</div>
+                {% empty %}
+                No courses enrolled
+                {% endfor %}
+            </td>
+        </tr>
+    </table>
+    
+    <a href="{% url 'student_list' %}" class="back-link">Back to Student List</a>
+</div>
 {% endblock %}

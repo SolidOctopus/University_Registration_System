@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .tab-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+    .tab-buttons {
+        display: flex;
+        cursor: pointer;
+    }
+    .tab-buttons div {
+        flex-grow: 1;
+        padding: 10px 20px;
+        background-color: #d3d3d3; 
+        text-align: center;
+        color: #333;
+        border: none; 
+        box-sizing: border-box; 
+    }
+    .tab-buttons div.active {
+        background-color: #08063f;
+        color: #e8cd7d;
+    }
+    .tab-content {
+        padding: 20px;
+        display: none;
+        min-height: 200px; 
+    }
+    .tab-content.active {
+        display: block;
+    }
+    .student-table, .course-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    .student-table th, .student-table td,
+    .course-table th, .course-table td {
+        padding: 10px;
+        text-align: left;
+        border: none; 
+    }
+    .student-table th, .course-table th {
+        background-color: #08063f;
+        color: #e8cd7d;
+    }
+    .student-table td a, .course-table td a {
+        color: #08063f;
+        text-decoration: none;
+    }
+    .profile-pic {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 10px;
+    }
+    .student-name {
+        display: flex;
+        align-items: center;
+    }
+    .student-no-pic {
+        margin-left: 60px; 
+    }
+    .student-table tr:nth-child(even),
+    .course-table tr:nth-child(even) {
+        background-color: #f2f2f2; 
+    }
+    .student-table tr:nth-child(odd),
+    .course-table tr:nth-child(odd) {
+        background-color: #ffffff; 
+    }
+    .tab-buttons div:not(:last-child) {
+        margin-right: 2px; 
+    }
+    .search-container {
+        margin: 20px 0;
+    }
+    .search-container input[type="text"] {
+        padding: 5px;
+        width: 200px;
+        border-radius: 3px;
+        border: 1px solid #ccc;
+    }
+    .search-container button {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 3px;
+        background-color: #08063f;
+        color: #e8cd7d;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .search-container button:hover {
+        background-color: #e8cd7d;
+        color: #08063f;
+    }
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .header h2 {
+        margin: 0;
+    }
+    .btn {
+        padding: 5px 10px;
+        background-color: #e8cd7d;
+        color: #08063f;
+        text-decoration: none;
+        border-radius: 3px;
+        margin-left: 5px;
+        font-weight: bold;
+    }
+    .btn:hover {
+        background-color: #08063f;
+        color: #e8cd7d;
+    }
+    .id-column {
+        font-family: monospace;
+    }
+</style>
+
+<div class="header">
+    <h2>{{ major.name }}</h2>
+    <div>
+        <a href="{% url 'major_edit' major.pk %}" class="btn">Edit</a>
+        <a href="{% url 'major_delete' major.pk %}" class="btn">Delete</a>
+    </div>
+</div>
+
+<div class="tab-container">
+    <div class="tab-buttons">
+        <div class="tab-button" onclick="openTab(event, 'major-info')">Major Information</div>
+        <div class="tab-button" onclick="openTab(event, 'courses')">Courses</div>
+        <div class="tab-button" onclick="openTab(event, 'students')">Students</div>
+    </div>
+
+    <div id="major-info" class="tab-content">
+        <h3>Description</h3>
+        <p>{{ major.description|default:"No description available" }}</p>
+    </div>
+
+    <div id="courses" class="tab-content">
+        <h3>Courses in this Major</h3>
+        <div class="search-container">
+            <form method="GET" action="{% url 'major_detail' major.pk %}">
+                <input type="hidden" name="active_tab" value="courses">
+                <input type="text" name="q" value="{{ query|default_if_none:'' }}" placeholder="Search courses...">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+        <table class="course-table">
+            <thead>
+                <tr>
+                    <th>Course Code</th>
+                    <th>Course Name</th>
+                    <th>Professor</th>
+                    <th>Semester</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for course in courses %}
+                <tr>
+                    <td>{{ course.course_code }}</td>
+                    <td>{{ course.name }}</td>
+                    <td>
+                        {% if course.professor %}
+                            {{ course.professor.first_name }} {{ course.professor.last_name }}
+                        {% else %}
+                            Not assigned
+                        {% endif %}
+                    </td>
+                    <td>{{ course.semester|capfirst }}</td>
+                    <td><a href="{% url 'course_detail' course.pk %}">View Course</a></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center;">
+                        {% if query %}
+                            No courses found matching "{{ query }}"
+                        {% else %}
+                            No courses available for this major
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="students" class="tab-content">
+        <h3>Students in this Major</h3>
+        <div class="search-container">
+            <form method="GET" action="{% url 'major_detail' major.pk %}">
+                <input type="hidden" name="active_tab" value="students">
+                <input type="text" name="q" value="{{ query|default_if_none:'' }}" placeholder="Search students...">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+        <table class="student-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>ID Number</th>
+                    <th>Email</th>
+                    <th>Profile</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td class="student-name">
+                        {% if student.user.profile.profile_picture %}
+                            <img src="{{ student.user.profile.profile_picture.url }}" alt="Profile Picture" class="profile-pic">
+                        {% endif %}
+                        <span class="{% if not student.user.profile.profile_picture %}student-no-pic{% endif %}">
+                            {{ student.first_name }} {{ student.last_name }}
+                        </span>
+                    </td>
+                    <td class="id-column">{{ student.user.profile.id_number }}</td>
+                    <td>{{ student.email }}</td>
+                    <td><a href="{% url 'view_user_profile' student.pk %}">View Profile</a></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center;">
+                        {% if query %}
+                            No students found matching "{{ query }}"
+                        {% else %}
+                            No students enrolled in this major
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function openTab(evt, tabId) {
+        var i, tabcontent, tabbuttons;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+            tabcontent[i].classList.remove("active");
+        }
+        tabbuttons = document.getElementsByClassName("tab-button");
+        for (i = 0; i < tabbuttons.length; i++) {
+            tabbuttons[i].classList.remove("active");
+            tabbuttons[i].style.backgroundColor = "#d3d3d3";
+        }
+        document.getElementById(tabId).style.display = "block";
+        document.getElementById(tabId).classList.add("active");
+        evt.currentTarget.classList.add("active");
+        evt.currentTarget.style.backgroundColor = "#08063f";
+        
+        localStorage.setItem('activeMajorTab', tabId);
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTab = urlParams.get('active_tab');
+        const storedTab = localStorage.getItem('activeMajorTab');
+        const activeTab = urlTab || storedTab || 'major-info';
+        
+        document.getElementById(activeTab).style.display = "block";
+        document.getElementById(activeTab).classList.add("active");
+        
+        const buttons = document.getElementsByClassName("tab-button");
+        for (let i = 0; i < buttons.length; i++) {
+            if (buttons[i].getAttribute("onclick").includes(activeTab)) {
+                buttons[i].classList.add("active");
+                buttons[i].style.backgroundColor = "#08063f";
+            }
+        }
+    });
+</script>
+{% endblock %}

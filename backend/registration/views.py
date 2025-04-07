@@ -3,8 +3,8 @@ from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import PasswordResetForm
 from django.http import JsonResponse
-from .models import Course, Student, Professor, Admin, Profile, Enrollment, Assignment, Announcement, Cart, Message, Submission, UserAssignmentCompletion, Grade, Module
-from .forms import CourseForm, MajorChangeForm, StudentForm, ProfessorForm, AdminForm, GradeForm, ProfileForm, UserRegistrationForm, StudentRegistrationForm, ProfessorRegistrationForm, AssignmentForm, AnnouncementForm, ModuleForm
+from .models import Course, Student, Professor, Admin, Profile, Enrollment, Assignment, Announcement, Cart, Message, Submission, UserAssignmentCompletion, Grade, Module, Major
+from .forms import CourseForm, MajorChangeForm, StudentForm, ProfessorForm, AdminForm, GradeForm, ProfileForm, UserRegistrationForm, StudentRegistrationForm, ProfessorRegistrationForm, AssignmentForm, AnnouncementForm, ModuleForm, MajorForm
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db import transaction, IntegrityError
@@ -14,6 +14,7 @@ from datetime import datetime, timedelta, date, time
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
+import json
 
 def register_view(request):
     if request.method == 'POST':
@@ -92,8 +93,23 @@ def home_view(request):
     return render(request, 'home.html', {'user_role': user_role})
 
 def course_list(request):
-    courses = Course.objects.all()
-    return render(request, 'registration/course_list.html', {'courses': courses})
+    query = request.GET.get('q', '')
+    
+    if query:
+        courses = Course.objects.filter(
+            Q(name__icontains=query) |
+            Q(course_code__icontains=query) |
+            Q(description__icontains=query) |
+            Q(location__icontains=query) |
+            Q(days__icontains=query) |
+            Q(professor__first_name__icontains=query) |
+            Q(professor__last_name__icontains=query) |
+            Q(majors__name__icontains=query)
+        ).distinct()
+    else:
+        courses = Course.objects.all()
+    
+    return render(request, 'registration/course_list.html', {'courses': courses, 'query': query})
 
 def course_create(request):
     if request.method == 'POST':
@@ -194,18 +210,66 @@ def student_create(request):
 
 def student_detail(request, pk):
     student = get_object_or_404(Student, pk=pk)
-    return render(request, 'registration/student_detail.html', {"student": student})
+    return render(request, 'registration/student_detail.html', {'student': student})
 
 def student_update(request, pk):
     student = get_object_or_404(Student, pk=pk)
+    
     if request.method == 'POST':
         form = StudentForm(request.POST, request.FILES, instance=student)
         if form.is_valid():
-            form.save()
-            return redirect('student_detail', pk=pk)
+            try:
+                with transaction.atomic():
+                    # Save student and user information
+                    student = form.save()
+                    
+                    # Get selected course IDs from the form
+                    selected_course_ids = request.POST.getlist('courses', [])
+                    current_courses = set(student.courses.all())
+                    new_courses = set(Course.objects.filter(id__in=selected_course_ids))
+                    
+                    # Add new enrollments
+                    for course in new_courses - current_courses:
+                        # Check if course has available seats
+                        if course.available_seats > 0:
+                            Enrollment.objects.get_or_create(student=student, course=course)
+                            course.available_seats -= 1
+                            course.save()
+                        else:
+                            messages.warning(request, f'Course {course.name} is full and was not added')
+                    
+                    # Remove dropped enrollments
+                    for course in current_courses - new_courses:
+                        enrollment = Enrollment.objects.filter(student=student, course=course).first()
+                        if enrollment:
+                            enrollment.delete()
+                            course.available_seats += 1
+                            course.save()
+                    
+                    messages.success(request, 'Student updated successfully!')
+                    return redirect('student_list')
+            
+            except Exception as e:
+                messages.error(request, f'Error updating student: {str(e)}')
+        else:
+            # Print form errors for debugging
+            print("Form errors:", form.errors)
+            messages.error(request, 'Please correct the errors below.')
     else:
+        # Initialize form with student data
         form = StudentForm(instance=student)
-    return render(request, 'registration/student_form.html', {'form': form})
+    
+    # Prepare context
+    context = {
+        'form': form,
+        'student': student,
+        'enrolled_courses': student.courses.all(),
+        'available_courses': Course.objects.exclude(
+            id__in=student.courses.values_list('id', flat=True)
+        ),
+    }
+    
+    return render(request, 'registration/student_form.html', context)
 
 def student_schedule(request):
     student_instance = get_object_or_404(Student, user=request.user)
@@ -953,7 +1017,30 @@ def professor_info(request, course_id):
 
 def course_syllabus(request, course_id):
     course = get_object_or_404(Course, id=course_id)
-    return render(request, 'course_syllabus.html', {'course': course})
+    can_edit = request.user == course.professor
+    
+    # Load syllabus data from course.description (stored as JSON)
+    try:
+        syllabus_data = json.loads(course.description) if course.description else {}
+    except:
+        syllabus_data = {}
+    
+    if request.method == 'POST' and can_edit:
+        syllabus_data = {
+            'description': request.POST.get('description', ''),
+            'objectives': request.POST.get('objectives', ''),
+            'grading_policy': request.POST.get('grading_policy', '')
+        }
+        course.description = json.dumps(syllabus_data)
+        course.save()
+        return redirect('course_syllabus', course_id=course.id)
+    
+    context = {
+        'course': course,
+        'syllabus_data': syllabus_data,
+        'can_edit': can_edit
+    }
+    return render(request, 'course_syllabus.html', context)
 
 def course_modules(request, course_id):
     course = get_object_or_404(Course, id=course_id)
@@ -991,48 +1078,154 @@ def course_announcements(request, course_id):
 def course_grades_students(request, course_id):
     # Fetch the course
     course = get_object_or_404(Course, id=course_id)
-
+    student = request.user
+    
     # Fetch grades for the logged-in student
-    grades = Grade.objects.filter(course=course, student=request.user)
-
-    # Render the student-specific grades template
-    return render(request, 'course_grades_students.html', {
+    grades = Grade.objects.filter(course=course, student=student).select_related('assignment')
+    
+    # Calculate statistics
+    total_assignments = Assignment.objects.filter(course=course).count()
+    completed_assignments = grades.exclude(numerical_grade__isnull=True).count()
+    
+    # Calculate overall grade (average of all graded assignments)
+    graded_assignments = grades.exclude(numerical_grade__isnull=True)
+    overall_grade = None
+    if graded_assignments.exists():
+        # Changed from g.grade to g.numerical_grade
+        overall_grade = sum(g.numerical_grade for g in graded_assignments) / graded_assignments.count()
+    
+    # Calculate days remaining in the course
+    days_remaining = (course.end_date - timezone.now().date()).days
+    days_remaining = max(0, days_remaining)  # Don't show negative days
+    
+    # Get upcoming assignments (due in the future)
+    upcoming_assignments = Assignment.objects.filter(
+        course=course,
+        due_date__gte=timezone.now().date()
+    ).order_by('due_date')[:5]
+    
+    # Calculate grade distribution for the chart
+    grade_distribution = [0, 0, 0, 0, 0, 0]  # A, B, C, D, F, Ungraded
+    for grade in grades:
+        if grade.letter_grade:
+            if grade.letter_grade.startswith('A'):
+                grade_distribution[0] += 1
+            elif grade.letter_grade.startswith('B'):
+                grade_distribution[1] += 1
+            elif grade.letter_grade.startswith('C'):
+                grade_distribution[2] += 1
+            elif grade.letter_grade.startswith('D'):
+                grade_distribution[3] += 1
+            elif grade.letter_grade == 'F':
+                grade_distribution[4] += 1
+        else:
+            grade_distribution[5] += 1
+    
+    context = {
         'course': course,
-        'grades': grades
-    })
+        'grades': grades,
+        'overall_grade': overall_grade,
+        'completed_assignments': completed_assignments,
+        'total_assignments': total_assignments,
+        'days_remaining': days_remaining,
+        'upcoming_assignments': upcoming_assignments,
+        'grade_distribution': grade_distribution,
+    }
+    
+    return render(request, 'course_grades_students.html', context)
 
 def course_grades_professors(request, course_id):
-    # Fetch the course
     course = get_object_or_404(Course, id=course_id)
-
-    # Fetch all grades for the course
-    all_grades = Grade.objects.filter(course=course)
-
-    # Handle form submission for adding/editing grades
-    if request.method == 'POST':
-        form = GradeForm(request.POST)
-        if form.is_valid():
-            student = form.cleaned_data['student']
-            assignment = form.cleaned_data['assignment']
-
-            # Check if a grade already exists for this student and assignment
-            if Grade.objects.filter(student=student, assignment=assignment).exists():
-                messages.error(request, "This student already has a grade for this assignment.")
-            else:
-                grade = form.save(commit=False)
-                grade.course = course
-                grade.save()
-                messages.success(request, "Grade saved successfully!")
+    
+    # Ensure only professors teaching this course can access
+    if not request.user.is_authenticated or not hasattr(request.user, 'professor') or \
+       not course.professor == request.user:
+        return redirect('home')
+    
+    assignments = Assignment.objects.filter(course=course).order_by('-due_date')
+    selected_assignment = None
+    assignment_id = request.GET.get('assignment')
+    
+    if assignment_id:
+        selected_assignment = get_object_or_404(Assignment, id=assignment_id, course=course)
+    
+    # Handle grade submission
+    if request.method == 'POST' and selected_assignment:
+        try:
+            with transaction.atomic():
+                for enrollment in Enrollment.objects.filter(course=course).select_related('student'):
+                    student = enrollment.student
+                    grade_key = f'grade_{student.user.id}'
+                    numerical_grade = request.POST.get(grade_key)
+                    
+                    if numerical_grade and numerical_grade.strip():
+                        try:
+                            numerical_grade = float(numerical_grade)
+                            if 0 <= numerical_grade <= 100:
+                                # Check if student has submitted or assignment is closed
+                                has_submitted = Submission.objects.filter(
+                                    assignment=selected_assignment,
+                                    student=student
+                                ).exists()
+                                
+                                if has_submitted or selected_assignment.is_closed:
+                                    Grade.objects.update_or_create(
+                                        student=student.user,
+                                        assignment=selected_assignment,
+                                        course=course,
+                                        defaults={
+                                            'numerical_grade': numerical_grade,
+                                            # letter_grade will be auto-set in save()
+                                        }
+                                    )
+                                else:
+                                    messages.warning(request, 
+                                        f"Cannot grade {student.user.get_full_name()} - assignment not submitted")
+                        except ValueError:
+                            messages.error(request, "Invalid grade format - must be number between 0-100")
+                
+                messages.success(request, 'Grades saved successfully!')
                 return redirect('course_grades_professors', course_id=course.id)
-    else:
-        form = GradeForm()
+        except Exception as e:
+            messages.error(request, f'Error saving grades: {str(e)}')
 
-    # Render the professor-specific grades template
-    return render(request, 'course_grades_professors.html', {
+    # Prepare enrollment data with submission status and grades
+    enrollments = []
+    for enrollment in Enrollment.objects.filter(course=course).select_related('student'):
+        student = enrollment.student
+        submission = None
+        grade = None
+        
+        if selected_assignment:
+            submission = Submission.objects.filter(
+                assignment=selected_assignment,
+                student=student
+            ).exists()
+            
+            grade = Grade.objects.filter(
+                student=student.user,
+                assignment=selected_assignment,
+                course=course
+            ).first()
+        
+        enrollments.append({
+            'student': {
+                'user': student.user,
+                'has_submitted': submission,
+                'grades': grade,
+                'student_obj': student
+            },
+            'enrollment': enrollment
+        })
+
+    context = {
         'course': course,
-        'all_grades': all_grades,
-        'form': form,
-    })
+        'assignments': assignments,
+        'selected_assignment': selected_assignment,
+        'enrollments': enrollments,
+    }
+    
+    return render(request, 'course_grades_professors.html', context)
 
 def shopping_cart_view(request):
     # Get the current student's cart items
@@ -1475,3 +1668,92 @@ def module_detail(request, course_id, module_id):
         'current_date': current_date,
     }
     return render(request, 'module_detail.html', context)
+
+def major_list(request):
+    query = request.GET.get('q', '')
+    if query:
+        majors = Major.objects.filter(
+            Q(name__icontains=query) | 
+            Q(description__icontains=query))
+    else:
+        majors = Major.objects.all()
+    
+    return render(request, 'major_list.html', {'majors': majors})
+
+def major_create(request):
+    if request.method == 'POST':
+        form = MajorForm(request.POST)
+        if form.is_valid():
+            major = form.save()
+            # Handle course associations
+            course_ids = request.POST.getlist('courses')
+            major.courses.set(course_ids)
+            return redirect('major_list')
+    else:
+        form = MajorForm()
+    
+    all_courses = Course.objects.all()
+    return render(request, 'major_form.html', {
+        'form': form,
+        'all_courses': all_courses
+    })
+
+def major_edit(request, pk):
+    major = get_object_or_404(Major, pk=pk)
+    if request.method == 'POST':
+        form = MajorForm(request.POST, instance=major)
+        if form.is_valid():
+            major = form.save()
+            # Handle course associations
+            course_ids = request.POST.getlist('courses')
+            major.courses.set(course_ids)
+            return redirect('major_detail', pk=major.pk)
+    else:
+        form = MajorForm(instance=major)
+    
+    all_courses = Course.objects.all()
+    return render(request, 'major_form.html', {
+        'form': form,
+        'all_courses': all_courses
+    })
+
+def major_delete(request, pk):
+    major = get_object_or_404(Major, pk=pk)
+    if request.method == 'POST':
+        major.delete()
+        return redirect('major_list')
+    return render(request, 'major_confirm_delete.html', {'major': major})
+
+def major_detail(request, pk):
+    major = get_object_or_404(Major, pk=pk)
+    query = request.GET.get('q', '')
+    active_tab = request.GET.get('active_tab', 'major-info')
+
+    # Initialize querysets
+    students = major.students.all()
+    courses = major.courses.all()
+
+    # Apply filters based on active tab and query
+    if active_tab == 'students' and query:
+        students = students.filter(
+            Q(user__first_name__icontains=query) |
+            Q(user__last_name__icontains=query) |
+            Q(email__icontains=query) |
+            Q(user__profile__id_number__icontains=query)
+        )
+    elif active_tab == 'courses' and query:
+        courses = courses.filter(
+            Q(name__icontains=query) |
+            Q(course_code__icontains=query) |
+            Q(professor__first_name__icontains=query) |
+            Q(professor__last_name__icontains=query)
+        )
+
+    context = {
+        'major': major,
+        'students': students,
+        'courses': courses,
+        'query': query,
+        'active_tab': active_tab,
+    }
+    return render(request, 'major_detail.html', context)

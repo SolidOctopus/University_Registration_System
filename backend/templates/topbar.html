@@ -15,17 +15,54 @@
         body.has-hanging-nav .container-main {
             padding-top: 0;
         }
+        
+        /* Typing animation - single run */
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        #branding h1 a {
+            display: inline-block;
+            overflow: hidden;
+            white-space: nowrap;
+            animation: typing 3s steps(30, end) forwards;
+        }
+
+        /* Nav link hover animation */
+        nav ul li a {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: currentColor;
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+        }
+        
+        nav ul li a:hover::after {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
     </style>
 </head>
 <body>
     <div class="topbar-container">
         <header>
             <div id="branding">
-                <h1><a href="{% url 'home' %}">University Registration System</a></h1>
+                <h1><a href="{% url 'home' %}" id="animated-title">University Registration System</a></h1>
             </div>
             <nav>
                 <ul>
-                    <li><a href="{% url 'home' %}" class="pulse">
+                    <li><a href="{% url 'home' %}">
                         <i class="fas fa-home"></i> Home</a></li>
                     <li><a href="{% url 'dashboard' %}">
                         <i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
@@ -69,6 +106,24 @@
             if (document.querySelector('.hanging-nav')) {
                 document.body.classList.add('has-hanging-nav');
             }
+            
+            // Run typing animation once
+            const titleElement = document.getElementById('animated-title');
+            const fullText = titleElement.textContent;
+            
+            // Reset to empty
+            titleElement.textContent = '';
+            
+            // Typing effect (single run)
+            let i = 0;
+            const typingInterval = setInterval(() => {
+                if (i < fullText.length) {
+                    titleElement.textContent += fullText.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(typingInterval);
+                }
+            }, 100); // Typing speed
         });
     </script>
 </body>

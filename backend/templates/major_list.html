@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    .search-container {
+        display: flex;
+        gap: 10px;
+    }
+    .search-container input[type="text"] {
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        min-width: 250px;
+    }
+    .search-container button {
+        padding: 8px 15px;
+        background-color: #08063f;
+        color: #e8cd7d;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .search-container button:hover {
+        background-color: #0a0750;
+    }
+    .add-course-link {
+        background-color: #e8cd7d;
+        padding: 8px 15px;
+        border-radius: 4px;
+        text-decoration: none;
+        color: #08063f;
+        font-weight: bold;
+        border: 1px solid #08063f;
+        white-space: nowrap;
+    }
+    .add-course-link:hover {
+        background-color: #f0d78c;
+    }
+    .major-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 40px;
+    }
+    .major-table, .major-table th, .major-table td {
+        border: 1px solid #000;
+    }
+    .major-table th, .major-table td {
+        padding: 12px;
+        text-align: left;
+    }
+    .major-header {
+        background-color: #f4f4f4;
+        font-weight: bold;
+    }
+    .major-details {
+        background-color: #e9e9e9;
+    }
+    .major-title {
+        background-color: #08063f;
+        color: #e8cd7d;
+        font-weight: bold;
+    }
+    .major-title a {
+        color: #08063f;
+        text-decoration: none;
+        background-color: #e8cd7d;
+        padding: 5px 10px;
+        border-radius: 3px;
+    }
+    .action-links a {
+        color: #08063f;
+        text-decoration: none;
+        margin-right: 10px;
+    }
+    .action-links a:hover {
+        text-decoration: underline;
+    }
+    .no-results {
+        text-align: center;
+        padding: 20px;
+        font-style: italic;
+        color: #666;
+    }
+</style>
+
+<div class="header">
+    <h2>Major List</h2>
+    <div class="search-container">
+        <form method="GET" action="{% url 'major_list' %}">
+            <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search majors...">
+            <button type="submit">Search</button>
+        </form>
+        <a href="{% url 'major_create' %}" class="add-course-link">Add New Major</a>
+    </div>
+</div>
+
+{% if majors %}
+    {% for major in majors %}
+    <table class="major-table">
+        <thead>
+            <tr class="major-title">
+                <td colspan="3">
+                    <a href="{% url 'major_detail' major.pk %}">{{ major.name }}</a>
+                </td>
+            </tr>
+            <tr>
+                <th style="width: 70%;">Description</th>
+                <th style="width: 30%;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="major-details">
+                <td>{{ major.description|default:"No description available" }}</td>
+                <td class="action-links">
+                    <a href="{% url 'major_edit' major.pk %}">Edit</a> |
+                    <a href="{% url 'major_delete' major.pk %}">Delete</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    {% endfor %}
+{% else %}
+    <div class="no-results">
+        {% if request.GET.q %}
+            No majors found matching "{{ request.GET.q }}"
+        {% else %}
+            No majors available
+        {% endif %}
+    </div>
+{% endif %}
+
+{% endblock %}

@@ -9,7 +9,7 @@
         border-radius: 5px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    h1 {
+    h2 {
         color: #08063f;
         margin-bottom: 20px;
         text-align: center;
@@ -24,10 +24,7 @@
         color: #08063f;
     }
     .form-group input[type="text"],
-    .form-group textarea,
-    .form-group input[type="date"],
-    .form-group input[type="time"],
-    .form-group select {
+    .form-group textarea {
         width: 100%;
         padding: 8px;
         border: 1px solid #ddd;
@@ -79,24 +76,24 @@
         display: block;
         margin-top: 5px;
     }
-    /* Major selection styles */
-    .major-selection {
+    /* Course selection styles */
+    .course-selection {
         margin-top: 30px;
         border-top: 1px solid #ddd;
         padding-top: 20px;
     }
-    .major-search {
+    .course-search {
         display: flex;
         margin-bottom: 15px;
         gap: 10px;
     }
-    .major-search input {
+    .course-search input {
         flex-grow: 1;
         padding: 8px;
         border: 1px solid #ddd;
         border-radius: 4px;
     }
-    .major-list-container {
+    .course-list-container {
         max-height: 400px;
         overflow-y: auto;
         border: 1px solid #ddd;
@@ -104,25 +101,25 @@
         margin-bottom: 15px;
         background-color: #f9f9f9;
     }
-    .major-list {
+    .course-list {
         padding: 10px;
     }
-    .major-item {
+    .course-item {
         display: flex;
         align-items: center;
         padding: 8px;
         border-bottom: 1px solid #eee;
     }
-    .major-item:last-child {
+    .course-item:last-child {
         border-bottom: none;
     }
-    .major-checkbox {
+    .course-checkbox {
         margin-right: 10px;
     }
-    .major-info {
+    .course-info {
         flex-grow: 1;
     }
-    .no-majors {
+    .no-courses {
         padding: 15px;
         text-align: center;
         color: #666;
@@ -131,84 +128,83 @@
 </style>
 
 <div class="form-container">
-    <h1>Edit Course</h1>
-    <form method="post" class="course-form" id="course-form" action="{% url 'edit_course' course.id %}">
+    <h2>{% if form.instance.pk %}Edit{% else %}Create{% endif %} Major</h2>
+    <form method="post" id="major-form">
         {% csrf_token %}
         
-        <!-- Regular form fields -->
         {% for field in form %}
-            {% if field.name != 'majors' %}
-            <div class="form-group">
-                {{ field.label_tag }}
-                {% if field.help_text %}
-                    <span class="helptext">{{ field.help_text }}</span>
-                {% endif %}
-                {{ field }}
-                {% if field.errors %}
-                    <ul class="errorlist">
-                        {% for error in field.errors %}
-                        <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-            </div>
+        <div class="form-group">
+            {{ field.label_tag }}
+            {% if field.help_text %}
+                <span class="helptext">{{ field.help_text }}</span>
             {% endif %}
+            {{ field }}
+            {% if field.errors %}
+                <ul class="errorlist">
+                    {% for error in field.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
         {% endfor %}
         
-        <!-- Major Selection Section -->
-        <div class="major-selection">
-            <h3>Associated Majors</h3>
-            <div class="major-search">
-                <input type="text" id="major-search" placeholder="Search majors..." 
-                       onkeydown="if(event.key === 'Enter') { event.preventDefault(); filterMajors(); }">
-                <button type="button" class="btn btn-save" onclick="filterMajors()">Search</button>
+        <!-- Course Selection Section -->
+        <div class="course-selection">
+            <h3>Associated Courses</h3>
+            <div class="course-search">
+                <input type="text" id="course-search" placeholder="Search courses..." 
+                       onkeydown="if(event.key === 'Enter') { event.preventDefault(); filterCourses(); }">
+                <button type="button" class="btn btn-save" onclick="filterCourses()">Search</button>
             </div>
-            <div class="major-list-container">
-                <div class="major-list" id="major-list">
-                    {% for major in form.majors.field.queryset %}
-                    <div class="major-item">
+            <div class="course-list-container">
+                <div class="course-list" id="course-list">
+                    {% for course in all_courses %}
+                    <div class="course-item">
                         <input type="checkbox" 
-                               form="course-form"
-                               name="majors" 
-                               value="{{ major.id }}"
-                               id="major-{{ major.id }}"
-                               class="major-checkbox"
-                               {% if major in form.instance.majors.all %}checked{% endif %}>
-                        <label for="major-{{ major.id }}" class="major-info">
-                            {{ major.name }}
-                            {% if major.description %}
-                                - {{ major.description|truncatechars:50 }}
+                               form="major-form"
+                               name="courses" 
+                               value="{{ course.id }}"
+                               id="course-{{ course.id }}"
+                               class="course-checkbox"
+                               {% if course in form.instance.courses.all %}checked{% endif %}>
+                        <label for="course-{{ course.id }}" class="course-info">
+                            {{ course.name }} ({{ course.course_code }}) - 
+                            {% if course.professor %}
+                                {{ course.professor.last_name }}
+                            {% else %}
+                                No professor assigned
                             {% endif %}
                         </label>
                     </div>
                     {% empty %}
-                    <div class="no-majors">No majors available</div>
+                    <div class="no-courses">No courses available</div>
                     {% endfor %}
                 </div>
             </div>
         </div>
         
         <div class="form-actions">
-            <button type="submit" class="btn btn-save">Save Changes</button>
-            <a href="{% url 'course_detail' course.id %}" class="btn btn-cancel">Cancel</a>
+            <button type="submit" class="btn btn-save">Save</button>
+            <a href="{% url 'major_list' %}" class="btn btn-cancel">Cancel</a>
         </div>
     </form>
 </div>
 
 <script>
-    function filterMajors() {
-        const searchTerm = document.getElementById('major-search').value.toLowerCase();
-        const majorItems = document.querySelectorAll('.major-item');
+    function filterCourses() {
+        const searchTerm = document.getElementById('course-search').value.toLowerCase();
+        const courseItems = document.querySelectorAll('.course-item');
         
-        majorItems.forEach(item => {
-            const majorText = item.textContent.toLowerCase();
-            item.style.display = majorText.includes(searchTerm) ? 'flex' : 'none';
+        courseItems.forEach(item => {
+            const courseText = item.textContent.toLowerCase();
+            item.style.display = courseText.includes(searchTerm) ? 'flex' : 'none';
         });
     }
 
-    // Initialize with all majors visible
+    // Initialize with all courses visible
     document.addEventListener('DOMContentLoaded', function() {
-        filterMajors();
+        filterCourses();
     });
 </script>
 {% endblock %}

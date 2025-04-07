@@ -1,4 +1,3 @@
-
 {% include 'topbar.html' %}
 {% load static %}
 {% block content %}
@@ -132,16 +131,22 @@
                     <span>Student List</span>
                 </div>
             </a>
+            <a href="{% url 'professor_list' %}" class="box">
+                <div class="icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                <div class="box-content">
+                    <span>Professor List</span>
+                </div>
+            </a>
             <a href="{% url 'course_list' %}" class="box">
                 <div class="icon"><i class="fas fa-book"></i></div>
                 <div class="box-content">
                     <span>Course List</span>
                 </div>
             </a>
-            <a href="{% url 'professor_list' %}" class="box">
-                <div class="icon"><i class="fas fa-chalkboard-teacher"></i></div>
+            <a href="{% url 'major_list' %}" class="box">
+                <div class="icon"><i class="fas fa-graduation-cap"></i></div>
                 <div class="box-content">
-                    <span>Professor List</span>
+                    <span>Manage Majors</span>
                 </div>
             </a>
             <a href="{% url 'admin_list' %}" class="box">

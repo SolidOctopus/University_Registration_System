@@ -4,256 +4,385 @@
 {% endblock %}
 
 {% block content %}
-<div class="page-container">
+<div class="course-modules-container">
     {% include 'course_sidebar.html' %}
-
-    <div class="main-content">
-        <div class="container">
-            <h1>{{ course.name }} - Modules</h1>
+    <div class="modules-main-content">
+        <div class="modules-header">
+            <div class="header-content">
+                <h1>{{ course.name }}</h1>
+                <h2>Course Modules</h2>
+                <p class="course-description">{{ course.description|default:"No course description available" }}</p>
+            </div>
             
             {% if request.user.profile.role == 'professor' or request.user.profile.role == 'admin' %}
-                <div class="add-module-container">
-                    <a href="{% url 'create_module' course.id %}" class="btn-add">
-                        <i class="fas fa-plus"></i> Create New Module
-                    </a>
-                </div>
+            <a href="{% url 'create_module' course.id %}" class="create-module-btn">
+                <i class="fas fa-plus"></i> Create Module
+            </a>
             {% endif %}
+        </div>
 
-            <div class="modules-list">
-                <div class="module-grid">
-                    {% for module in modules|dictsort:"created_at" %}
-                    <div class="module-wrapper">
-                        <a href="{% url 'module_detail' course.id module.id %}" class="module-card">
-                            <div class="module-header">
-                                <span class="module-number">Module {{ forloop.counter }}</span>
-                            </div>
-                            
-                            <div class="module-body">
-                                <h3 class="module-title">{{ module.title }}</h3>
-                                <p class="module-description">{{ module.description|default:"No description provided" }}</p>
-                                
-                                <div class="module-stats">
-                                    <div class="stat-item">
-                                        <i class="fas fa-tasks"></i>
-                                        <span>{{ module.assignment_modules.all|length }} Assignments</span>
-                                    </div>
-                                    <div class="stat-item">
-                                        <i class="fas fa-bullhorn"></i>
-                                        <span>{{ module.announcement_modules.all|length }} Announcements</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-
-                        <!-- Action Buttons (Visible only to professors/admins) -->
-                        {% if request.user.profile.role == 'professor' or request.user.profile.role == 'admin' %}
-                        <div class="module-actions">
-                            <a href="{% url 'edit_module' course.id module.id %}" class="btn-edit">
-                                <i class="fas fa-edit"></i> Edit
-                            </a>
-                            <a href="{% url 'delete_module' course.id module.id %}" 
-                               class="btn-delete" 
-                               onclick="return confirm('Are you sure you want to delete this module?');">
-                                <i class="fas fa-trash"></i> Delete
-                            </a>
+        <div class="modules-content">
+            {% if modules %}
+            <div class="modules-grid">
+                {% for module in modules|dictsort:"created_at" %}
+                <div class="module-card">
+                    <a href="{% url 'module_detail' course.id module.id %}" class="module-card-link">
+                        <div class="module-header">
+                            <span class="module-number">Module {{ forloop.counter }}</span>
+                            <span class="module-date">{{ module.created_at|date:"M d, Y" }}</span>
                         </div>
-                        {% endif %}
-                    </div>
-                    {% empty %}
-                    <div class="empty-state">
-                        <i class="fas fa-folder-open"></i>
-                        <p>No modules available for this course.</p>
-                        {% if request.user.profile.role == 'professor' or request.user.profile.role == 'admin' %}
-                        <a href="{% url 'create_module' course.id %}" class="btn-add">
-                            Create Your First Module
+                        <h3 class="module-title">{{ module.title }}</h3>
+                        <p class="module-description">{{ module.description|default:"No description provided"|truncatechars:120 }}</p>
+                        
+                        <div class="module-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-tasks"></i>
+                                <span>{{ module.assignment_modules.count }} Assignments</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-bullhorn"></i>
+                                <span>{{ module.announcement_modules.count }} Announcements</span>
+                            </div>
+                        </div>
+                    </a>
+                    
+                    {% if request.user.profile.role == 'professor' or request.user.profile.role == 'admin' %}
+                    <div class="module-actions">
+                        <a href="{% url 'edit_module' course.id module.id %}" class="action-btn edit-btn">
+                            <i class="fas fa-edit"></i> Edit
                         </a>
-                        {% endif %}
+                        <a href="{% url 'delete_module' course.id module.id %}" class="action-btn delete-btn" onclick="return confirm('Are you sure you want to delete this module?');">
+                            <i class="fas fa-trash"></i> Delete
+                        </a>
                     </div>
-                    {% endfor %}
+                    {% endif %}
                 </div>
+                {% endfor %}
             </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-folder-open"></i>
+                </div>
+                <h3>No Modules Available</h3>
+                <p>This course doesn't have any modules yet.</p>
+                {% if request.user.profile.role == 'professor' or request.user.profile.role == 'admin' %}
+                <a href="{% url 'create_module' course.id %}" class="create-module-btn">
+                    <i class="fas fa-plus"></i> Create First Module
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
 <style>
-    .page-container {
+    /* Base Variables - Matching home.html */
+    :root {
+        --primary: #6e8efb;
+        --primary-dark: #7e77e3;
+        --primary-light: #c5cae9;
+        --accent: #ff4081;
+        --text-primary: #212121;
+        --text-secondary: #757575;
+        --divider: #e0e0e0;
+        --background: #f5f5f5;
+        --card-bg: #ffffff;
+        --success: #4caf50;
+        --warning: #ff9800;
+        --danger: #f44336;
+        --radius: 20px;
+        --shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        --hover-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        --transition: all 0.3s ease;
+    }
+
+    /* Base Layout */
+
+
+    .modules-main-content {
+        flex: 1;
+        margin-left: 30px; /* Match sidebar width */
+        padding: 30px;
+        overflow-y: auto;
+        max-height: calc(100vh - 60px); /* Ensure scrolling */
+    }
+
+    /* Header Styles */
+    .modules-header {
         display: flex;
-        flex-direction: row;
-    }
-    .main-content {
-        width: calc(100% - 240px);
-        margin-left: 240px;
-        padding: 30px;
-        background-color: #f8f9fa;
-    }
-    .container {
-        margin: 20px auto;
-        padding: 30px;
-        max-width: 1000px;
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-    h1 {
-        text-align: center;
-        font-size: 2rem;
-        color: #2c3e50;
+        justify-content: space-between;
+        align-items: flex-start;
         margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .header-content h1 {
+        font-size: 2rem;
         font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 5px 0;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
-    .add-module-container {
-        text-align: right;
-        margin-bottom: 25px;
+
+    .header-content h2 {
+        font-size: 1.5rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin: 0 0 15px 0;
     }
-    .btn-add {
-        background-color: #3498db;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 5px;
-        text-decoration: none;
-        transition: all 0.3s;
+
+    .course-description {
+        color: var(--text-secondary);
+        line-height: 1.6;
+        max-width: 800px;
+    }
+
+    /* Create Module Button */
+    .create-module-btn {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        justify-content: center;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        border: none;
+        border-radius: var(--radius);
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+        gap: 10px;
+        text-decoration: none;
+        box-shadow: var(--shadow);
+        white-space: nowrap;
     }
-    .btn-add:hover {
-        background-color: #2980b9;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+    .create-module-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--hover-shadow);
     }
-    .modules-list {
-        padding-bottom: 30px;
-    }
-    .module-grid {
+
+    /* Modules Grid */
+    .modules-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 30px;
+        gap: 25px;
     }
-    .module-wrapper {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
+
+    /* Module Card */
     .module-card {
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 15px;
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
-        padding: 25px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background-color: var(--card-bg);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        transition: var(--transition);
         display: flex;
         flex-direction: column;
-        height: 100%;
-        text-decoration: none;
-        color: inherit;
     }
+
     .module-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 15px 25px rgba(0, 0, 0, 0.15);
+        box-shadow: var(--hover-shadow);
     }
+
+    .module-card-link {
+        text-decoration: none;
+        color: inherit;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+    }
+
     .module-header {
         display: flex;
         justify-content: space-between;
+        align-items: center;
         margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #eee;
     }
-    .module-date {
-        font-size: 0.9em;
-        color: #7f8c8d;
-    }
+
     .module-number {
-        font-size: 0.9em;
-        font-weight: bold;
-        color: #3498db;
+        background: rgba(110, 142, 251, 0.1);
+        color: var(--primary);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
     }
-    .module-body {
+
+    .module-date {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+    }
+
+    .module-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 15px 0;
+    }
+
+    .module-description {
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin: 0 0 20px 0;
         flex: 1;
     }
-    .module-title {
-        font-size: 1.5em;
-        font-weight: bold;
-        color: #2c3e50;
-        margin-bottom: 10px;
-    }
-    .module-description {
-        font-size: 1em;
-        color: #34495e;
-        margin-bottom: 20px;
-    }
-    .module-stats {
+
+    .module-meta {
         display: flex;
-        gap: 15px;
-        margin-bottom: 20px;
+        gap: 20px;
+        margin-top: auto;
+        padding-top: 15px;
+        border-top: 1px solid var(--divider);
     }
-    .stat-item {
+
+    .meta-item {
         display: flex;
         align-items: center;
-        gap: 5px;
-        font-size: 0.9em;
-        color: #7f8c8d;
+        gap: 8px;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
     }
+
+    .meta-item i {
+        color: var(--primary);
+    }
+
+    /* Module Actions */
     .module-actions {
         display: flex;
         gap: 10px;
-        justify-content: flex-end;
-        padding: 0 5px;
-    }
-    .btn-edit, .btn-delete {
-        color: white;
-        padding: 8px 16px;
-        border-radius: 5px;
-        text-decoration: none;
-        transition: all 0.3s;
-        font-size: 0.9em;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-    }
-    .btn-edit {
-        background-color: #3498db;
-    }
-    .btn-delete {
-        background-color: #e74c3c;
-    }
-    .btn-edit:hover {
-        background-color: #2980b9;
-        transform: translateY(-2px);
-    }
-    .btn-delete:hover {
-        background-color: #c0392b;
-        transform: translateY(-2px);
-    }
-    .empty-state {
-        text-align: center;
-        padding: 40px 20px;
-        color: #7f8c8d;
-        grid-column: 1 / -1;
-    }
-    .empty-state i {
-        font-size: 3rem;
-        color: #bdc3c7;
-        margin-bottom: 20px;
-    }
-    .empty-state p {
-        font-size: 1.1rem;
-        margin-bottom: 20px;
+        padding: 15px;
+        background-color: rgba(0, 0, 0, 0.02);
+        border-top: 1px solid var(--divider);
     }
 
-    @media (max-width: 768px) {
-        .main-content {
-            width: 100%;
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+        gap: 8px;
+        text-decoration: none;
+        flex: 1;
+    }
+
+    .edit-btn {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+    }
+
+    .delete-btn {
+        background: linear-gradient(135deg, var(--danger), #d32f2f);
+        color: white;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Empty State */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 60px 20px;
+        background-color: white;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-state h3 {
+        font-size: 1.5rem;
+        color: var(--text-primary);
+        margin: 0 0 10px 0;
+    }
+
+    .empty-state p {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        margin: 0 0 25px 0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .modules-main-content {
             margin-left: 0;
             padding: 20px;
         }
-        .module-grid {
-            grid-template-columns: 1fr;
-            gap: 20px;
+    }
+
+    @media (max-width: 992px) {
+        .modules-header {
+            flex-direction: column;
         }
+        
+        .create-module-btn {
+            width: 100%;
+        }
+        
+        .modules-grid {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .modules-main-content {
+            padding: 15px;
+        }
+        
+        .header-content h1 {
+            font-size: 1.5rem;
+        }
+        
+        .header-content h2 {
+            font-size: 1.2rem;
+        }
+        
+        .modules-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .module-meta {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
         .module-actions {
-            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .action-btn {
+            width: 100%;
         }
     }
 </style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 {% endblock %}

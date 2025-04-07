@@ -42,6 +42,17 @@
         color: #08063f;
         padding: 2px 4px;
     }
+    .action-button {
+        background-color: #08063f;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        text-decoration: none;
+        margin-right: 5px;
+    }
+    .action-button:hover {
+        background-color: #0d0a6b;
+    }
 </style>
 
 {% for class in classes %}
@@ -65,9 +76,8 @@
             <td>{{ class.days }} | {{ class.start_time|date:"g:i a" }} - {{ class.end_time|date:"g:i a" }}</td>
             <td>{{ class.location }}</td>
             <td>
-                <a href="{% url 'course_overview' class.id %}">View</a> |
-                <a href="{% url 'create_assignment' class.id %}">Assignments</a> |
-                <a href="{% url 'create_announcement' class.id %}">Announcements</a>
+                <a href="{% url 'course_overview' class.id %}" class="action-button">Dashboard</a>
+                <a href="{% url 'view_students' class.id %}" class="action-button">View Students</a>
             </td>
         </tr>
     </tbody>

@@ -5,190 +5,679 @@
 
 {% block content %}
 <div class="grades-container">
-    <div class="grades-header">
-        <h2>Grades</h2>
-    </div>
+    <div class="content-wrapper">
+        <div class="grades-table-container">
+            <div class="table-header">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search assignments..." id="grade-search">
+                </div>
+            </div>
+            
+            <div class="table-responsive scrollable-assignments">
+                <table class="grades-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable" data-sort="assignment">Assignment <i class="fas fa-sort"></i></th>
+                            <th class="sortable" data-sort="type">Type <i class="fas fa-sort"></i></th>
+                            <th class="sortable" data-sort="date">Due Date <i class="fas fa-sort"></i></th>
+                            <th class="sortable" data-sort="grade">Grade <i class="fas fa-sort"></i></th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if grades %}
+                            {% for grade in grades %}
+                            <tr>
+                                <td>
+                                    <div class="assignment-info">
+                                        <div class="assignment-icon">
+                                            {% if grade.assignment.get_type_display == "Exam" %}
+                                                <i class="fas fa-file-signature"></i>
+                                            {% elif grade.assignment.get_type_display == "Project" %}
+                                                <i class="fas fa-project-diagram"></i>
+                                            {% else %}
+                                                <i class="fas fa-file-alt"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <strong>{{ grade.assignment.title }}</strong>
+                                            <small>{{ course.name }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="type-badge type-{{ grade.assignment.get_type_display|lower }}">
+                                        {{ grade.assignment.get_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="date-cell">
+                                        <span>{{ grade.assignment.due_date|date:"M d, Y" }}</span>
+                                        <small>{{ grade.assignment.due_time|time:"H:i" }}</small>
+                                    </div>
+                                </td>
+                                <td class="grade-value">
+                                    <div class="grade-display {% if grade.numerical_grade %}grade-{{ grade.letter_grade.0|lower }}{% else %}grade-none{% endif %}">
+                                        {% if grade.numerical_grade %}
+                                            {{ grade.numerical_grade }}% ({{ grade.letter_grade }})
+                                        {% else %}
+                                            Not Graded
+                                        {% endif %}
+                                        {% if grade.feedback %}
+                                        <div class="feedback-tooltip">
+                                            <i class="fas fa-comment-alt"></i>
+                                            <span class="tooltip-text">{{ grade.feedback }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if grade.is_late %}
+                                        <span class="status-badge late">Late</span>
+                                    {% elif grade.is_missing %}
+                                        <span class="status-badge missing">Missing</span>
+                                    {% else %}
+                                        <span class="status-badge submitted">Submitted</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="no-grades">
+                                    <div class="empty-state">
+                                        <i class="fas fa-clipboard-list"></i>
+                                        <h4>No grades available yet</h4>
+                                        <p>Your grades will appear here once assignments are graded</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-    <div class="grades-table-container">
-        <table class="grades-table">
-            <thead>
-                <tr>
-                    <th>Assignment</th>
-                    <th>Type</th>
-                    <th>Due Date</th>
-                    <th>Grade</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if grades %}
-                    {% for grade in grades %}
-                    <tr>
-                        <td>{{ grade.assignment.title }}</td>
-                        <td>{{ grade.assignment.get_type_display }}</td>
-                        <td>{{ grade.assignment.due_date|date:"Y-m-d" }}</td>
-                        <td class="grade-{{ grade.grade.0|lower }}">{{ grade.grade }}</td>
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="4" class="no-grades">No grades available yet</td>
-                    </tr>
-                {% endif %}
-            </tbody>
-        </table>
+        <div class="grades-sidebar">
+            <div class="sidebar-section">
+                <div class="grade-chart-container">
+                    <canvas id="gradeChart"></canvas>
+                    <div class="current-grade-overlay grade-{% if overall_grade %}{{ overall_grade.0|lower }}{% else %}none{% endif %}">
+                        {% if overall_grade %}{{ overall_grade }}{% else %}--{% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-section scrollable-upcoming">
+                <h4>Upcoming Assignments</h4>
+                <div class="upcoming-list">
+                    {% if upcoming_assignments %}
+                        {% for assignment in upcoming_assignments %}
+                        <div class="upcoming-item">
+                            <div class="upcoming-icon">
+                                {% if assignment.get_type_display == "Exam" %}
+                                    <i class="fas fa-file-signature"></i>
+                                {% elif assignment.get_type_display == "Project" %}
+                                    <i class="fas fa-project-diagram"></i>
+                                {% else %}
+                                    <i class="fas fa-file-alt"></i>
+                                {% endif %}
+                            </div>
+                            <div class="upcoming-details">
+                                <strong>{{ assignment.title }}</strong>
+                                <span>Due {{ assignment.due_date|date:"M d" }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-upcoming">
+                            <i class="fas fa-check-circle"></i>
+                            <p>No upcoming assignments</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="filter-container">
         <button class="filter-tab active" data-filter="all">
             <i class="fas fa-folder-open"></i> Show All
+            <span class="filter-count">{{ completed_assignments }}/{{ total_assignments }}</span>
         </button>
         <button class="filter-tab" data-filter="assignment">
             <i class="fas fa-file-alt"></i> Assignments
+            <span class="filter-count">{{ completed_assignments_by_type.assignment }}/{{ total_assignments_by_type.assignment }}</span>
         </button>
         <button class="filter-tab" data-filter="homework">
             <i class="fas fa-book"></i> Homework
+            <span class="filter-count">{{ completed_assignments_by_type.homework }}/{{ total_assignments_by_type.homework }}</span>
         </button>
         <button class="filter-tab" data-filter="project">
             <i class="fas fa-project-diagram"></i> Projects
+            <span class="filter-count">{{ completed_assignments_by_type.project }}/{{ total_assignments_by_type.project }}</span>
         </button>
         <button class="filter-tab" data-filter="exam">
             <i class="fas fa-file-signature"></i> Exams
+            <span class="filter-count">{{ completed_assignments_by_type.exam }}/{{ total_assignments_by_type.exam }}</span>
         </button>
     </div>
 </div>
 
 <style>
-    /* Main container */
-    .grades-container {
+    :root {
+        --primary-color: #6e8efb;
+        --secondary-color: #7e77e3;
+        --success-color: #4cc9f0;
+        --warning-color: #f8961e;
+        --danger-color: #f94144;
+        --light-color: #f8f9fa;
+        --dark-color: #212529;
+        --text-color: #495057;
+        --border-color: #e9ecef;
+        --gradient-start: #6e8efb;
+        --gradient-end: #7e77e3;
+    }
+    
+
+
+    .content-wrapper {
+        display: flex;
+        gap: 25px;
         padding: 25px;
-        margin-top: 10px; /* Reduced since hanging-nav-container already adds space */
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
-
-    /* Header */
-    .grades-header {
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid #eee;
-    }
-
-    .grades-header h2 {
-        margin: 0;
-        color: #2c3e50;
-    }
-
-    /* Table styles */
+    
     .grades-table-container {
+        flex: 1;
+    }
+    
+    .grades-sidebar {
+        width: 300px;
+    }
+
+    .table-header {
+        display: flex;
+        justify-content: flex-start;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .search-box {
+        position: relative;
+        width: 100%;
+        max-width: 400px;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    
+    .search-box i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--primary-color);
+    }
+    
+    .search-box input {
+        width: 100%;
+        padding: 12px 15px 12px 45px;
+        border: 2px solid var(--border-color);
+        border-radius: 20px;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        background: white;
+    }
+    
+    .search-box input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(110, 142, 251, 0.2);
+    }
+
+    .table-responsive {
         overflow-x: auto;
         margin-bottom: 25px;
+        border-radius: 20px;
+        border: 1px solid var(--border-color);
     }
-
+    
     .grades-table {
         width: 100%;
-        border-collapse: collapse;
-        min-width: 600px;
+        border-collapse: separate;
+        border-spacing: 0;
+        min-width: 800px;
+        border-radius: 20px;
+        overflow: hidden;
     }
-
+    
     .grades-table th {
-        background-color: #2980b9;
+        background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
         color: white;
-        padding: 12px 15px;
+        padding: 15px;
         text-align: left;
         font-weight: 500;
+        border: none;
     }
-
+    
     .grades-table td {
-        padding: 12px 15px;
-        border-bottom: 1px solid #f5f5f5;
+        padding: 15px;
+        border-bottom: 1px solid var(--border-color);
+        background: white;
     }
-
+    
     .grades-table tr:last-child td {
         border-bottom: none;
     }
-
+    
     .grades-table tr:hover {
-        background-color: #f8f9fa;
+        background-color: rgba(110, 142, 251, 0.03);
     }
-
-    /* Grade colors */
-    .grade-a { color: #2ecc71; font-weight: bold; }
-    .grade-b { color: #f39c12; font-weight: bold; }
-    .grade-c { color: #e67e22; font-weight: bold; }
-    .grade-d { color: #e74c3c; font-weight: bold; }
-    .grade-f { color: #c0392b; font-weight: bold; }
-
-    .no-grades {
-        text-align: center;
-        color: #7f8c8d;
-        padding: 20px;
-    }
-
-    /* Filter tabs */
-    .filter-container {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    .filter-tab {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 20px;
-        background: #ecf0f1;
+    
+    .sortable {
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.2s;
+        user-select: none;
+    }
+    
+    .sortable:hover {
+        color: white;
+        opacity: 0.9;
+    }
+    
+    .sortable i {
+        margin-left: 5px;
+        font-size: 0.8rem;
+    }
+
+    .assignment-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .assignment-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(110, 142, 251, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-color);
+    }
+    
+    .assignment-info small {
+        display: block;
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 2px;
+    }
+
+    .grade-none {
+        color: #95a5a6;
+        font-style: italic;
+    }
+
+    .type-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
         font-weight: 500;
+    }
+    
+    .type-assignment {
+        background: rgba(76, 201, 240, 0.1);
+        color: #4cc9f0;
+    }
+    
+    .type-homework {
+        background: rgba(120, 111, 214, 0.1);
+        color: #786fd6;
+    }
+    
+    .type-project {
+        background: rgba(248, 150, 30, 0.1);
+        color: #f8961e;
+    }
+    
+    .type-exam {
+        background: rgba(249, 65, 68, 0.1);
+        color: #f94144;
+    }
+
+    .date-cell {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .date-cell small {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+
+    .grade-value {
+        font-weight: 600;
+    }
+    
+    .grade-display {
         display: flex;
         align-items: center;
         gap: 8px;
     }
+    
+    .grade-a { color: #2ecc71; }
+    .grade-b { color: #f39c12; }
+    .grade-c { color: #e67e22; }
+    .grade-d { color: #e74c3c; }
+    .grade-f { color: #c0392b; }
+    
+    .feedback-tooltip {
+        position: relative;
+        cursor: pointer;
+    }
+    
+    .feedback-tooltip .tooltip-text {
+        visibility: hidden;
+        width: 200px;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 8px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 0.8rem;
+        font-weight: normal;
+    }
+    
+    .feedback-tooltip:hover .tooltip-text {
+        visibility: visible;
+        opacity: 1;
+    }
 
+    .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .submitted {
+        background: rgba(46, 204, 113, 0.1);
+        color: #2ecc71;
+    }
+    
+    .late {
+        background: rgba(231, 76, 60, 0.1);
+        color: #e74c3c;
+    }
+    
+    .missing {
+        background: rgba(149, 165, 166, 0.1);
+        color: #95a5a6;
+    }
+
+    .no-grades {
+        text-align: center;
+        padding: 40px 20px;
+    }
+    
+    .empty-state {
+        max-width: 300px;
+        margin: 0 auto;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        color: #adb5bd;
+        margin-bottom: 15px;
+    }
+    
+    .empty-state h4 {
+        margin: 10px 0 5px;
+        color: #495057;
+    }
+    
+    .empty-state p {
+        color: #6c757d;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .sidebar-section {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+        border: none;
+    }
+    
+    .sidebar-section h4 {
+        margin: 0 0 15px 0;
+        color: var(--dark-color);
+        font-size: 1.1rem;
+    }
+    
+    .grade-chart-container {
+        position: relative;
+        height: 250px;
+        margin: 0 auto;
+        width: 80%;
+    }
+    
+    .current-grade-overlay {
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 2.5rem;
+        font-weight: bold;
+        text-align: center;
+        width: 0px;
+        height: 0px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: white;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .upcoming-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .upcoming-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px;
+        border-radius: 10px;
+        transition: all 0.2s;
+    }
+    
+    .upcoming-item:hover {
+        background: var(--light-color);
+    }
+    
+    .upcoming-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        background: rgba(110, 142, 251, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-color);
+        flex-shrink: 0;
+    }
+    
+    .upcoming-details {
+        flex: 1;
+    }
+    
+    .upcoming-details strong {
+        display: block;
+        font-size: 0.9rem;
+        margin-bottom: 2px;
+    }
+    
+    .upcoming-details span {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .empty-upcoming {
+        text-align: center;
+        padding: 20px 0;
+    }
+    
+    .empty-upcoming i {
+        font-size: 2rem;
+        color: #adb5bd;
+        margin-bottom: 10px;
+    }
+    
+    .empty-upcoming p {
+        margin: 0;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .scrollable-assignments {
+        max-height: 60vh;
+        overflow-y: auto;
+        border-radius: 20px;
+    }
+
+    .scrollable-upcoming .upcoming-list {
+        max-height: 200px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+
+    .scrollable-assignments::-webkit-scrollbar,
+    .scrollable-upcoming .upcoming-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .scrollable-assignments::-webkit-scrollbar-track,
+    .scrollable-upcoming .upcoming-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    .scrollable-assignments::-webkit-scrollbar-thumb,
+    .scrollable-upcoming .upcoming-list::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+
+    .scrollable-assignments::-webkit-scrollbar-thumb:hover,
+    .scrollable-upcoming .upcoming-list::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+
+    .filter-container {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding: 15px 25px;
+        border-top: 1px solid var(--border-color);
+        background: var(--light-color);
+    }
+    
+    .filter-tab {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 20px;
+        background: white;
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        font-size: 0.9rem;
+    }
+    
     .filter-tab.active {
-        background: #3498db;
+        background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
         color: white;
     }
-
+    
     .filter-tab:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.15);
     }
 
-    /* Responsive adjustments */
+    .filter-count {
+        margin-left: 8px;
+        font-size: 0.8rem;
+        background: rgba(0,0,0,0.08);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+    
+    .filter-tab.active .filter-count {
+        background: rgba(255,255,255,0.3);
+    }
+
+    @media (max-width: 1200px) {
+        .content-wrapper {
+            flex-direction: column;
+        }
+        
+        .grades-sidebar {
+            width: 100%;
+        }
+    }
+    
     @media (max-width: 768px) {
-        .grades-container {
+        .content-wrapper {
             padding: 15px;
         }
-
-        .grades-table th,
-        .grades-table td {
-            padding: 10px 12px;
+        
+        .table-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
         }
-
-        .filter-tab {
-            padding: 8px 15px;
-            font-size: 14px;
+        
+        .search-box {
+            width: 100%;
+        }
+        
+        .filter-container {
+            padding: 15px;
         }
     }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const filterTabs = document.querySelectorAll('.filter-tab');
         
         filterTabs.forEach(tab => {
             tab.addEventListener('click', function() {
-                // Remove active class from all tabs
                 filterTabs.forEach(t => t.classList.remove('active'));
-                
-                // Add active class to clicked tab
                 this.classList.add('active');
                 
-                // Get filter type
                 const filter = this.getAttribute('data-filter');
-                
-                // Filter the table rows
                 const rows = document.querySelectorAll('.grades-table tbody tr');
                 
                 rows.forEach(row => {
@@ -196,14 +685,135 @@
                         row.style.display = '';
                     } else {
                         const typeCell = row.querySelector('td:nth-child(2)');
-                        if (typeCell && typeCell.textContent.toLowerCase().includes(filter)) {
-                            row.style.display = '';
-                        } else {
-                            row.style.display = 'none';
+                        if (typeCell) {
+                            const typeText = typeCell.textContent.toLowerCase().trim();
+                            if (typeText.includes(filter)) {
+                                row.style.display = '';
+                            } else {
+                                row.style.display = 'none';
+                            }
                         }
                     }
                 });
             });
+        });
+        
+        const searchInput = document.getElementById('grade-search');
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.grades-table tbody tr');
+            
+            rows.forEach(row => {
+                const assignmentCell = row.querySelector('td:first-child');
+                if (assignmentCell) {
+                    const assignmentText = assignmentCell.textContent.toLowerCase();
+                    if (assignmentText.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        });
+        
+        const sortableHeaders = document.querySelectorAll('.sortable');
+        sortableHeaders.forEach(header => {
+            header.addEventListener('click', function() {
+                const sortBy = this.getAttribute('data-sort');
+                const icon = this.querySelector('i');
+                
+                const isAscending = !this.classList.contains('asc');
+                sortableHeaders.forEach(h => {
+                    h.classList.remove('asc', 'desc');
+                    h.querySelector('i').className = 'fas fa-sort';
+                });
+                
+                this.classList.add(isAscending ? 'asc' : 'desc');
+                icon.className = isAscending ? 'fas fa-sort-up' : 'fas fa-sort-down';
+                
+                sortTable(sortBy, isAscending);
+            });
+        });
+        
+        function sortTable(sortBy, isAscending) {
+            const table = document.querySelector('.grades-table');
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            rows.sort((a, b) => {
+                const aCell = getSortValue(a, sortBy);
+                const bCell = getSortValue(b, sortBy);
+                
+                if (sortBy === 'date') {
+                    return isAscending 
+                        ? new Date(aCell) - new Date(bCell)
+                        : new Date(bCell) - new Date(aCell);
+                } else if (sortBy === 'grade') {
+                    const aGrade = parseGrade(aCell);
+                    const bGrade = parseGrade(bCell);
+                    return isAscending ? aGrade - bGrade : bGrade - aGrade;
+                } else {
+                    return isAscending 
+                        ? aCell.localeCompare(bCell)
+                        : bCell.localeCompare(aCell);
+                }
+            });
+            
+            rows.forEach(row => tbody.appendChild(row));
+        }
+        
+        function getSortValue(row, sortBy) {
+            switch (sortBy) {
+                case 'assignment':
+                    return row.querySelector('td:first-child').textContent.trim();
+                case 'type':
+                    return row.querySelector('td:nth-child(2)').textContent.trim();
+                case 'date':
+                    return row.querySelector('td:nth-child(3)').textContent.trim();
+                case 'grade':
+                    return row.querySelector('td:nth-child(4)').textContent.trim();
+                default:
+                    return '';
+            }
+        }
+        
+        function parseGrade(gradeText) {
+            if (!gradeText || gradeText === '--') return -1;
+            const match = gradeText.match(/(\d+)/);
+            return match ? parseInt(match[1]) : -1;
+        }
+        
+        const ctx = document.getElementById('gradeChart').getContext('2d');
+        const gradeChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['A', 'B', 'C', 'D', 'F', 'Ungraded'],
+                datasets: [{
+                    data: [{% if grade_distribution %}{{ grade_distribution|join:',' }}{% else %}0,0,0,0,0,0{% endif %}],
+                    backgroundColor: [
+                        '#2ecc71', '#f39c12', '#e67e22', 
+                        '#e74c3c', '#c0392b', '#bdc3c7'
+                    ],
+                    borderWidth: 0,
+                    borderRadius: 3,
+                    spacing: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 10,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
         });
     });
 </script>
