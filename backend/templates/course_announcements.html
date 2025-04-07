@@ -4,40 +4,39 @@
 {% endblock %}
 
 {% block content %}
-<div class="announcements-page">
+<div class="course-page-container">
     <!-- Include the sidebar -->
     {% include 'course_sidebar.html' %}
 
     <!-- Main Content Area -->
-    <div class="announcements-main">
+    <div class="course-main-content">
         <!-- Header Section -->
-        <div class="announcements-header">
+        <div class="course-header">
             <div class="header-text">
-                <h1 class="course-name">{{ course.name }}</h1>
-                <h2 class="page-title">Announcements</h2>
+                <h1>{{ course.name }}</h1>
+                <h2>Announcements</h2>
             </div>
             
             <!-- Action Buttons -->
             <div class="header-actions">
                 {% if request.user.profile.role == 'professor' or request.user.profile.role == 'admin' %}
-                    <a href="{% url 'create_announcement' course.id %}" class="action-btn primary">
+                    <a href="{% url 'create_announcement' course.id %}" class="btn-primary">
                         <i class="fas fa-plus"></i> New Announcement
                     </a>
                 {% endif %}
-                <button class="action-btn secondary">
+                <button class="btn-secondary">
                     <i class="fas fa-check-double"></i> Mark All Read
                 </button>
             </div>
         </div>
 
         <!-- Search and Tools Bar -->
-        <div class="tools-bar">
-            <div class="search-box">
+        <div class="course-toolbar">
+            <div class="search-container">
                 <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search announcements...">
+                <input type="text" placeholder="Search announcements..." id="announcement-search">
             </div>
-            <div class="view-options">
-                <span class="filter-label">View:</span>
+            <div class="filter-container">
                 <select class="filter-select">
                     <option>All Announcements</option>
                     <option>Unread Only</option>
@@ -47,60 +46,60 @@
             </div>
         </div>
 
-        <!-- Announcements Container -->
-        <div class="announcements-content">
-            <div class="announcements-list-container">
-                <div class="announcements-list-header">
+        <!-- Announcements List -->
+        <div class="course-content-container">
+            <div class="announcements-list">
+                <div class="list-header">
                     <h3>Course Announcements</h3>
-                    <span class="announcements-count">{{ announcements|length }} items</span>
+                    <span class="item-count">{{ announcements|length }} items</span>
                 </div>
                 
                 {% if announcements %}
-                <div class="announcements-list">
-                    {% for announcement in announcements|dictsortreversed:"posted_at" %}
-                    <div class="announcement-card {% if forloop.first %}highlighted{% endif %}">
-                        <div class="announcement-body">
-                            <div class="announcement-header">
-                                <h4 class="title">{{ announcement.title }}</h4>
+                    <div class="announcements-grid">
+                        {% for announcement in announcements|dictsortreversed:"posted_at" %}
+                        <div class="announcement-card {% if forloop.first %}highlighted{% endif %}">
+                            <div class="card-header">
+                                <h4>{{ announcement.title }}</h4>
                                 <span class="date">
                                     <i class="far fa-clock"></i> {{ announcement.posted_at|date:"M j, Y · g:i A" }}
                                 </span>
                             </div>
-                            <p class="preview">{{ announcement.details|truncatechars:200 }}</p>
-                        </div>
-                        <div class="announcement-footer">
-                            <a href="{% url 'announcement_detail' course.id announcement.id %}" class="read-more">
-                                View Details <i class="fas fa-arrow-right"></i>
-                            </a>
-                            {% if request.user.profile.role == 'professor' or request.user.profile.role == 'admin' %}
-                            <div class="admin-actions">
-                                <a href="{% url 'edit_announcement' course.id announcement.id %}" class="action-icon edit">
-                                    <i class="fas fa-pencil-alt"></i>
-                                </a>
-                                <a href="{% url 'delete_announcement' course.id announcement.id %}" 
-                                   class="action-icon delete" 
-                                   onclick="return confirm('Are you sure you want to delete this announcement?');">
-                                    <i class="fas fa-trash"></i>
-                                </a>
+                            <div class="card-content">
+                                <p>{{ announcement.details|truncatechars:200 }}</p>
                             </div>
-                            {% endif %}
+                            <div class="card-footer">
+                                <a href="{% url 'announcement_detail' course.id announcement.id %}" class="read-more">
+                                    View Details <i class="fas fa-arrow-right"></i>
+                                </a>
+                                {% if request.user.profile.role == 'professor' or request.user.profile.role == 'admin' %}
+                                <div class="admin-actions">
+                                    <a href="{% url 'edit_announcement' course.id announcement.id %}" class="action-btn edit">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </a>
+                                    <a href="{% url 'delete_announcement' course.id announcement.id %}" 
+                                       class="action-btn delete" 
+                                       onclick="return confirm('Are you sure you want to delete this announcement?');">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
-                </div>
                 {% else %}
-                <div class="empty-state">
-                    <div class="empty-icon">
-                        <i class="fas fa-bullhorn"></i>
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-bullhorn"></i>
+                        </div>
+                        <h4>No Announcements Yet</h4>
+                        <p>There are currently no announcements for this course.</p>
+                        {% if request.user.profile.role == 'professor' or request.user.profile.role == 'admin' %}
+                        <a href="{% url 'create_announcement' course.id %}" class="btn-primary">
+                            <i class="fas fa-plus"></i> Create First Announcement
+                        </a>
+                        {% endif %}
                     </div>
-                    <h4>No Announcements Yet</h4>
-                    <p>There are currently no announcements for this course.</p>
-                    {% if request.user.profile.role == 'professor' or request.user.profile.role == 'admin' %}
-                    <a href="{% url 'create_announcement' course.id %}" class="action-btn primary">
-                        <i class="fas fa-plus"></i> Create First Announcement
-                    </a>
-                    {% endif %}
-                </div>
                 {% endif %}
             </div>
         </div>
@@ -123,77 +122,62 @@
         --danger: #f44336;
         --radius: 8px;
         --shadow: 0 2px 4px rgba(0,0,0,0.1);
-        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        --transition: all 0.3s ease;
     }
 
     /* Base Layout */
-    .announcements-page {
-        display: flex;
-        height: 100vh;
-        overflow: hidden;
-        background-color: var(--background);
-    }
 
-    .announcements-main {
+    .course-main-content {
         flex: 1;
-        display: flex;
-        flex-direction: column;
-        margin-left: 240px;
-        height: 100vh;
-        overflow: hidden;
+        margin-left: 10px;
+        padding: 20px;
+        overflow-y: auto;
+        max-height: calc(100vh - 60px);
     }
 
     /* Header Section */
-    .announcements-header {
+    .course-header {
         display: flex;
         justify-content: space-between;
-        align-items: flex-end;
-        padding: 24px 32px;
-        background-color: var(--card-bg);
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
         border-bottom: 1px solid var(--divider);
     }
 
-    .header-text {
-        flex: 1;
-    }
-
-    .course-name {
+    .header-text h1 {
         font-size: 28px;
         font-weight: 600;
         color: var(--text-primary);
-        margin: 0;
-        line-height: 1.2;
+        margin: 0 0 5px 0;
     }
 
-    .page-title {
+    .header-text h2 {
         font-size: 18px;
         font-weight: 400;
         color: var(--text-secondary);
-        margin: 8px 0 0 0;
+        margin: 0;
     }
 
     .header-actions {
         display: flex;
-        gap: 12px;
+        gap: 10px;
     }
 
-    /* Tools Bar */
-    .tools-bar {
+    /* Toolbar */
+    .course-toolbar {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        padding: 16px 32px;
-        background-color: var(--card-bg);
-        border-bottom: 1px solid var(--divider);
+        margin-bottom: 20px;
     }
 
-    .search-box {
+    .search-container {
         position: relative;
         flex: 1;
-        max-width: 500px;
+        max-width: 400px;
     }
 
-    .search-box i {
+    .search-container i {
         position: absolute;
         left: 12px;
         top: 50%;
@@ -201,7 +185,7 @@
         color: var(--text-secondary);
     }
 
-    .search-box input {
+    .search-container input {
         width: 100%;
         padding: 10px 16px 10px 40px;
         border-radius: var(--radius);
@@ -210,131 +194,111 @@
         transition: var(--transition);
     }
 
-    .search-box input:focus {
+    .search-container input:focus {
         outline: none;
         border-color: var(--primary);
         box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.2);
     }
 
-    .view-options {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .filter-label {
-        font-size: 14px;
-        color: var(--text-secondary);
-    }
-
-    .filter-select {
-        padding: 8px 12px;
+    .filter-container select {
+        padding: 10px 16px;
         border-radius: var(--radius);
         border: 1px solid var(--divider);
         font-size: 14px;
         background-color: white;
     }
 
-    /* Announcements Content */
-    .announcements-content {
-        flex: 1;
-        padding: 0 32px;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .announcements-list-container {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        background-color: var(--card-bg);
+    /* Content Container */
+    .course-content-container {
+        background-color: white;
         border-radius: var(--radius);
-        margin: 24px 0;
         box-shadow: var(--shadow);
         overflow: hidden;
     }
 
-    .announcements-list-header {
+    /* Announcements List */
+    .announcements-list {
+        padding: 20px;
+    }
+
+    .list-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 16px 24px;
-        border-bottom: 1px solid var(--divider);
+        margin-bottom: 20px;
     }
 
-    .announcements-list-header h3 {
+    .list-header h3 {
         font-size: 18px;
         font-weight: 600;
-        color: var(--text-primary);
         margin: 0;
     }
 
-    .announcements-count {
+    .item-count {
         font-size: 14px;
         color: var(--text-secondary);
     }
 
-    .announcements-list {
-        flex: 1;
-        overflow-y: auto;
-        padding: 0;
+    /* Announcements Grid */
+    .announcements-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
     }
 
-    /* Announcement Cards */
+    /* Announcement Card */
     .announcement-card {
-        padding: 20px 24px;
-        border-bottom: 1px solid var(--divider);
+        border: 1px solid var(--divider);
+        border-radius: var(--radius);
+        padding: 20px;
         transition: var(--transition);
     }
 
-    .announcement-card:last-child {
-        border-bottom: none;
-    }
-
     .announcement-card.highlighted {
+        border-left: 4px solid var(--primary);
         background-color: rgba(63, 81, 181, 0.05);
-        border-left: 3px solid var(--primary);
     }
 
     .announcement-card:hover {
-        background-color: rgba(0, 0, 0, 0.02);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
     }
 
-    .announcement-header {
+    .card-header {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 12px;
+        margin-bottom: 15px;
     }
 
-    .announcement-header .title {
+    .card-header h4 {
         font-size: 18px;
         font-weight: 500;
-        color: var(--text-primary);
         margin: 0;
-        flex: 1;
+        color: var(--text-primary);
     }
 
-    .announcement-header .date {
+    .card-header .date {
         font-size: 13px;
         color: var(--text-secondary);
         white-space: nowrap;
-        margin-left: 16px;
     }
 
-    .announcement-header .date i {
-        margin-right: 4px;
+    .card-header .date i {
+        margin-right: 5px;
     }
 
-    .preview {
+    .card-content {
+        margin-bottom: 15px;
+    }
+
+    .card-content p {
         font-size: 15px;
-        color: var(--text-primary);
         line-height: 1.5;
-        margin: 0 0 16px 0;
+        color: var(--text-primary);
+        margin: 0;
     }
 
-    .announcement-footer {
+    .card-footer {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -347,7 +311,7 @@
         text-decoration: none;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
         transition: var(--transition);
     }
 
@@ -361,74 +325,82 @@
     }
 
     .read-more:hover i {
-        transform: translateX(2px);
+        transform: translateX(3px);
     }
 
     .admin-actions {
         display: flex;
-        gap: 8px;
+        gap: 10px;
     }
 
-    .action-icon {
-        width: 32px;
-        height: 32px;
+    .action-btn {
+        width: 30px;
+        height: 30px;
         display: flex;
         align-items: center;
         justify-content: center;
         border-radius: 50%;
         color: white;
+        cursor: pointer;
         transition: var(--transition);
     }
 
-    .action-icon.edit {
+    .action-btn.edit {
         background-color: var(--warning);
     }
 
-    .action-icon.edit:hover {
+    .action-btn.edit:hover {
         background-color: #e68a00;
     }
 
-    .action-icon.delete {
+    .action-btn.delete {
         background-color: var(--danger);
     }
 
-    .action-icon.delete:hover {
+    .action-btn.delete:hover {
         background-color: #d32f2f;
     }
 
     /* Buttons */
-    .action-btn {
+    .btn-primary {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         padding: 10px 16px;
+        background-color: var(--primary);
+        color: white;
+        border: none;
         border-radius: var(--radius);
         font-size: 14px;
         font-weight: 500;
         cursor: pointer;
         transition: var(--transition);
-        border: none;
         gap: 8px;
+        text-decoration: none;
     }
 
-    .action-btn.primary {
-        background-color: var(--primary);
-        color: white;
-    }
-
-    .action-btn.primary:hover {
+    .btn-primary:hover {
         background-color: var(--primary-dark);
-        box-shadow: var(--shadow);
-        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
-    .action-btn.secondary {
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
         background-color: white;
         color: var(--primary);
         border: 1px solid var(--divider);
+        border-radius: var(--radius);
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+        gap: 8px;
     }
 
-    .action-btn.secondary:hover {
+    .btn-secondary:hover {
         background-color: #f5f5f5;
     }
 
@@ -438,120 +410,89 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 48px 24px;
+        padding: 40px 20px;
         text-align: center;
     }
 
     .empty-icon {
         font-size: 48px;
         color: var(--divider);
-        margin-bottom: 24px;
+        margin-bottom: 20px;
     }
 
     .empty-state h4 {
         font-size: 20px;
         color: var(--text-primary);
-        margin: 0 0 8px 0;
+        margin: 0 0 10px 0;
     }
 
     .empty-state p {
         font-size: 15px;
         color: var(--text-secondary);
-        margin: 0 0 24px 0;
+        margin: 0 0 20px 0;
         max-width: 400px;
     }
 
     /* Responsive Design */
-    @media (max-width: 1200px) {
-        .announcements-main {
+    @media (max-width: 992px) {
+        .course-main-content {
             margin-left: 0;
+            padding-top: 80px;
+        }
+        
+        .announcements-grid {
+            grid-template-columns: 1fr;
         }
     }
 
     @media (max-width: 768px) {
-        .announcements-header {
+        .course-header {
             flex-direction: column;
             align-items: flex-start;
-            gap: 16px;
-            padding: 16px;
+            gap: 15px;
         }
-
-        .header-actions {
-            width: 100%;
-            justify-content: flex-start;
-        }
-
-        .tools-bar {
+        
+        .course-toolbar {
             flex-direction: column;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 16px;
+            gap: 15px;
         }
-
-        .search-box {
+        
+        .search-container {
             max-width: 100%;
-            width: 100%;
-        }
-
-        .announcements-content {
-            padding: 0 16px;
         }
     }
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Mark all as read functionality
-        const markReadBtn = document.querySelector('.action-btn.secondary');
-        if (markReadBtn) {
-            markReadBtn.addEventListener('click', function() {
-                // Show toast notification
-                const toast = document.createElement('div');
-                toast.className = 'toast';
-                toast.textContent = 'All announcements marked as read';
-                document.body.appendChild(toast);
+document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchInput = document.getElementById('announcement-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const cards = document.querySelectorAll('.announcement-card');
+            
+            cards.forEach(card => {
+                const title = card.querySelector('h4').textContent.toLowerCase();
+                const content = card.querySelector('p').textContent.toLowerCase();
                 
-                setTimeout(() => {
-                    toast.classList.add('show');
-                }, 10);
-                
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                    setTimeout(() => {
-                        document.body.removeChild(toast);
-                    }, 300);
-                }, 3000);
+                if (title.includes(searchTerm) || content.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
             });
-        }
+        });
+    }
 
-        // Search functionality
-        const searchInput = document.querySelector('.search-box input');
-        if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                const cards = document.querySelectorAll('.announcement-card');
-                
-                cards.forEach(card => {
-                    const title = card.querySelector('.title').textContent.toLowerCase();
-                    const content = card.querySelector('.preview').textContent.toLowerCase();
-                    
-                    if (title.includes(searchTerm) || content.includes(searchTerm)) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-            });
-        }
-
-        // Filter functionality
-        const filterSelect = document.querySelector('.filter-select');
-        if (filterSelect) {
-            filterSelect.addEventListener('change', function() {
-                // In a real implementation, this would filter the announcements
-                console.log('Filter changed to:', this.value);
-            });
-        }
-    });
+    // Mark all as read functionality
+    const markReadBtn = document.querySelector('.btn-secondary');
+    if (markReadBtn) {
+        markReadBtn.addEventListener('click', function() {
+            // In a real implementation, this would mark all announcements as read
+            alert('All announcements marked as read');
+        });
+    }
+});
 </script>
 {% endblock %}
