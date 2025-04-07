@@ -170,11 +170,44 @@
     .btn-drop:hover {
         background-color: #c82333;
     }
+    .alert {
+        padding: 15px;
+        margin-bottom: 20px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+    }
+    .alert-danger {
+        color: #a94442;
+        background-color: #f2dede;
+        border-color: #ebccd1;
+    }
 </style>
 
 <div class="form-container">
     <h1>{% if student.pk %}Edit Student{% else %}Create Student{% endif %}</h1>
-    <form method="post" class="student-form" id="student-form" enctype="multipart/form-data">
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% if form.errors %}
+    <div class="alert alert-danger">
+        <strong>Please correct the following errors:</strong>
+        <ul>
+        {% for field in form %}
+            {% if field.errors %}
+            <li>{{ field.label }}: {{ field.errors|striptags }}</li>
+            {% endif %}
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" class="student-form" id="student-form" enctype="multipart/form-data" action="{% if student.pk %}{% url 'student_update' student.pk %}{% else %}{% url 'student_create' %}{% endif %}">
         {% csrf_token %}
         
         <!-- Basic Info Section -->
@@ -250,6 +283,11 @@
                     <li>{{ error }}</li>
                     {% endfor %}
                 </ul>
+            {% endif %}
+            {% if student.user.profile.profile_picture %}
+                <div class="current-image">
+                    Current: <img src="{{ student.user.profile.profile_picture.url }}" width="100">
+                </div>
             {% endif %}
         </div>
         
@@ -334,8 +372,7 @@
         
         <div class="form-actions">
             <button type="submit" class="btn btn-save">Save</button>
-            <a href="{% if student.pk %}{% url 'student_detail' student.pk %}{% else %}{% url 'student_list' %}{% endif %}" 
-               class="btn btn-cancel">Cancel</a>
+            <a href="{% url 'student_list' %}" class="btn btn-cancel">Cancel</a>
         </div>
     </form>
 </div>

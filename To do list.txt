@@ -27,5 +27,4 @@ Give a list of all classes a student has already completed.
 
 
 For Jonathan
-Professor should not be able to grade  assignments unless they are closed or submitted. 
 Assingment boxes must say what kind of assignment they are.

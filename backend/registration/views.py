@@ -210,7 +210,7 @@ def student_create(request):
 
 def student_detail(request, pk):
     student = get_object_or_404(Student, pk=pk)
-    return render(request, 'registration/student_detail.html', {"student": student})
+    return render(request, 'registration/student_detail.html', {'student': student})
 
 def student_update(request, pk):
     student = get_object_or_404(Student, pk=pk)
@@ -220,57 +220,55 @@ def student_update(request, pk):
         if form.is_valid():
             try:
                 with transaction.atomic():
-                    # Save basic student info
-                    student = form.save(commit=False)
-                    user = student.user
-                    user.first_name = form.cleaned_data['first_name']
-                    user.last_name = form.cleaned_data['last_name']
-                    user.email = form.cleaned_data['email']
+                    # Save student and user information
+                    student = form.save()
                     
-                    if form.cleaned_data['password']:
-                        user.set_password(form.cleaned_data['password'])
-                    
-                    user.save()
-                    student.save()
-                    
-                    # Handle course enrollments
-                    selected_course_ids = request.POST.getlist('courses')
+                    # Get selected course IDs from the form
+                    selected_course_ids = request.POST.getlist('courses', [])
                     current_courses = set(student.courses.all())
                     new_courses = set(Course.objects.filter(id__in=selected_course_ids))
                     
                     # Add new enrollments
                     for course in new_courses - current_courses:
-                        Enrollment.objects.get_or_create(student=student, course=course)
-                        course.available_seats -= 1
-                        course.save()
+                        # Check if course has available seats
+                        if course.available_seats > 0:
+                            Enrollment.objects.get_or_create(student=student, course=course)
+                            course.available_seats -= 1
+                            course.save()
+                        else:
+                            messages.warning(request, f'Course {course.name} is full and was not added')
                     
                     # Remove dropped enrollments
                     for course in current_courses - new_courses:
-                        Enrollment.objects.filter(student=student, course=course).delete()
-                        course.available_seats += 1
-                        course.save()
+                        enrollment = Enrollment.objects.filter(student=student, course=course).first()
+                        if enrollment:
+                            enrollment.delete()
+                            course.available_seats += 1
+                            course.save()
                     
                     messages.success(request, 'Student updated successfully!')
-                    return redirect('student_list', pk=student.pk)
+                    return redirect('student_list')
+            
             except Exception as e:
                 messages.error(request, f'Error updating student: {str(e)}')
+        else:
+            # Print form errors for debugging
+            print("Form errors:", form.errors)
+            messages.error(request, 'Please correct the errors below.')
     else:
         # Initialize form with student data
-        initial = {
-            'first_name': student.user.first_name,
-            'last_name': student.user.last_name,
-            'email': student.user.email,
-            'major': student.major
-        }
-        form = StudentForm(instance=student, initial=initial)
-
+        form = StudentForm(instance=student)
+    
+    # Prepare context
     context = {
         'form': form,
         'student': student,
         'enrolled_courses': student.courses.all(),
-        'available_courses': Course.objects.exclude(id__in=student.courses.values_list('id', flat=True)),
-        'majors': Major.objects.all(),
+        'available_courses': Course.objects.exclude(
+            id__in=student.courses.values_list('id', flat=True)
+        ),
     }
+    
     return render(request, 'registration/student_form.html', context)
 
 def student_schedule(request):
@@ -1138,19 +1136,24 @@ def course_grades_students(request, course_id):
 
 def course_grades_professors(request, course_id):
     course = get_object_or_404(Course, id=course_id)
-    assignments = Assignment.objects.filter(course=course)
     
-    # Get selected assignment
+    # Ensure only professors teaching this course can access
+    if not request.user.is_authenticated or not hasattr(request.user, 'professor') or \
+       not course.professor == request.user:
+        return redirect('home')
+    
+    assignments = Assignment.objects.filter(course=course).order_by('-due_date')
     selected_assignment = None
     assignment_id = request.GET.get('assignment')
+    
     if assignment_id:
-        selected_assignment = get_object_or_404(Assignment, id=assignment_id)
+        selected_assignment = get_object_or_404(Assignment, id=assignment_id, course=course)
     
     # Handle grade submission
     if request.method == 'POST' and selected_assignment:
         try:
             with transaction.atomic():
-                for enrollment in Enrollment.objects.filter(course=course):
+                for enrollment in Enrollment.objects.filter(course=course).select_related('student'):
                     student = enrollment.student
                     grade_key = f'grade_{student.user.id}'
                     numerical_grade = request.POST.get(grade_key)
@@ -1159,49 +1162,69 @@ def course_grades_professors(request, course_id):
                         try:
                             numerical_grade = float(numerical_grade)
                             if 0 <= numerical_grade <= 100:
-                                Grade.objects.update_or_create(
-                                    student=student.user,
+                                # Check if student has submitted or assignment is closed
+                                has_submitted = Submission.objects.filter(
                                     assignment=selected_assignment,
-                                    course=course,
-                                    defaults={
-                                        'numerical_grade': numerical_grade,
-                                        # letter_grade will be auto-set in save()
-                                    }
-                                )
+                                    student=student
+                                ).exists()
+                                
+                                if has_submitted or selected_assignment.is_closed:
+                                    Grade.objects.update_or_create(
+                                        student=student.user,
+                                        assignment=selected_assignment,
+                                        course=course,
+                                        defaults={
+                                            'numerical_grade': numerical_grade,
+                                            # letter_grade will be auto-set in save()
+                                        }
+                                    )
+                                else:
+                                    messages.warning(request, 
+                                        f"Cannot grade {student.user.get_full_name()} - assignment not submitted")
                         except ValueError:
-                            pass  # Ignore invalid grade entries
+                            messages.error(request, "Invalid grade format - must be number between 0-100")
                 
                 messages.success(request, 'Grades saved successfully!')
                 return redirect('course_grades_professors', course_id=course.id)
         except Exception as e:
             messages.error(request, f'Error saving grades: {str(e)}')
-    
-    # Prepare enrollment data with submission status
+
+    # Prepare enrollment data with submission status and grades
     enrollments = []
     for enrollment in Enrollment.objects.filter(course=course).select_related('student'):
-        student_data = {
-            'user': enrollment.student.user,
-            'has_submitted': Submission.objects.filter(
+        student = enrollment.student
+        submission = None
+        grade = None
+        
+        if selected_assignment:
+            submission = Submission.objects.filter(
                 assignment=selected_assignment,
-                student=enrollment.student
-            ).exists() if selected_assignment else False,
-            'grades': Grade.objects.filter(
-                student=enrollment.student.user,
-                course=course,
-                assignment=selected_assignment
-            ).first() if selected_assignment else None
-        }
+                student=student
+            ).exists()
+            
+            grade = Grade.objects.filter(
+                student=student.user,
+                assignment=selected_assignment,
+                course=course
+            ).first()
+        
         enrollments.append({
-            'student': student_data,
+            'student': {
+                'user': student.user,
+                'has_submitted': submission,
+                'grades': grade,
+                'student_obj': student
+            },
             'enrollment': enrollment
         })
-    
+
     context = {
         'course': course,
         'assignments': assignments,
         'selected_assignment': selected_assignment,
         'enrollments': enrollments,
     }
+    
     return render(request, 'course_grades_professors.html', context)
 
 def shopping_cart_view(request):

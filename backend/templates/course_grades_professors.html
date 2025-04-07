@@ -18,7 +18,7 @@
                         <option value="">-- Select an Assignment --</option>
                         {% for assignment in assignments %}
                             <option value="{{ assignment.id }}" {% if selected_assignment.id == assignment.id %}selected{% endif %}>
-                                {{ assignment.title }}
+                                {{ assignment.title }} ({% if assignment.is_closed %}Closed{% else %}Open{% endif %})
                             </option>
                         {% endfor %}
                     </select>
@@ -29,6 +29,11 @@
             <div class="grades-container">
                 {% if selected_assignment %}
                     <h2>Student Submissions for {{ selected_assignment.title }}</h2>
+                    <div class="assignment-status">
+                        Status: <span class="status-badge {% if selected_assignment.is_closed %}closed{% else %}open{% endif %}">
+                            {% if selected_assignment.is_closed %}Closed{% else %}Open{% endif %}
+                        </span>
+                    </div>
                     <form method="post">
                         {% csrf_token %}
                         <input type="hidden" name="assignment_id" value="{{ selected_assignment.id }}">
@@ -62,7 +67,11 @@
                                         <input type="number" name="grade_{{ enrollment.student.user.id }}" 
                                                min="0" max="100" step="0.1"
                                                value="{{ enrollment.student.grades.numerical_grade|default_if_none:'' }}"
-                                               class="grade-input">
+                                               class="grade-input"
+                                               {% if not enrollment.student.has_submitted and not selected_assignment.is_closed %}disabled{% endif %}>
+                                        {% if not enrollment.student.has_submitted and not selected_assignment.is_closed %}
+                                        <small class="help-text">Cannot grade - not submitted</small>
+                                        {% endif %}
                                     </td>
                                     <td class="letter-grade">
                                         {{ enrollment.student.grades.letter_grade|default_if_none:'--' }}
@@ -115,6 +124,23 @@
         background-color: white;
         border-radius: 5px;
     }
+    .assignment-status {
+        margin-bottom: 15px;
+        font-size: 1.1em;
+    }
+    .status-badge {
+        padding: 3px 10px;
+        border-radius: 3px;
+        font-weight: bold;
+    }
+    .status-badge.open {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .status-badge.closed {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
     .form-control {
         width: 100%;
         padding: 8px;
@@ -141,6 +167,10 @@
         padding: 5px;
         border: 1px solid #ddd;
         border-radius: 3px;
+    }
+    .grade-input:disabled {
+        background-color: #f5f5f5;
+        cursor: not-allowed;
     }
     .btn-save {
         background-color: #4CAF50;
@@ -176,6 +206,12 @@
     .letter-grade {
         font-weight: bold;
         text-align: center;
+    }
+    .help-text {
+        display: block;
+        color: #a94442;
+        font-size: 0.8em;
+        margin-top: 5px;
     }
 </style>
 

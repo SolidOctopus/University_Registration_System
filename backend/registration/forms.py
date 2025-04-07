@@ -4,6 +4,7 @@ from .models import Profile, Student, Professor, Admin, Enrollment, Course, Assi
 from django.contrib.auth.forms import UserCreationForm
 import re
 from datetime import datetime, time
+from django.core.exceptions import ValidationError
 
 class CourseForm(forms.ModelForm):
     majors = forms.ModelMultipleChoiceField(
@@ -38,54 +39,88 @@ class CourseForm(forms.ModelForm):
 
 
 class StudentForm(forms.ModelForm):
-    first_name = forms.CharField(max_length=30)
-    last_name = forms.CharField(max_length=30)
-    email = forms.EmailField()
-    password = forms.CharField(widget=forms.PasswordInput(), required=False)
-    confirm_password = forms.CharField(widget=forms.PasswordInput(), required=False)
-    courses = forms.ModelMultipleChoiceField(
-        queryset=Course.objects.none(),  # Will be set in the view
-        widget=forms.CheckboxSelectMultiple,
-        required=False
+    first_name = forms.CharField(max_length=30, required=True)
+    last_name = forms.CharField(max_length=30, required=True)
+    email = forms.EmailField(required=True)
+    password = forms.CharField(
+        widget=forms.PasswordInput(),
+        required=False,
+        help_text="Leave blank to keep current password"
+    )
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(),
+        required=False,
+        help_text="Confirm new password"
     )
     major = forms.ModelChoiceField(
         queryset=Major.objects.all(),
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
+        required=True
     )
+    
     class Meta:
         model = Student
-        fields = ['first_name', 'last_name', 'email', 'password', 'confirm_password', 'courses', 'profile_picture', 'major']
+        fields = ['first_name', 'last_name', 'email', 'password', 
+                 'confirm_password', 'profile_picture', 'major']
 
     def __init__(self, *args, **kwargs):
-        super(StudentForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if self.instance and self.instance.pk:
+            # Initialize fields with existing user data
             self.fields['first_name'].initial = self.instance.user.first_name
             self.fields['last_name'].initial = self.instance.user.last_name
             self.fields['email'].initial = self.instance.user.email
-            self.fields['courses'].queryset = Course.objects.filter(enrollment__student=self.instance)
+            self.fields['major'].initial = self.instance.major
 
-    def save(self, commit=True):
-        student = super(StudentForm, self).save(commit=False)
-        user = student.user
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
-        user.email = self.cleaned_data['email']
-        if self.cleaned_data['password']:
-            user.set_password(self.cleaned_data['password'])
-        if commit:
-            user.save()
-            student.save()
-            self.save_m2m()
-        return student
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if User.objects.filter(email=email).exclude(pk=self.instance.user.pk if self.instance.pk else None).exists():
+            raise ValidationError("This email is already in use.")
+        return email
 
     def clean(self):
         cleaned_data = super().clean()
         password = cleaned_data.get("password")
         confirm_password = cleaned_data.get("confirm_password")
 
-        if password and password != confirm_password:
-            self.add_error('confirm_password', "Passwords do not match")
+        # Only validate passwords if either field is filled
+        if password or confirm_password:
+            if password != confirm_password:
+                self.add_error('confirm_password', "Passwords do not match")
+            elif len(password) < 8:
+                self.add_error('password', "Password must be at least 8 characters long")
+        
+        return cleaned_data
+
+    def save(self, commit=True):
+        student = super().save(commit=False)
+        user = student.user
+        
+        # Update user fields
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+        user.email = self.cleaned_data['email']
+        
+        # Update password if provided
+        if self.cleaned_data['password']:
+            user.set_password(self.cleaned_data['password'])
+        
+        # Update major
+        student.major = self.cleaned_data['major']
+        
+        if commit:
+            user.save()
+            student.save()
+            self.save_m2m()
+            
+            # Update profile if exists
+            if hasattr(user, 'profile'):
+                profile = user.profile
+                profile.first_name = user.first_name
+                profile.last_name = user.last_name
+                profile.email = user.email
+                profile.save()
+        
+        return student
 
 class ProfessorForm(forms.ModelForm):
     first_name = forms.CharField(max_length=30)
