@@ -5,39 +5,16 @@
 
 {% block content %}
 <div class="grades-container">
-    <div class="grades-header">
-        <div class="header-content">
-            <h2>Grades Overview - {{ course.name }}</h2>
-            <div class="stats-summary">
-                <div class="stat-card">
-                    <span class="stat-value">
-                        {% if overall_grade %}{{ overall_grade }}{% else %}--{% endif %}
-                    </span>
-                    <span class="stat-label">Current Grade</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-value">{{ completed_assignments }}/{{ total_assignments }}</span>
-                    <span class="stat-label">Completed</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-value">{{ days_remaining }}</span>
-                    <span class="stat-label">Days Left</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="content-wrapper">
         <div class="grades-table-container">
             <div class="table-header">
-                <h3>Assignment Grades</h3>
                 <div class="search-box">
                     <i class="fas fa-search"></i>
                     <input type="text" placeholder="Search assignments..." id="grade-search">
                 </div>
             </div>
             
-            <div class="table-responsive">
+            <div class="table-responsive scrollable-assignments">
                 <table class="grades-table">
                     <thead>
                         <tr>
@@ -81,11 +58,11 @@
                                     </div>
                                 </td>
                                 <td class="grade-value">
-                                    <div class="grade-display grade-{{ grade.letter_grade.0|lower }}">
+                                    <div class="grade-display {% if grade.numerical_grade %}grade-{{ grade.letter_grade.0|lower }}{% else %}grade-none{% endif %}">
                                         {% if grade.numerical_grade %}
                                             {{ grade.numerical_grade }}% ({{ grade.letter_grade }})
                                         {% else %}
-                                            --
+                                            Not Graded
                                         {% endif %}
                                         {% if grade.feedback %}
                                         <div class="feedback-tooltip">
@@ -124,13 +101,15 @@
 
         <div class="grades-sidebar">
             <div class="sidebar-section">
-                <h4>Grade Distribution</h4>
-                <div class="grade-chart">
+                <div class="grade-chart-container">
                     <canvas id="gradeChart"></canvas>
+                    <div class="current-grade-overlay grade-{% if overall_grade %}{{ overall_grade.0|lower }}{% else %}none{% endif %}">
+                        {% if overall_grade %}{{ overall_grade }}{% else %}--{% endif %}
+                    </div>
                 </div>
             </div>
             
-            <div class="sidebar-section">
+            <div class="sidebar-section scrollable-upcoming">
                 <h4>Upcoming Assignments</h4>
                 <div class="upcoming-list">
                     {% if upcoming_assignments %}
@@ -165,26 +144,31 @@
     <div class="filter-container">
         <button class="filter-tab active" data-filter="all">
             <i class="fas fa-folder-open"></i> Show All
+            <span class="filter-count">{{ completed_assignments }}/{{ total_assignments }}</span>
         </button>
         <button class="filter-tab" data-filter="assignment">
             <i class="fas fa-file-alt"></i> Assignments
+            <span class="filter-count">{{ completed_assignments_by_type.assignment }}/{{ total_assignments_by_type.assignment }}</span>
         </button>
         <button class="filter-tab" data-filter="homework">
             <i class="fas fa-book"></i> Homework
+            <span class="filter-count">{{ completed_assignments_by_type.homework }}/{{ total_assignments_by_type.homework }}</span>
         </button>
         <button class="filter-tab" data-filter="project">
             <i class="fas fa-project-diagram"></i> Projects
+            <span class="filter-count">{{ completed_assignments_by_type.project }}/{{ total_assignments_by_type.project }}</span>
         </button>
         <button class="filter-tab" data-filter="exam">
             <i class="fas fa-file-signature"></i> Exams
+            <span class="filter-count">{{ completed_assignments_by_type.exam }}/{{ total_assignments_by_type.exam }}</span>
         </button>
     </div>
 </div>
 
 <style>
     :root {
-        --primary-color: #4361ee;
-        --secondary-color: #3f37c9;
+        --primary-color: #6e8efb;
+        --secondary-color: #7e77e3;
         --success-color: #4cc9f0;
         --warning-color: #f8961e;
         --danger-color: #f94144;
@@ -192,65 +176,12 @@
         --dark-color: #212529;
         --text-color: #495057;
         --border-color: #e9ecef;
+        --gradient-start: #6e8efb;
+        --gradient-end: #7e77e3;
     }
     
-    /* Main container */
-    .grades-container {
-        padding: 0;
-        margin-top: 10px;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-        overflow: hidden;
-    }
 
-    /* Header */
-    .grades-header {
-        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-        color: white;
-        padding: 25px 30px;
-    }
-    
-    .header-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 20px;
-    }
-    
-    .grades-header h2 {
-        margin: 0;
-        font-size: 1.8rem;
-        font-weight: 600;
-    }
-    
-    .stats-summary {
-        display: flex;
-        gap: 15px;
-    }
-    
-    .stat-card {
-        background: rgba(255,255,255,0.15);
-        border-radius: 8px;
-        padding: 12px 20px;
-        text-align: center;
-        min-width: 100px;
-        backdrop-filter: blur(5px);
-    }
-    
-    .stat-value {
-        display: block;
-        font-size: 1.5rem;
-        font-weight: 600;
-    }
-    
-    .stat-label {
-        font-size: 0.8rem;
-        opacity: 0.9;
-    }
 
-    /* Content layout */
     .content-wrapper {
         display: flex;
         gap: 25px;
@@ -265,74 +196,74 @@
         width: 300px;
     }
 
-    /* Table header */
     .table-header {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        justify-content: flex-start;
+        width: 100%;
         margin-bottom: 20px;
-    }
-    
-    .table-header h3 {
-        margin: 0;
-        color: var(--dark-color);
-        font-size: 1.3rem;
     }
     
     .search-box {
         position: relative;
-        width: 250px;
+        width: 100%;
+        max-width: 400px;
+        border-radius: 20px;
+        overflow: hidden;
     }
     
     .search-box i {
         position: absolute;
-        left: 12px;
+        left: 15px;
         top: 50%;
         transform: translateY(-50%);
-        color: #adb5bd;
+        color: var(--primary-color);
     }
     
     .search-box input {
         width: 100%;
-        padding: 10px 15px 10px 40px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
+        padding: 12px 15px 12px 45px;
+        border: 2px solid var(--border-color);
+        border-radius: 20px;
         font-size: 0.9rem;
-        transition: all 0.2s;
+        transition: all 0.3s;
+        background: white;
     }
     
     .search-box input:focus {
         outline: none;
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        box-shadow: 0 0 0 3px rgba(110, 142, 251, 0.2);
     }
 
-    /* Table styles */
     .table-responsive {
         overflow-x: auto;
         margin-bottom: 25px;
-        border-radius: 8px;
+        border-radius: 20px;
         border: 1px solid var(--border-color);
     }
     
     .grades-table {
         width: 100%;
-        border-collapse: collapse;
+        border-collapse: separate;
+        border-spacing: 0;
         min-width: 800px;
+        border-radius: 20px;
+        overflow: hidden;
     }
     
     .grades-table th {
-        background-color: var(--light-color);
-        color: var(--text-color);
+        background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+        color: white;
         padding: 15px;
         text-align: left;
         font-weight: 500;
-        border-bottom: 1px solid var(--border-color);
+        border: none;
     }
     
     .grades-table td {
         padding: 15px;
         border-bottom: 1px solid var(--border-color);
+        background: white;
     }
     
     .grades-table tr:last-child td {
@@ -340,7 +271,7 @@
     }
     
     .grades-table tr:hover {
-        background-color: rgba(67, 97, 238, 0.03);
+        background-color: rgba(110, 142, 251, 0.03);
     }
     
     .sortable {
@@ -350,7 +281,8 @@
     }
     
     .sortable:hover {
-        color: var(--primary-color);
+        color: white;
+        opacity: 0.9;
     }
     
     .sortable i {
@@ -358,7 +290,6 @@
         font-size: 0.8rem;
     }
 
-    /* Assignment info cells */
     .assignment-info {
         display: flex;
         align-items: center;
@@ -368,8 +299,8 @@
     .assignment-icon {
         width: 36px;
         height: 36px;
-        border-radius: 8px;
-        background: rgba(67, 97, 238, 0.1);
+        border-radius: 10px;
+        background: rgba(110, 142, 251, 0.1);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -383,7 +314,11 @@
         margin-top: 2px;
     }
 
-    /* Type badges */
+    .grade-none {
+        color: #95a5a6;
+        font-style: italic;
+    }
+
     .type-badge {
         display: inline-block;
         padding: 4px 10px;
@@ -412,7 +347,6 @@
         color: #f94144;
     }
 
-    /* Date cells */
     .date-cell {
         display: flex;
         flex-direction: column;
@@ -423,7 +357,6 @@
         color: #6c757d;
     }
 
-    /* Grade cells */
     .grade-value {
         font-weight: 600;
     }
@@ -469,7 +402,6 @@
         opacity: 1;
     }
 
-    /* Status badges */
     .status-badge {
         display: inline-block;
         padding: 4px 10px;
@@ -493,7 +425,6 @@
         color: #95a5a6;
     }
 
-    /* Empty state */
     .no-grades {
         text-align: center;
         padding: 40px 20px;
@@ -521,13 +452,13 @@
         font-size: 0.9rem;
     }
 
-    /* Sidebar styles */
     .sidebar-section {
         background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border-radius: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         padding: 20px;
         margin-bottom: 20px;
+        border: none;
     }
     
     .sidebar-section h4 {
@@ -536,9 +467,29 @@
         font-size: 1.1rem;
     }
     
-    .grade-chart {
-        height: 200px;
+    .grade-chart-container {
         position: relative;
+        height: 250px;
+        margin: 0 auto;
+        width: 80%;
+    }
+    
+    .current-grade-overlay {
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 2.5rem;
+        font-weight: bold;
+        text-align: center;
+        width: 0px;
+        height: 0px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: white;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
     
     .upcoming-list {
@@ -552,7 +503,7 @@
         align-items: center;
         gap: 12px;
         padding: 10px;
-        border-radius: 8px;
+        border-radius: 10px;
         transition: all 0.2s;
     }
     
@@ -563,8 +514,8 @@
     .upcoming-icon {
         width: 32px;
         height: 32px;
-        border-radius: 8px;
-        background: rgba(67, 97, 238, 0.1);
+        border-radius: 10px;
+        background: rgba(110, 142, 251, 0.1);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -604,7 +555,40 @@
         font-size: 0.9rem;
     }
 
-    /* Filter tabs */
+    .scrollable-assignments {
+        max-height: 60vh;
+        overflow-y: auto;
+        border-radius: 20px;
+    }
+
+    .scrollable-upcoming .upcoming-list {
+        max-height: 200px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+
+    .scrollable-assignments::-webkit-scrollbar,
+    .scrollable-upcoming .upcoming-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .scrollable-assignments::-webkit-scrollbar-track,
+    .scrollable-upcoming .upcoming-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    .scrollable-assignments::-webkit-scrollbar-thumb,
+    .scrollable-upcoming .upcoming-list::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+
+    .scrollable-assignments::-webkit-scrollbar-thumb:hover,
+    .scrollable-upcoming .upcoming-list::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+
     .filter-container {
         display: flex;
         gap: 10px;
@@ -615,30 +599,43 @@
     }
     
     .filter-tab {
-        padding: 10px 20px;
+        padding: 10px 15px;
         border: none;
         border-radius: 20px;
         background: white;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
         font-weight: 500;
         display: flex;
         align-items: center;
         gap: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        font-size: 0.9rem;
     }
     
     .filter-tab.active {
-        background: var(--primary-color);
+        background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
         color: white;
     }
     
     .filter-tab:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.15);
     }
 
-    /* Responsive adjustments */
+    .filter-count {
+        margin-left: 8px;
+        font-size: 0.8rem;
+        background: rgba(0,0,0,0.08);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+    
+    .filter-tab.active .filter-count {
+        background: rgba(255,255,255,0.3);
+    }
+
     @media (max-width: 1200px) {
         .content-wrapper {
             flex-direction: column;
@@ -647,32 +644,9 @@
         .grades-sidebar {
             width: 100%;
         }
-        
-        .stats-summary {
-            flex-wrap: wrap;
-        }
     }
     
     @media (max-width: 768px) {
-        .grades-header {
-            padding: 20px;
-        }
-        
-        .header-content {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        
-        .stats-summary {
-            width: 100%;
-            justify-content: space-between;
-        }
-        
-        .stat-card {
-            flex: 1;
-            min-width: auto;
-        }
-        
         .content-wrapper {
             padding: 15px;
         }
@@ -696,21 +670,14 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Filter functionality
         const filterTabs = document.querySelectorAll('.filter-tab');
         
         filterTabs.forEach(tab => {
             tab.addEventListener('click', function() {
-                // Remove active class from all tabs
                 filterTabs.forEach(t => t.classList.remove('active'));
-                
-                // Add active class to clicked tab
                 this.classList.add('active');
                 
-                // Get filter type
                 const filter = this.getAttribute('data-filter');
-                
-                // Filter the table rows
                 const rows = document.querySelectorAll('.grades-table tbody tr');
                 
                 rows.forEach(row => {
@@ -719,7 +686,7 @@
                     } else {
                         const typeCell = row.querySelector('td:nth-child(2)');
                         if (typeCell) {
-                            const typeText = typeCell.textContent.toLowerCase();
+                            const typeText = typeCell.textContent.toLowerCase().trim();
                             if (typeText.includes(filter)) {
                                 row.style.display = '';
                             } else {
@@ -731,7 +698,6 @@
             });
         });
         
-        // Search functionality
         const searchInput = document.getElementById('grade-search');
         searchInput.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
@@ -750,14 +716,12 @@
             });
         });
         
-        // Sorting functionality
         const sortableHeaders = document.querySelectorAll('.sortable');
         sortableHeaders.forEach(header => {
             header.addEventListener('click', function() {
                 const sortBy = this.getAttribute('data-sort');
                 const icon = this.querySelector('i');
                 
-                // Toggle sort direction
                 const isAscending = !this.classList.contains('asc');
                 sortableHeaders.forEach(h => {
                     h.classList.remove('asc', 'desc');
@@ -767,7 +731,6 @@
                 this.classList.add(isAscending ? 'asc' : 'desc');
                 icon.className = isAscending ? 'fas fa-sort-up' : 'fas fa-sort-down';
                 
-                // Sort the table
                 sortTable(sortBy, isAscending);
             });
         });
@@ -796,7 +759,6 @@
                 }
             });
             
-            // Reappend sorted rows
             rows.forEach(row => tbody.appendChild(row));
         }
         
@@ -821,7 +783,6 @@
             return match ? parseInt(match[1]) : -1;
         }
         
-        // Initialize grade chart
         const ctx = document.getElementById('gradeChart').getContext('2d');
         const gradeChart = new Chart(ctx, {
             type: 'doughnut',
@@ -830,28 +791,25 @@
                 datasets: [{
                     data: [{% if grade_distribution %}{{ grade_distribution|join:',' }}{% else %}0,0,0,0,0,0{% endif %}],
                     backgroundColor: [
-                        '#2ecc71',
-                        '#f39c12',
-                        '#e67e22',
-                        '#e74c3c',
-                        '#c0392b',
-                        '#bdc3c7'
+                        '#2ecc71', '#f39c12', '#e67e22', 
+                        '#e74c3c', '#c0392b', '#bdc3c7'
                     ],
-                    borderWidth: 0
+                    borderWidth: 0,
+                    borderRadius: 3,
+                    spacing: 2
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '78%',
+                cutout: '65%',
                 plugins: {
                     legend: {
                         position: 'bottom',
                         labels: {
                             boxWidth: 12,
-                            padding: 20,
-                            usePointStyle: true,
-                            pointStyle: 'circle'
+                            padding: 10,
+                            usePointStyle: true
                         }
                     }
                 }

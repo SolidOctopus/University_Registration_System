@@ -4,107 +4,286 @@
 {% endblock %}
 
 {% block content %}
+<style>
+    .course-header {
+        background: linear-gradient(135deg, #6e8efb, #7e77e3);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .course-header h1 {
+        margin: 0;
+        font-size: 2.2rem;
+        font-weight: 600;
+    }
+
+    .course-header .professor {
+        margin-top: 10px;
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+    }
+
+    .content-section {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        height: 87%;
+    }
+
+    .content-section h2 {
+        color: #4a5568;
+        font-size: 1.5rem;
+        margin-top: 0;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .scroll-container {
+        overflow-y: auto;
+        max-height: 400px;
+        padding-right: 10px;
+        flex: 1;
+    }
+
+    /* Custom scrollbar - matches message_list.html style */
+    .scroll-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .scroll-container::-webkit-scrollbar-track {
+        background: rgba(241, 241, 241, 0.5);
+        border-radius: 10px;
+    }
+
+    .scroll-container::-webkit-scrollbar-thumb {
+        background: rgba(110, 142, 251, 0.5);
+        border-radius: 10px;
+    }
+
+    .scroll-container::-webkit-scrollbar-thumb:hover {
+        background: rgba(110, 142, 251, 0.7);
+    }
+
+    .empty-message {
+        text-align: center;
+        padding: 40px 20px;
+        color: #718096;
+        font-size: 1.2rem;
+    }
+
+    /* Assignments List */
+    .assignments-list, .announcements-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .assignment-item, .announcement-item {
+        padding: 20px;
+        margin-bottom: 15px;
+        background: #f8fafc;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        border-left: 4px solid #6e8efb;
+    }
+
+    .assignment-item:hover, .announcement-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(110, 142, 251, 0.2);
+        background: white;
+    }
+
+    .assignment-title, .announcement-title {
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 1.1rem;
+        margin-bottom: 5px;
+    }
+
+    .assignment-due, .announcement-details {
+        color: #718096;
+        font-size: 0.95rem;
+    }
+
+    .assignment-due {
+        display: flex;
+        align-items: center;
+    }
+
+    .assignment-due i, .announcement-details i {
+        margin-right: 8px;
+        color: #7e77e3;
+    }
+
+    .urgent {
+        border-left-color: #f56565;
+    }
+
+    .upcoming {
+        border-left-color: #f6ad55;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1200px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .main-content {
+            margin-left: 0;
+            padding: 20px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .course-header h1 {
+            font-size: 1.8rem;
+        }
+        
+        .content-section {
+            padding: 20px 15px;
+        }
+    }
+</style>
+
 <div class="page-container">
     <!-- Include the sidebar -->
     {% include 'course_sidebar.html' %}
 
     <!-- Main Content -->
     <div class="main-content">
-        <div class="container">
+        <div class="course-header">
             <h1>{{ course.name }} - Overview</h1>
-
-            {% if no_content %}
-                <p class="empty-message">Nothing to do right now. Enjoy your time!</p>
-            {% else %}
-                <div class="assignments-section">
-                    <h2>Assignments Due in the Next 7 Days</h2>
-                    <ul class="assignments-list">
-                        {% for assignment in assignments %}
-                        <li class="assignment-item">
-                            <span class="assignment-title">{{ assignment.title }}</span>
-                            <span class="assignment-due">Due: {{ assignment.due_date|date:"F j, Y" }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-
-                <div class="announcements-section">
-                    <h2>Recent Announcements (Last 7 Days)</h2>
-                    <ul class="announcements-list">
-                        {% for announcement in announcements %}
-                        <li class="announcement-item">
-                            <span class="announcement-title">{{ announcement.title }}</span>
-                            <span class="announcement-details">{{ announcement.details }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
+            {% if course.professor %}
+                <div class="professor">
+                    <i class="fas fa-chalkboard-teacher"></i> Professor {{ course.professor.first_name }} {{ course.professor.last_name }}
                 </div>
             {% endif %}
         </div>
+
+        {% if no_content %}
+            <div class="content-section">
+                <div class="empty-message">
+                    <i class="fas fa-smile-beam" style="font-size: 2.5rem; margin-bottom: 15px; color: #7e77e3;"></i>
+                    <p>Nothing to do right now. Enjoy your time!</p>
+                </div>
+            </div>
+        {% else %}
+            <div class="content-grid">
+                <!-- Assignments Section -->
+                <div class="content-section">
+                    <h2><i class="fas fa-tasks"></i> Assignments Due</h2>
+                    <div class="scroll-container" id="assignments-scroll">
+                        {% if assignments %}
+                            <ul class="assignments-list">
+                                {% for assignment in assignments %}
+                                <li class="assignment-item {% if assignment.days_left == '1 DAY LEFT' %}urgent{% elif assignment.days_left and 'DAY(S) LEFT' in assignment.days_left %}upcoming{% endif %}">
+                                    <div class="assignment-title">{{ assignment.title }}</div>
+                                    <div class="assignment-due">
+                                        <i class="far fa-calendar-alt"></i>
+                                        Due: {{ assignment.due_date|date:"F j, Y" }}
+                                        {% if assignment.days_left %}
+                                            <span style="margin-left: auto; font-weight: 500; color: {% if assignment.days_left == '1 DAY LEFT' %}#f56565{% else %}#f6ad55{% endif %}">
+                                                {{ assignment.days_left }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <div style="text-align: center; padding: 20px; color: #718096;">
+                                No assignments due in the next 7 days.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Announcements Section -->
+                <div class="content-section">
+                    <h2><i class="fas fa-bullhorn"></i> Recent Announcements</h2>
+                    <div class="scroll-container" id="announcements-scroll">
+                        {% if announcements %}
+                            <ul class="announcements-list">
+                                {% for announcement in announcements %}
+                                <li class="announcement-item">
+                                    <div class="announcement-title">{{ announcement.title }}</div>
+                                    <div class="announcement-details">
+                                        <i class="far fa-clock"></i>
+                                        Posted on {{ announcement.posted_at|date:"F j, Y" }}
+                                    </div>
+                                    <div style="margin-top: 10px; color: #4a5568;">
+                                        {{ announcement.details }}
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <div style="text-align: center; padding: 20px; color: #718096;">
+                                No recent announcements.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
     </div>
 </div>
 
-<!-- Main Content Styling -->
-<style>
-    .page-container {
-        display: flex;
-        flex-direction: row;
-    }
-    .main-content {
-        width: calc(100% - 240px);
-        margin-left: 240px;
-        padding: 30px;
-        background-color: #ecf0f1;
-        border-radius: 10px;
-    }
-    .container {
-        margin: 20px auto;
-        padding: 20px;
-        max-width: 900px;
-        background-color: #f5f5f5;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    h1 {
-        text-align: center;
-        font-size: 2.5em;
-        color: #2980b9;
-        margin-bottom: 20px;
-    }
-    .empty-message {
-        text-align: center;
-        font-size: 1.5em;
-        color: #27ae60;
-        margin: 50px 0;
-    }
-    .assignments-section, .announcements-section {
-        margin-top: 30px;
-    }
-    .assignments-list, .announcements-list {
-        list-style-type: none;
-        padding-left: 0;
-    }
-    .assignment-item, .announcement-item {
-        padding: 15px;
-        background-color: #fff;
-        margin-bottom: 10px;
-        border-radius: 5px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        display: flex;
-        justify-content: space-between;
-    }
-    .assignment-title, .announcement-title {
-        font-weight: bold;
-        font-size: 1.2em;
-    }
-    .assignment-due, .announcement-details {
-        color: #555;
-        font-size: 0.9em;
-    }
-    .assignment-item:hover, .announcement-item:hover {
-        background-color: #f0f0f0;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-        transition: all 0.3s ease;
-    }
-</style>
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<script>
+    // Initialize scroll containers
+    document.addEventListener('DOMContentLoaded', function() {
+        const assignmentsScroll = document.getElementById('assignments-scroll');
+        const announcementsScroll = document.getElementById('announcements-scroll');
+        
+        // Auto-scroll to bottom for both containers
+        if (assignmentsScroll) {
+            assignmentsScroll.scrollTop = assignmentsScroll.scrollHeight;
+        }
+        
+        if (announcementsScroll) {
+            announcementsScroll.scrollTop = announcementsScroll.scrollHeight;
+        }
+        
+        // Smooth scroll behavior when new items are added
+        const observerOptions = {
+            childList: true,
+            subtree: true
+        };
+        
+        const assignmentsObserver = new MutationObserver(function() {
+            assignmentsScroll.scrollTop = assignmentsScroll.scrollHeight;
+        });
+        
+        const announcementsObserver = new MutationObserver(function() {
+            announcementsScroll.scrollTop = announcementsScroll.scrollHeight;
+        });
+        
+        if (assignmentsScroll) {
+            assignmentsObserver.observe(assignmentsScroll, observerOptions);
+        }
+        
+        if (announcementsScroll) {
+            announcementsObserver.observe(announcementsScroll, observerOptions);
+        }
+    });
+</script>
 {% endblock %}
