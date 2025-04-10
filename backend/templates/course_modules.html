@@ -11,7 +11,6 @@
             <div class="header-content">
                 <h1>{{ course.name }}</h1>
                 <h2>Course Modules</h2>
-                <p class="course-description">{{ course.description|default:"No course description available" }}</p>
             </div>
             
             {% if request.user.profile.role == 'professor' or request.user.profile.role == 'admin' %}

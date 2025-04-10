@@ -66,8 +66,8 @@
         color: #4a5568;
         font-size: 1.5rem;
         margin-top: 0;
-        margin-bottom: 20px;
-        padding-bottom: 10px;
+        margin-bottom: 0px;
+        padding-bottom: 0px;
         border-bottom: 2px solid #e2e8f0;
         display: flex;
         align-items: center;
@@ -236,12 +236,6 @@
             <a href="{% url 'course_modules' course.id %}" class="back-link">
             </a>
             <h1>{{ module.title }}</h1>
-            <div class="module-meta">
-                <span><i class="far fa-calendar-alt"></i> Created: {{ module.created_at|date:"F j, Y" }}</span>
-                {% if module.updated_at %}
-                    <span><i class="fas fa-sync-alt"></i> Updated: {{ module.updated_at|date:"F j, Y" }}</span>
-                {% endif %}
-            </div>
             <p class="module-description">{{ module.description|default:"No description provided" }}</p>
         </div>
 
@@ -312,14 +306,6 @@
                 </div>
             </div>
         </div>
-
-        {% if request.user.profile.role == 'professor' %}
-        <div class="module-actions">
-            <a href="{% url 'edit_module' course.id module.id %}" class="btn-edit">
-                <i class="fas fa-edit"></i> Edit Module
-            </a>
-        </div>
-        {% endif %}
     </div>
 </div>
 
