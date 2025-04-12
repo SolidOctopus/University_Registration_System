@@ -1,5 +1,73 @@
 {% include 'topbar.html' %}
 {% block content %}
-<h2>My Requirements</h2>
-{% include "enroll_sidebar.html" %}
+<div class="content-wrapper">
+    {% include "enroll_sidebar.html" %}
+    
+    <div class="content-container">
+        <h2>My Requirements for {{ major.name }} Major</h2>
+        
+        {% if remaining_courses %}
+            <h3>Courses You Need to Complete:</h3>
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th>Course Code</th>
+                        <th>Course Name</th>
+                        <th>Credits</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for course in remaining_courses %}
+                        <tr>
+                            <td>{{ course.course_code }}</td>
+                            <td>{{ course.name }}</td>
+                            <td>{{ course.credits }}</td>
+                            <td>{{ course.description|truncatechars:100 }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>You have completed all required courses for your major.</p>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .content-wrapper {
+        display: flex;
+    }
+    
+    .content-container {
+        margin-left: 300px; /* Adjust this value based on your sidebar width */
+        padding: 40px;
+        width: calc(100% - 300px);
+        max-width: 1200px;
+        background-color: #fff;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+    }
+    
+    .schedule-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 40px;
+    }
+    
+    .schedule-table, .schedule-table th, .schedule-table td {
+        border: 1px solid #000;
+    }
+    
+    .schedule-table th, .schedule-table td {
+        padding: 8px;
+        text-align: left;
+    }
+    
+    h2, h3 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+</style>
 {% endblock %}

@@ -1239,7 +1239,26 @@ def shopping_cart_view(request):
 
 
 def my_requirements_view(request):
-    return render(request, 'my_requirements.html')
+    student = get_object_or_404(Student, user=request.user)
+    major = student.major
+    
+    # Get all required courses for this major using the course_majors relationship
+    required_courses = Course.objects.filter(majors=major)
+    
+    # Get courses the student has already completed
+    completed_courses = Enrollment.objects.filter(
+        student=student
+    ).values_list('course_id', flat=True)
+    
+    # Filter to get only remaining required courses
+    remaining_courses = required_courses.exclude(id__in=completed_courses)
+    
+    context = {
+        'remaining_courses': remaining_courses,
+        'major': major
+    }
+    
+    return render(request, 'my_requirements.html', context)
 
 def financials_view(request):
     return render(request, 'financials.html')
@@ -1289,16 +1308,23 @@ def enroll_all_courses(request):
         
         for cart_item in cart_items:
             course = cart_item.course
-            if course.available_seats > 0 and student.major not in course.majors.all():  # Updated this line
-                major_names = ", ".join([major.name for major in course.majors.all()])
-                messages.error(request, f'Sorry - only students with the {major_names} major(s) can enroll in this course.')
-                message_list.append({'level': 'error', 'message': f'Sorry - only students with the {major_names} major(s) can enroll in this course.'})
+            if course.available_seats <= 0:
+                messages.error(request, f'No available seats in {course.name}.')
+                message_list.append({'level': 'error', 'message': f'No available seats in {course.name}.'})
                 success = False
-            elif course.available_seats > 0 and student.major in course.majors.all():  # Updated this line
-                Enrollment.objects.create(student=student, course=course)
-                course.available_seats -= 1
-                course.save()
-                cart_item.delete()
+                continue  # Skip to next course
+                
+            # Check if major doesn't match, but still allow enrollment with a warning
+            if course.majors.exists() and student.major not in course.majors.all():
+                major_names = ", ".join([major.name for major in course.majors.all()])
+                messages.warning(request, f'Note: Course {course.name} is recommended for {major_names} major(s).')
+                message_list.append({'level': 'warning', 'message': f'Note: Course {course.name} is recommended for {major_names} major(s).'})
+            
+            # Proceed with enrollment regardless of major
+            Enrollment.objects.create(student=student, course=course)
+            course.available_seats -= 1
+            course.save()
+            cart_item.delete()
         
         if success:
             messages.success(request, 'You have successfully enrolled in the selected courses.')

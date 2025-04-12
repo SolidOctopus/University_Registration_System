@@ -12,10 +12,13 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env file
+load_dotenv(os.path.join(BASE_DIR.parent, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -82,7 +85,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'university_db',
         'USER': 'root',
-        'PASSWORD': 'CEN4010',
+        'PASSWORD': 'wildcats64',
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -154,14 +157,16 @@ CHANNEL_LAYERS = {
     },
 }
 
-# Email configuration for forgot password feature - use Sendgrid
+# Email configuration for forgot password feature - add Sendgrid code here
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.sendgrid.net"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "apikey"
-# EMAIL_HOST_PASSWORD = "REPLACE WITH API KEY"
-# DEFAULT_FROM_EMAIL = "REPLACE WITH EMAIL"
+# Make user set up own api key and environmental variables
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER") 
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
+
 
 LOGIN_URL = '/login/'  # Custom login page URL
 

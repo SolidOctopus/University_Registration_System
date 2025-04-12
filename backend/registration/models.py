@@ -261,6 +261,12 @@ class Message(models.Model):
         self.is_read = True
         self.save()
 
+class MajorRequirement(models.Model):
+    major = models.ForeignKey(Major, on_delete=models.CASCADE, related_name='required_courses')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='required_for_majors')
+    
+    class Meta:
+        unique_together = ('major', 'course')
 
 class UserAssignmentCompletion(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='completed_assignments')
