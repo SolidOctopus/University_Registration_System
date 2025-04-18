@@ -1,207 +1,340 @@
 {% extends 'topbar.html' %}
-{% block content %}
-<div class="page-container">
+{% block hanging_nav %}
     {% include 'course_sidebar.html' %}
+{% endblock %}
 
-    <div class="main-content">
-        <div class="container">
-            <div class="module-header-section">
-                <a href="{% url 'course_modules' course.id %}" class="back-link">
-                    <i class="fas fa-arrow-left"></i> Back to Modules
-                </a>
-                <h1>{{ module.title }}</h1>
-                <p class="module-description">{{ module.description|default:"No description provided" }}</p>
-                <p class="module-meta">Created: {{ module.created_at|date:"F j, Y" }}</p>
-            </div>
-
-            <div class="module-content-grid">
-                <!-- Assignments Section -->
-                <div class="content-section assignments-section">
-                    <h2><i class="fas fa-tasks"></i> Assignments</h2>
-                    {% if module.assignment_modules.all %}
-                        <div class="items-list">
-                            {% for assignment in module.assignment_modules.all %}
-                            <a href="{% url 'assignment_details' course.id assignment.id %}" class="content-item assignment-item">
-                                <div class="item-header">
-                                    <h3>{{ assignment.title }}</h3>
-                                    <span class="due-date">Due: {{ assignment.due_date|date:"M d, Y" }} at {{ assignment.due_time|time:"g:i A" }}</span>
-                                </div>
-                                <p class="item-description">{{ assignment.description|truncatechars:150 }}</p>
-                                <div class="item-status">
-                                    {% if assignment.is_closed %}
-                                        <span class="status-badge closed">Closed</span>
-                                    {% elif assignment.due_date < current_date %}
-                                        <span class="status-badge late">Past Due</span>
-                                    {% else %}
-                                        <span class="status-badge open">Open</span>
-                                    {% endif %}
-                                </div>
-                            </a>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <p class="no-items">No assignments in this module</p>
-                    {% endif %}
-                </div>
-
-                <!-- Announcements Section -->
-                <div class="content-section announcements-section">
-                    <h2><i class="fas fa-bullhorn"></i> Announcements</h2>
-                    {% if module.announcement_modules.all %}
-                        <div class="items-list">
-                            {% for announcement in module.announcement_modules.all %}
-                            <a href="{% url 'announcement_detail' course.id announcement.id %}" class="content-item announcement-item">
-                                <div class="item-header">
-                                    <h3>{{ announcement.title }}</h3>
-                                    <span class="post-date">Posted: {{ announcement.posted_at|date:"M d, Y" }}</span>
-                                </div>
-                                <p class="item-description">{{ announcement.details|truncatechars:150 }}</p>
-                            </a>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <p class="no-items">No announcements in this module</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            {% if request.user.profile.role == 'professor' %}
-            <div class="module-actions">
-                <a href="{% url 'edit_module' course.id module.id %}" class="btn-edit">
-                    <i class="fas fa-edit"></i> Edit Module
-                </a>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
+{% block content %}
 <style>
-    .main-content {
-        width: calc(100% - 240px);
-        margin-left: 240px;
-        padding: 30px;
-        background-color: #f8f9fa;
-        min-height: 100vh;
-    }
-    .container {
-        max-width: 900px;
-        margin: 0 auto;
+    .module-header {
+        background: linear-gradient(135deg, #6e8efb, #7e77e3);
+        color: white;
         padding: 20px;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-    .module-header-section {
+        border-radius: 15px;
         margin-bottom: 30px;
-        padding-bottom: 20px;
-        border-bottom: 1px solid #eee;
+        margin-top: -25px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        position: relative;
     }
+
+    .module-header h1 {
+        margin: 0;
+        font-size: 2.2rem;
+        font-weight: 600;
+    }
+
+    .module-meta {
+        margin-top: 10px;
+        font-size: 1rem;
+        opacity: 0.9;
+        display: flex;
+        gap: 20px;
+    }
+
     .back-link {
-        display: inline-flex;
+        position: absolute;
+        top: 25px;
+        left: 25px;
+        color: white;
+        text-decoration: none;
+        display: flex;
         align-items: center;
         gap: 8px;
-        color: #3498db;
-        margin-bottom: 15px;
-        text-decoration: none;
+        font-size: 1rem;
     }
-    .module-meta {
-        color: #7f8c8d;
-        font-size: 0.9em;
+
+    .back-link:hover {
+        text-decoration: underline;
     }
-    .module-content-grid {
+
+    .content-grid {
         display: grid;
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
         gap: 30px;
     }
+
     .content-section {
-        background: #fff;
-        border-radius: 8px;
-        padding: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        height: 78%;
     }
+
     .content-section h2 {
-        color: #2c3e50;
+        color: #4a5568;
+        font-size: 1.5rem;
         margin-top: 0;
+        margin-bottom: 0px;
+        padding-bottom: 0px;
+        border-bottom: 2px solid #e2e8f0;
         display: flex;
         align-items: center;
         gap: 10px;
     }
-    .items-list {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 15px;
+
+    .scroll-container {
+        overflow-y: auto;
+        max-height: 500px;
+        padding-right: 10px;
+        flex: 1;
     }
-    .content-item {
+
+    /* Custom scrollbar - matches course_overview style */
+    .scroll-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .scroll-container::-webkit-scrollbar-track {
+        background: rgba(241, 241, 241, 0.5);
+        border-radius: 10px;
+    }
+
+    .scroll-container::-webkit-scrollbar-thumb {
+        background: rgba(110, 142, 251, 0.5);
+        border-radius: 10px;
+    }
+
+    .scroll-container::-webkit-scrollbar-thumb:hover {
+        background: rgba(110, 142, 251, 0.7);
+    }
+
+    .empty-message {
+        text-align: center;
+        padding: 40px 20px;
+        color: #718096;
+        font-size: 1.2rem;
+    }
+
+    /* Assignments List */
+    .assignments-list, .announcements-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .assignment-item, .announcement-item {
         display: block;
-        padding: 15px;
-        border-radius: 6px;
-        background: #f8f9fa;
+        padding: 20px;
+        margin-bottom: 15px;
+        background: #f8fafc;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        border-left: 4px solid #6e8efb;
         text-decoration: none;
         color: inherit;
-        transition: all 0.3s ease;
     }
-    .content-item:hover {
-        background: #ecf0f1;
-        transform: translateX(5px);
+
+    .assignment-item:hover, .announcement-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(110, 142, 251, 0.2);
+        background: white;
     }
-    .item-header {
+
+    .item-title {
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 1.1rem;
+        margin-bottom: 5px;
+    }
+
+    .item-meta {
+        color: #718096;
+        font-size: 0.95rem;
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        margin-bottom: 10px;
     }
-    .item-header h3 {
-        margin: 0;
-        color: #2c3e50;
+
+    .item-meta i {
+        margin-right: 8px;
+        color: #7e77e3;
     }
-    .due-date, .post-date {
-        font-size: 0.85em;
-        color: #7f8c8d;
-    }
+
     .item-description {
-        color: #34495e;
-        margin: 10px 0;
+        margin-top: 10px;
+        color: #4a5568;
+        font-size: 0.95rem;
     }
+
     .status-badge {
+        display: inline-block;
         padding: 3px 10px;
         border-radius: 12px;
-        font-size: 0.75em;
-        font-weight: bold;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-left: auto;
+    }
+
+    .status-open {
+        background-color: #48bb78;
         color: white;
     }
-    .status-badge.open {
-        background-color: #2ecc71;
+
+    .status-late {
+        background-color: #ed8936;
+        color: white;
     }
-    .status-badge.late {
-        background-color: #e67e22;
+
+    .status-closed {
+        background-color: #f56565;
+        color: white;
     }
-    .status-badge.closed {
-        background-color: #e74c3c;
-    }
-    .no-items {
-        color: #95a5a6;
-        font-style: italic;
-        padding: 10px;
-    }
+
     .module-actions {
         margin-top: 30px;
         text-align: right;
     }
-    @media (min-width: 992px) {
-        .module-content-grid {
-            grid-template-columns: 1fr 1fr;
+
+    .btn-edit {
+        background-color: #4299e1;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background-color 0.2s;
+    }
+
+    .btn-edit:hover {
+        background-color: #3182ce;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1200px) {
+        .content-grid {
+            grid-template-columns: 1fr;
         }
     }
+
     @media (max-width: 768px) {
-        .main-content {
-            width: 100%;
-            margin-left: 0;
-            padding: 15px;
+        .module-header h1 {
+            font-size: 1.8rem;
+            padding-top: 30px;
         }
-        .container {
-            padding: 15px;
+        
+        .content-section {
+            padding: 20px;
+        }
+        
+        .back-link {
+            position: relative;
+            top: auto;
+            left: auto;
+            margin-bottom: 15px;
         }
     }
 </style>
+
+<div class="page-container">
+    {% include 'course_sidebar.html' %}
+
+    <div class="main-content">
+        <div class="module-header">
+            <a href="{% url 'course_modules' course.id %}" class="back-link">
+            </a>
+            <h1>{{ module.title }}</h1>
+            <p class="module-description">{{ module.description|default:"No description provided" }}</p>
+        </div>
+
+        <div class="content-grid">
+            <!-- Assignments Section -->
+            <div class="content-section">
+                <h2><i class="fas fa-tasks"></i> Assignments</h2>
+                <div class="scroll-container">
+                    {% if module.assignment_modules.all %}
+                        <ul class="assignments-list">
+                            {% for assignment in module.assignment_modules.all %}
+                            <a href="{% url 'assignment_details' course.id assignment.id %}" class="assignment-item">
+                                <div class="item-header">
+                                    <div class="item-title">{{ assignment.title }}</div>
+                                    <div class="status-badge 
+                                        {% if assignment.is_closed %}status-closed
+                                        {% elif assignment.due_date < current_date %}status-late
+                                        {% else %}status-open{% endif %}">
+                                        {% if assignment.is_closed %}Closed
+                                        {% elif assignment.due_date < current_date %}Past Due
+                                        {% else %}Open{% endif %}
+                                    </div>
+                                </div>
+                                <div class="item-meta">
+                                    <i class="far fa-calendar-alt"></i>
+                                    Due: {{ assignment.due_date|date:"M d, Y" }} at {{ assignment.due_time|time:"g:i A" }}
+                                </div>
+                                <div class="item-description">
+                                    {{ assignment.description|truncatechars:150 }}
+                                </div>
+                            </a>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="empty-message">
+                            <i class="far fa-smile" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                            <p>No assignments in this module</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Announcements Section -->
+            <div class="content-section">
+                <h2><i class="fas fa-bullhorn"></i> Announcements</h2>
+                <div class="scroll-container">
+                    {% if module.announcement_modules.all %}
+                        <ul class="announcements-list">
+                            {% for announcement in module.announcement_modules.all %}
+                            <a href="{% url 'announcement_detail' course.id announcement.id %}" class="announcement-item">
+                                <div class="item-title">{{ announcement.title }}</div>
+                                <div class="item-meta">
+                                    <i class="far fa-clock"></i>
+                                    Posted: {{ announcement.posted_at|date:"M d, Y" }}
+                                </div>
+                                <div class="item-description">
+                                    {{ announcement.details|truncatechars:150 }}
+                                </div>
+                            </a>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="empty-message">
+                            <i class="far fa-smile" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                            <p>No announcements in this module</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize scroll containers
+        const scrollContainers = document.querySelectorAll('.scroll-container');
+        
+        scrollContainers.forEach(container => {
+            // Auto-scroll to top on load
+            container.scrollTop = 0;
+            
+            // Smooth scroll behavior
+            container.style.scrollBehavior = 'smooth';
+        });
+        
+        // Add hover effects for all items
+        const items = document.querySelectorAll('.assignment-item, .announcement-item');
+        items.forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px)';
+            });
+            item.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+            });
+        });
+    });
+</script>
 {% endblock %}

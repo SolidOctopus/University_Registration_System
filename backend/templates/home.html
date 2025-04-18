@@ -155,6 +155,12 @@
                     <span>Admin List</span>
                 </div>
             </a>
+            <a href="{% url 'message_list' %}" class="box">
+                <div class="icon"><i class="fas fa-envelope"></i></div>
+                <div class="box-content">
+                    <span>My Messages</span>
+                </div>
+            </a>
         {% elif user.profile.role == 'student' %}
             <a href="{% url 'available_courses' %}" class="box">
                 <div class="icon"><i class="fas fa-list-alt"></i></div>
@@ -246,6 +252,12 @@
                 <div class="icon"><i class="fas fa-calendar-check"></i></div>
                 <div class="box-content">
                     <span>Manage Classes</span>
+                </div>
+            </a>
+            <a href="{% url 'message_list' %}" class="box">
+                <div class="icon"><i class="fas fa-envelope"></i></div>
+                <div class="box-content">
+                    <span>My Messages</span>
                 </div>
             </a>
         {% endif %}
