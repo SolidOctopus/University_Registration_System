@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}University Registration System{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/topbar.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         /* Add space for hanging signs below topbar */
@@ -16,17 +15,69 @@
             padding-top: 0;
         }
         
-        /* Typing animation - single run */
-        @keyframes typing {
-            from { width: 0 }
-            to { width: 100% }
+        /* Styling for the topbar */
+        .topbar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            background-color: #0044cc; /* Dark blue background */
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-        
+
+        /* Styling for the topbar branding */
         #branding h1 a {
-            display: inline-block;
-            overflow: hidden;
-            white-space: nowrap;
-            animation: typing 3s steps(30, end) forwards;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        /* Nav links styling */
+        nav ul {
+            display: flex;
+            list-style: none;
+            padding: 0;
+        }
+
+        nav ul li {
+            margin-right: 20px;
+        }
+
+        nav ul li a {
+            color: white;
+            font-size: 16px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        nav ul li a i {
+            margin-right: 8px; /* Space between icon and text */
+        }
+
+        /* Icon styling */
+        .top-right-icons {
+            display: flex;
+            align-items: center;
+        }
+
+        .top-right-icons .icon img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Add space below the topbar to avoid overlap */
+        body {
+            margin-top: 60px; /* Adjust based on the height of the topbar */
         }
 
         /* Nav link hover animation */
@@ -34,7 +85,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         nav ul li a::after {
             content: '';
             position: absolute;
@@ -47,10 +98,20 @@
             transform-origin: right;
             transition: transform 0.3s ease;
         }
-        
+
         nav ul li a:hover::after {
             transform: scaleX(1);
             transform-origin: left;
+        }
+
+        /* Scroll effect - change background color when scrolled */
+        body.scrolled .topbar-container {
+            background-color: #333; /* Dark background when scrolled */
+            color: white;
+        }
+
+        .container-main {
+            padding-top: 80px; /* Add enough padding to accommodate the fixed topbar */
         }
     </style>
 </head>
@@ -100,20 +161,20 @@
                 document.body.classList.remove('scrolled');
             }
         });
-        
+
         // Check if hanging nav exists
         document.addEventListener('DOMContentLoaded', function() {
             if (document.querySelector('.hanging-nav')) {
                 document.body.classList.add('has-hanging-nav');
             }
-            
+
             // Run typing animation once
             const titleElement = document.getElementById('animated-title');
             const fullText = titleElement.textContent;
-            
+
             // Reset to empty
             titleElement.textContent = '';
-            
+
             // Typing effect (single run)
             let i = 0;
             const typingInterval = setInterval(() => {
