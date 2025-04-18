@@ -1,3 +1,4 @@
+{% include 'topbar.html' %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -222,7 +223,7 @@
     </style>
 </head>
 <body>
-
+    {% include 'topbar.html' %}
     <div class="topbar-container">
         <!-- Notch header -->
         {% if request.path != '/login/' and request.path != '/register/' %}
